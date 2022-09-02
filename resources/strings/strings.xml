@@ -1,0 +1,21 @@
+<strings>
+    <string id="AppName">Forumslader</string>
+    <string id="SetupMenu">Datafield Setup</string>
+    <string id="SetupText">Select the values to be shown in the Datafield</string>
+    <string id="Item1Title">Value 1</string>
+    <string id="Item2Title">Value 2</string>
+    <string id="Item3Title">Value 3</string>
+    <string id="Item4Title">Value 4</string>
+    <string id="ShowOff">-- hide --</string>
+    <string id="ShowTripEnergy">Trip Energy [Wh]</string>
+    <string id="ShowTemperature">Temperature [°C]</string>
+    <string id="ShowDynamoPower">Dynamo Power [W]</string>
+    <string id="ShowDynamoGear">Dynamo Gear</string>
+    <string id="ShowDynamoFrequency">Dynamo Frequency [Hz]</string>
+    <string id="ShowBatteryVoltage">Battery Voltage [V]</string>
+    <string id="ShowBatteryCurrent">Battery Current [A]</string>
+    <string id="ShowBatteryRemaining">Battery Remaining [%]</string>
+    <string id="ShowLoad">Load Current [A]</string>
+    <string id="ShowCurrentSpeed">Speed [km/h]</string>
+    <string id="SelectCapacityMethod">Use Coloumb Counter for battery capacity calculation </string>
+</strings>
