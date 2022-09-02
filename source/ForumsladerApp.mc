@@ -3,7 +3,6 @@ to do:
 [ ] Garmin Connect Settings-Menü: "Lock to Device" Schalter zum direkten BLE connecten ohne vorheriges scannen
 [ ] Garmin Connect Settings-Menü: "Log values" Schalter um Werte in fit Dateien zu loggen
 [ ] Berechnung Verbraucherleistung Watt prüfen
-[ ] Lizenz für Veröffentlichung entscheiden und LICENSE Datei entsprechend aktualisieren, Garmin Lizenz checken
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
 [ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
 [ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
