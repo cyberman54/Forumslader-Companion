@@ -85,7 +85,9 @@ class DeviceManager {
         debug("Write Desc: (" + desc.getUuid() + ") - " + status);
         _writeInProgress = false;
         // Request data for wheelsize and poles, only once during init
-        sendCommand(_CMD_REQ_FLP);
+        if (!_data.cfgDone) {
+            sendCommand(_CMD_REQ_FLP);
+        }
     }
 
     //! Send $FLT command to forumslader device
