@@ -69,7 +69,7 @@ class ForumsladerApp extends Application.AppBase {
         return null; 
     }
 
-    //! Hanlde change of settings by user in GCM while App is running
+    //! Handle change of settings by user in GCM while App is running
 	function onSettingsChanged() {
     	ForumsladerView.onSettingsChanged();
 	}

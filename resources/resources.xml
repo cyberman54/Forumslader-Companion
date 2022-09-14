@@ -1,0 +1,5 @@
+<resources>
+    <string id="connecting">connecting</string>
+    <string id="initializing">initializing</string>
+    <string id="loadingdata">loading data</string>
+</resources>

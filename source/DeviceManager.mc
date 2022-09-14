@@ -4,7 +4,7 @@ import Toybox.Lang;
 class DeviceManager {
 
      // threshold rssi for detecting forumslader devices
-    private const _RSSI_threshold = -70;
+    private const _RSSI_threshold = -80;
 	// command to request pole and wheelsize
 	private const _CMD_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
     // command to request firmware version
@@ -45,7 +45,14 @@ class DeviceManager {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
-            BluetoothLowEnergy.pairDevice(scanResult);
+            try {
+                BluetoothLowEnergy.pairDevice(scanResult);
+            }
+            catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
+                debug("Pairing Error, Device: " + ScanResult.getDeviceName());
+                debug("Error: " + ex.getErrorMessage());
+                BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+            }
         }
     }
 

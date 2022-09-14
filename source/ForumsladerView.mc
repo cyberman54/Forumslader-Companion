@@ -14,7 +14,10 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _showList as Array<Number> = [0, 0, 0, 0] as Array<Number>,  // 4 out of 10 fields to show
         _coloumbCalc as Boolean = true,
         _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
-        _battVoltage as Float = 0.0; // calculated field from cell voltages
+        _battVoltage as Float = 0.0, // calculated field from cell voltages
+        _connecting as String,
+        _initializing as String,
+        _loadingdata as String;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -22,7 +25,10 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         SimpleDataField.initialize();
         label = "Forumslader";
         _data = dataManager;
-        _displayString = "initializing";
+        _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
+        _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
+        _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
+        _displayString = _initializing;
         getUserSettings();
     }
 
@@ -34,7 +40,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _data.tick++;    // increase data age seconds counter
 
         if (!isConnected){
-            _displayString = "connecting";
+            _displayString = _connecting;
         }
         else
         {
@@ -110,7 +116,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             else 
             {
                 // maybe to come: do we want some action for connection handling here?
-                _displayString = "no data";
+                _displayString = _loadingdata;
             }
         }
   
