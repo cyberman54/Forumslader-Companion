@@ -46,7 +46,7 @@ class ForumsladerApp extends Application.AppBase {
 
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();
-        (_deviceManager as DeviceManager).startScan();
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
     }
 
     //! Handle app shutdown
