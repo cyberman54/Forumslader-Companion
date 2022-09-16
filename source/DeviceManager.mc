@@ -39,6 +39,7 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
+            debug("trying to connect, rssi=" + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
@@ -48,6 +49,8 @@ class DeviceManager {
                 debug("Error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
+        } else {
+            debug("signal too weak, rssi=" + scanResult.getRssi());
         }
     }
 

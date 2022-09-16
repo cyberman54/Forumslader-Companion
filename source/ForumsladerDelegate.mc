@@ -154,7 +154,6 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
                 return true;
             }
         }
-
         return false;
     }
 }
