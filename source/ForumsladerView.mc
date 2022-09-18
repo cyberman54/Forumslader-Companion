@@ -11,7 +11,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
     private var 
         _data as DataManager,
-        _showList as Array<Number> = [0, 0, 0, 0] as Array<Number>,  // 4 out of 10 fields to show
+        _showList as Array<Number> = [10, 3, 6, 7] as Array<Number>,  // 4 out of 10 fields to show
         _coloumbCalc as Boolean = true,
         _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
         _battVoltage as Float = 0.0, // calculated field from cell voltages
@@ -73,7 +73,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                             break;
 
                         case 5: // dynamo frequency
-                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] + "Hz" : "--";
+                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] / 10 + "Hz" : "--";
                             break;
 
                         case 6: // battery voltage
