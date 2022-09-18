@@ -37,13 +37,11 @@ class ForumsladerApp extends Application.AppBase {
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
-        debug("--- Start App ---");
-
+        debug("--- Field started ---");
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate(_profileManager as ProfileManager);
         _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
-
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
@@ -56,7 +54,7 @@ class ForumsladerApp extends Application.AppBase {
         _bleDelegate = null;
         _profileManager = null;
         _dataManager = null;
-        debug("--- Stop App ---");
+        debug("--- Field stopped ---");
     }
 
     //! Return the initial view for the app

@@ -23,15 +23,14 @@ class DeviceManager {
     //! @param profileManager The profile manager
     public function initialize(bleDelegate as ForumsladerDelegate, profileManager as ProfileManager, dataManager as DataManager) {
         _device = null;
+        _profileManager = profileManager;
+        _data = dataManager;
 
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
         bleDelegate.notifyCharChanged(self);
         bleDelegate.notifyDescWrite(self);
-
-        _profileManager = profileManager;
-        _data = dataManager;
     }
 
     //! Process scan result
@@ -39,7 +38,7 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            debug("trying to connect, rssi=" + scanResult.getRssi());
+            debug("trying to connect, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
@@ -50,7 +49,7 @@ class DeviceManager {
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
         } else {
-            debug("signal too weak, rssi=" + scanResult.getRssi());
+            debug("signal too weak, rssi " + scanResult.getRssi());
         }
     }
 

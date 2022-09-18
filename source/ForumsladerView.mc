@@ -73,7 +73,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                             break;
 
                         case 5: // dynamo frequency
-                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_gear] / 10 + "Hz" : "--";
+                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] + "Hz" : "--";
                             break;
 
                         case 6: // battery voltage
