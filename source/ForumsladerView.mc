@@ -11,7 +11,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
     private var 
         _data as DataManager,
-        _showList as Array<Number> = [10, 3, 6, 7] as Array<Number>,  // 4 out of 10 fields to show
+        _showList as Array<Number> = [10, 3, 6, 7] as Array<Number>,  // max 4 fields to show
         _coloumbCalc as Boolean = true,
         _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
         _battVoltage as Float = 0.0, // calculated field from cell voltages
@@ -56,42 +56,54 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     switch (_showList[i])
                     {
                         case 1: // trip energy
-                            _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] + "Wh" : "--";
+                            _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
+                            _displayString += "Wh";
                             break;
 
                         case 2: // temperature
-                            _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
+                            _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f");
+                            _displayString += "°C";
                             break;
 
                         case 3: // dynamo power
                             _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                            _displayString += (_data.FLdata[FL_frequency] > 0) ? (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() + "W" : "0W";
+                            _displayString += (_data.FLdata[FL_frequency] > 0) ? (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
+                            _displayString += "W";
                             break;
 
                         case 4: // generator gear
                             _displayString += (_data.FLdata[FL_gear] >= 0) ? _data.FLdata[FL_gear] : "--";
                             break;
 
-                        case 5: // dynamo frequency
-                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] / 10 + "Hz" : "--";
+                        case 5: // dynamo impulse frequency
+                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] : "--";
+                            _displayString += "Hz";
                             break;
 
                         case 6: // battery voltage
                             _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                            _displayString += (_battVoltage > 0) ? _battVoltage.format("%.1f") + "V" : "--";
+                            _displayString += (_battVoltage > 0) ? _battVoltage.format("%.1f") : "--";
+                            _displayString += "V";
                             break;
 
                         case 7: // battery current
-                            _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
+                            _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f");
+                            _displayString += "A";
                             break;
 
                         case 8: // load current
-                            _displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A" : "--";
+                            _displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") : "--";
+                            _displayString += "A";
                             break;
 
                         case 9: // speed
-                            _speed = _data.FLdata[FL_frequency] / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
-                            _displayString += (_data.FLdata[FL_poles] > 0) ? _speed.format("%.1f") + "km/h" : "--";
+                            if (_data.FLdata[FL_poles] > 0) {
+                                _speed = _data.FLdata[FL_frequency] / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
+                                _displayString += _speed.toNumber();
+                            } else {
+                                _displayString += "--";    
+                            }
+                            _displayString += "km/h";
                             break;
 
                         case 10: // remaining battery capacity
@@ -103,7 +115,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                             } else {
                                 _capacity = _data.FLdata[FL_socState]; 
                             }
-                            _displayString += (_capacity > 0) ? _capacity + "%" : "--";
+                            _displayString += (_capacity > 0) ? _capacity : "--";
+                            _displayString += "%";
                             break;
 
                         default: // off
