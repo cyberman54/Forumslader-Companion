@@ -11,8 +11,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
     private var 
         _data as DataManager,
-        _showList as Array<Number> = [10, 3, 6, 7] as Array<Number>,  // max 4 fields to show
-        _coloumbCalc as Boolean = true,
         _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
         _battVoltage as Float = 0.0, // calculated field from cell voltages
         _connecting as String,
@@ -23,20 +21,20 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager) {
         SimpleDataField.initialize();
+        getUserSettings();
         label = "Forumslader";
         _data = dataManager;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
         _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
         _displayString = _initializing;
-        getUserSettings();
     }
 
     //! process the $FLx data, calculate and show values every one second
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-        
+                
         _data.tick++;    // increase data age seconds counter
 
         if (!isConnected){
@@ -48,12 +46,13 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             if (_data.tick <= _data.MAX_AGE_SEC) {
 
                 _displayString = "";
+                var freq = isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
 
-                for (var i=0; i < _showList.size(); i++)
+                for (var i=0; i < userSettings.size() - 1; i++)
                 {  
                     _displayString += (_displayString.length() > 0) ? " " : "";
                     
-                    switch (_showList[i])
+                    switch (userSettings[i] as Number)
                     {
                         case 1: // trip energy
                             _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
@@ -76,7 +75,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                             break;
 
                         case 5: // dynamo impulse frequency
-                            _displayString += (_data.FLdata[FL_frequency] >= 0) ? _data.FLdata[FL_frequency] : "--";
+                            _displayString += freq >= 0 ? freq.toNumber() : "--";
                             _displayString += "Hz";
                             break;
 
@@ -98,7 +97,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                         case 9: // speed
                             if (_data.FLdata[FL_poles] > 0) {
-                                _speed = _data.FLdata[FL_frequency] / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
+                                _speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
                                 _displayString += _speed.toNumber();
                             } else {
                                 _displayString += "--";    
@@ -108,11 +107,11 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                         case 10: // remaining battery capacity
                             var _capacity = 0;
-                            if (_coloumbCalc) {
+                            if (userSettings[4] == true) { // use coloumb calculation method
                                 var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
                                 var x2 = _data.FLdata[FL_fullChargeCapacity];
                                 _capacity = (x1 / x2).toNumber();
-                            } else {
+                            } else { // use voltage calculation method
                                 _capacity = _data.FLdata[FL_socState]; 
                             }
                             _displayString += (_capacity > 0) ? _capacity : "--";
@@ -135,48 +134,4 @@ class ForumsladerView extends WatchUi.SimpleDataField {
   
         return _displayString;
     }
-
-    //! Called by app when user made changes to settings in GCM while App is running
-    public function onSettingsChanged() as Void {
-        getUserSettings();
-    }
-
-    // Safely read a number value from user settings
-    private function propertiesGetNumber(p as String) as Number {
-        var v = Application.Properties.getValue(p);
-        if ((v == null) || (v instanceof Boolean))
-        {
-            v = 0;
-        }
-        else if (!(v instanceof Number))
-        {
-            v = v as Number;
-            if (v == null)
-            {
-                v = 0;
-            }
-        }
-        return v as Number;
-    }
-
-    // Safely read a boolean value from user settings
-    public function propertiesGetBoolean(p as String) as Boolean {
-        var v = Application.Properties.getValue(p);
-        if ((v == null) || !(v instanceof Boolean))
-        {
-            v = false;
-        }
-        return v as Boolean;
-    }
-
-    // read the user settings and store locally
-    public function getUserSettings() as Void {
-        _showList[0] = propertiesGetNumber("Item1");
-    	_showList[1] = propertiesGetNumber("Item2");
-    	_showList[2] = propertiesGetNumber("Item3");
-        _showList[3] = propertiesGetNumber("Item4");
-        debug("Selected items: " + _showList.toString());
-        _coloumbCalc = propertiesGetBoolean("BatteryCalcMethod");
-    }
-
 }

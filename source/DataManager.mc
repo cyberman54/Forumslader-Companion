@@ -316,7 +316,7 @@ class DataManager {
             Application.Properties.setValue("Item3", 6);
             Application.Properties.setValue("Item4", 9);
             Application.Properties.setValue("BatteryCalcMethod", true);
-            _view.getUserSettings();
+            getUserSettings();
         }
         catch(exception) {
             return false;

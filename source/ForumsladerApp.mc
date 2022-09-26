@@ -28,7 +28,7 @@ class ForumsladerApp extends Application.AppBase {
     private var _bleDelegate as ForumsladerDelegate?;
     private var _deviceManager as DeviceManager?;
     private var _dataManager as DataManager?;
-
+    
     //! Constructor
     public function initialize() {
         AppBase.initialize();
@@ -41,6 +41,7 @@ class ForumsladerApp extends Application.AppBase {
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate(_profileManager as ProfileManager);
+        // initialize Bluetooth Delegate    
         _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();
@@ -68,7 +69,8 @@ class ForumsladerApp extends Application.AppBase {
     }
 
     //! Handle change of settings by user in GCM while App is running
-	function onSettingsChanged() {
-    	ForumsladerView.onSettingsChanged();
+	public function onSettingsChanged() {
+    	getUserSettings();
+        WatchUi.requestUpdate();
 	}
 }

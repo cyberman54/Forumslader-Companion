@@ -1,6 +1,8 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
+var isV6 as Boolean = false;
+
 class DeviceManager {
 
      // threshold rssi for detecting forumslader devices
@@ -112,6 +114,15 @@ class DeviceManager {
     //! Start the data stream on the forumslader device
     private function setupForumslader() as Void {
         var device = _device;
+
+        // set forumslader v5 / v6 type
+        if (_profileManager.FL_SERVICE == _profileManager.FL6_SERVICE ) {
+            isV6 = true;
+            debug("setup V6");
+        } else {
+            isV6 = false;
+            debug("setup V5");
+        }
 
         // get characteristics of GATT service
         if (null != device) {
