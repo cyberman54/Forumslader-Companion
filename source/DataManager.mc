@@ -316,12 +316,16 @@ class DataManager {
             Application.Properties.setValue("Item3", 6);
             Application.Properties.setValue("Item4", 9);
             Application.Properties.setValue("BatteryCalcMethod", true);
+            Application.Properties.setValue("Item5", 10);
+            Application.Properties.setValue("Item6", 3);
+            Application.Properties.setValue("Item7", 6);
+            Application.Properties.setValue("Item8", 9);
+            Application.Properties.setValue("DataLogging", true);
             getUserSettings();
         }
         catch(exception) {
             return false;
         }
-        
 
         for (var i = 0; i < _testDataSet.size(); i++) {
             debug(_testDataSet[i]);

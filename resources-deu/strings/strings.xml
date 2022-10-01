@@ -18,4 +18,5 @@
     <string id="ShowLoad">Verbraucherstrom [A]</string>
     <string id="ShowCurrentSpeed">Geschwindigkeit [km/h]</string>
     <string id="SelectCapacityMethod">Coloumb Zähler zur Berechnung Akkufüllstand nutzen</string>
+    <string id="SelectDataLogging">Werte protokollieren</string>
 </strings>

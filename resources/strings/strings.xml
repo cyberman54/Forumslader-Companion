@@ -17,5 +17,6 @@
     <string id="ShowBatteryRemaining">Battery Remaining [%]</string>
     <string id="ShowLoad">Load Current [A]</string>
     <string id="ShowCurrentSpeed">Speed [km/h]</string>
-    <string id="SelectCapacityMethod">Use Coloumb Counter for battery capacity calculation </string>
+    <string id="SelectCapacityMethod">Use Coloumb Counter for battery capacity calculation</string>
+    <string id="SelectDataLogging">Log values</string>
 </strings>
