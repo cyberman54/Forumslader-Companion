@@ -4,9 +4,5 @@
     <property id="Item2" type="Number">3</property>				        <!-- default show dynamo power -->
     <property id="Item3" type="Number">6</property>				        <!-- default show battery voltage -->
     <property id="Item4" type="Number">7</property>				        <!-- default show battery current -->
-    <property id="DataLogging" type="Boolean">false</property>          <!-- default no data logging -->
-    <property id="Item5" type="Number">0</property>			       
-    <property id="Item6" type="Number">0</property>				        
-    <property id="Item7" type="Number">0</property>        
-    <property id="Item8" type="Number">0</property>
+    <property id="LogValue" type="Number">0</property>			        <!-- default no logging -->
 </properties>

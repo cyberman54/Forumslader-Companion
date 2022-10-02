@@ -2,10 +2,11 @@
     <string id="AppName">Forumslader</string>
     <string id="SetupMenu">Datafield Setup</string>
     <string id="SetupText">Select the values to be shown in the Datafield</string>
-    <string id="Item1Title">Value 1</string>
-    <string id="Item2Title">Value 2</string>
-    <string id="Item3Title">Value 3</string>
-    <string id="Item4Title">Value 4</string>
+    <string id="Item1Title">#1 Displayvalue</string>
+    <string id="Item2Title">#2 Displayvalue</string>
+    <string id="Item3Title">#3 Displayvalue</string>
+    <string id="Item4Title">#4 Displayvalue</string>
+    <string id="LogTitle">Logging</string>
     <string id="ShowOff">-- hide --</string>
     <string id="ShowTripEnergy">Trip Energy [Wh]</string>
     <string id="ShowTemperature">Temperature [°C]</string>
@@ -17,6 +18,5 @@
     <string id="ShowBatteryRemaining">Battery Remaining [%]</string>
     <string id="ShowLoad">Load Current [A]</string>
     <string id="ShowCurrentSpeed">Speed [km/h]</string>
-    <string id="SelectCapacityMethod">Use Coloumb Counter for battery capacity calculation</string>
-    <string id="SelectDataLogging">Log values</string>
+    <string id="SelectCapacityMethod">Use Coloumb counter for battery capacity</string>
 </strings>

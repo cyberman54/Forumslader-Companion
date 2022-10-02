@@ -315,12 +315,8 @@ class DataManager {
             Application.Properties.setValue("Item2", 3);
             Application.Properties.setValue("Item3", 6);
             Application.Properties.setValue("Item4", 9);
+            Application.Properties.setValue("LogValue", 1);
             Application.Properties.setValue("BatteryCalcMethod", true);
-            Application.Properties.setValue("Item5", 10);
-            Application.Properties.setValue("Item6", 3);
-            Application.Properties.setValue("Item7", 6);
-            Application.Properties.setValue("Item8", 9);
-            Application.Properties.setValue("DataLogging", true);
             getUserSettings();
         }
         catch(exception) {

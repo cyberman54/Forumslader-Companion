@@ -57,7 +57,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 var freq = isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
 
                 // display user selected values
-                for (var i = 0; i < userSettings.size() / 2 - 1; i++)
+                for (var i = 0; i < userSettings.size() - 2; i++)
                 {  
                     _displayString += (_displayString.length() > 0) ? " " : "";
                     
@@ -116,7 +116,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                         case 10: // remaining battery capacity
                             var _capacity = 0;
-                            if (userSettings[4] == true) { // use coloumb calculation method
+                            if (userSettings[5] == true) { // use coloumb calculation method
                                 var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
                                 var x2 = _data.FLdata[FL_fullChargeCapacity];
                                 _capacity = (x1 / x2).toNumber();
@@ -132,68 +132,63 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     }
                 }
 
-                // log user selected values
-                if (userSettings[9] == true) {
-                    for (var i = userSettings.size() / 2; i < userSettings.size() - 1; i++)
-                    {  
-                        switch (userSettings[i] as Number)
-                        {
-                            case 1: // trip energy
-                                _fitRecording.setData(_data.FLdata[FL_tripEnergy]);
-                                break;
+                // log user selected value
+                switch (userSettings[4] as Number)
+                {
+                    case 1: // trip energy
+                        _fitRecording.setData(_data.FLdata[FL_tripEnergy]);
+                        break;
 
-                            case 2: // temperature
-                                _fitRecording.setData(_data.FLdata[FL_temperature] / 10.0);
-                                break;
+                    case 2: // temperature
+                        _fitRecording.setData(_data.FLdata[FL_temperature] / 10.0);
+                        break;
 
-                            case 3: // dynamo power
-                                _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                                _fitRecording.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
-                                break;
+                    case 3: // dynamo power
+                        _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
+                        _fitRecording.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                        break;
 
-                            case 4: // generator gear
-                                _fitRecording.setData(_data.FLdata[FL_gear]);
-                                break;
+                    case 4: // generator gear
+                        _fitRecording.setData(_data.FLdata[FL_gear]);
+                        break;
 
-                            case 5: // dynamo impulse frequency
-                                _fitRecording.setData(freq);
-                                break;
+                    case 5: // dynamo impulse frequency
+                        _fitRecording.setData(freq);
+                        break;
 
-                            case 6: // battery voltage
-                                _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                                _fitRecording.setData(_battVoltage);
-                                break;
+                    case 6: // battery voltage
+                        _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
+                        _fitRecording.setData(_battVoltage);
+                        break;
 
-                            case 7: // battery current
-                                _fitRecording.setData(_data.FLdata[FL_battCurrent] / 1000.0);
-                                break;
+                    case 7: // battery current
+                        _fitRecording.setData(_data.FLdata[FL_battCurrent] / 1000.0);
+                        break;
 
-                            case 8: // load current
-                                _fitRecording.setData(_data.FLdata[FL_loadCurrent]);
-                                break;
+                    case 8: // load current
+                        _fitRecording.setData(_data.FLdata[FL_loadCurrent]);
+                        break;
 
-                            case 9: // speed
-                                if (_data.FLdata[FL_poles] > 0) {
-                                    _fitRecording.setData(freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777);
-                                }
-                                break;
-
-                            case 10: // remaining battery capacity
-                                var _capacity = 0;
-                                if (userSettings[4] == true) { // use coloumb calculation method
-                                    var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
-                                    var x2 = _data.FLdata[FL_fullChargeCapacity];
-                                    _capacity = (x1 / x2).toNumber();
-                                } else { // use voltage calculation method
-                                    _capacity = _data.FLdata[FL_socState]; 
-                                }
-                                _fitRecording.setData(_capacity);
-                                break;
-
-                            default: // off
-                            break;
+                    case 9: // speed
+                        if (_data.FLdata[FL_poles] > 0) {
+                            _fitRecording.setData(freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777);
                         }
-                    }
+                        break;
+
+                    case 10: // remaining battery capacity
+                        var _capacity = 0;
+                        if (userSettings[5] == true) { // use coloumb calculation method
+                            var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
+                            var x2 = _data.FLdata[FL_fullChargeCapacity];
+                            _capacity = (x1 / x2).toNumber();
+                        } else { // use voltage calculation method
+                            _capacity = _data.FLdata[FL_socState]; 
+                        }
+                        _fitRecording.setData(_capacity);
+                        break;
+
+                    default: // off
+                    break;
                 }
             }
         
