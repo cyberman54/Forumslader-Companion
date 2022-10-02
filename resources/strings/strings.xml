@@ -1,5 +1,6 @@
 <strings>
-    <string id="AppName">Forumslader</string>
+    <string id="AppName">Forumloader</string>
+    <string id="UnitLabel">FL</string>
     <string id="SetupMenu">Datafield Setup</string>
     <string id="SetupText">Select the values to be shown in the Datafield</string>
     <string id="Item1Title">#1 Displayvalue</string>

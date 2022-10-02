@@ -2,4 +2,7 @@
     <string id="connecting">connecting</string>
     <string id="initializing">initializing</string>
     <string id="loadingdata">loading data</string>
+    <fitContributions>
+        <fitField id="0" displayInChart="true" sortOrder="0" precision="2" chartTitle="@Strings.AppName" dataLabel="@Strings.AppName" unitLabel="@Strings.UnitLabel" fillColor="#FF0000"/>
+    </fitContributions>
 </resources>

@@ -17,6 +17,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _connecting as String,
         _initializing as String,
         _loadingdata as String,
+        _unitlabel as String,
         _fitRecording as FitContributor.Field; // fit recording contributor
 
     //! Set the label of the data field here
@@ -24,17 +25,18 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     public function initialize(dataManager as DataManager) {
         SimpleDataField.initialize();
         getUserSettings();
-        label = "Forumslader";
-        _data = dataManager;
+        label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
+        _unitlabel = WatchUi.loadResource($.Rez.Strings.UnitLabel) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
         _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
         _displayString = _initializing;
+        _data = dataManager;
 
-        // Create the custom FIT data field we want to record
+        // Create custom FIT data fields for recording of user selected value
         _fitRecording = createField(
-            "Forumslader", 0, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, :units=>"FL"}
+            label, 0, FitContributor.DATA_TYPE_FLOAT,
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD, :units=>_unitlabel}
         ) as FitContributor.Field;
     }
 
