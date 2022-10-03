@@ -13,8 +13,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     private var 
         _unitString as String = "",
         _data as DataManager,
-        _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
-        _battVoltage as Float = 0.0, // calculated field from cell voltages
         _connecting as String,
         _initializing as String,
         _loadingdata as String,
@@ -35,20 +33,28 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _displayString = _initializing;
         _data = dataManager;
 
-        // Create custom FIT data fields for recording of up to 4 user selected values
-        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 1, FitContributor.DATA_TYPE_FLOAT,
+        // Create custom FIT data fields for recording of 4 forumslader values
+        // Battery Voltage
+        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
+            1, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
             as FitContributor.Field;
-        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 2, FitContributor.DATA_TYPE_UINT8,
+        // Battery Capacity
+        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
+            2, FitContributor.DATA_TYPE_UINT8,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
             as FitContributor.Field;
-        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 3, FitContributor.DATA_TYPE_FLOAT,
+        // Dynamo Power
+        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
+            3, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
             as FitContributor.Field;
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String, 4, FitContributor.DATA_TYPE_FLOAT,
+        // Battery Current
+        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String, 
+            4, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryCurrentLabel) as String}) 
             as FitContributor.Field;
@@ -76,7 +82,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
                 var speed = _data.FLdata[FL_poles] > 0 ? freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 : 0.0;
                 var capacity = 0;
-                var logValue = 0.0;
 
                 if (showValues[4] == true) { // use coloumb calculation method
                     var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
@@ -154,7 +159,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     _displayString += _unitString;
                 }
 
-                // write some values to fit file, if user enabled logging
+                // write logging values to fit file, if logging is enabled by user
                 if (showValues[5] == true) { 
                     _fitRecording1.setData(battVoltage);
                     _fitRecording2.setData(capacity);
