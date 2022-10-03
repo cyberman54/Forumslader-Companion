@@ -6,9 +6,9 @@
         to update the application attributes.
     -->
     <!-- PROD -->
-    <!--  iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d69" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0" version="1.0.7" -->
+    <iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d69" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0" version="1.2.0">
     <!-- TEST -->
-    <iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0" version="1.1.8">
+    <!-- iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0" version="1.1.24" -->
         <!--
             Use the following from the Visual Studio Code comand palette to edit
             the build targets:

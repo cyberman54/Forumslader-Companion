@@ -1,14 +1,14 @@
 import Toybox.Application;
 import Toybox.Lang;
 
-var userSettings as Array = [10, 3, 6, 7, 0, false];
+var showValues as Array = [10, 3, 6, 7, false, false];
 
 function getUserSettings() as Void {
-    userSettings[0] = Application.Properties.getValue("Item1") as Number;
-    userSettings[1] = Application.Properties.getValue("Item2") as Number;
-    userSettings[2] = Application.Properties.getValue("Item3") as Number;
-    userSettings[3] = Application.Properties.getValue("Item4") as Number;
-    userSettings[4] = Application.Properties.getValue("LogValue") as Number;
-    userSettings[5] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
-    debug("GCM settings: " + userSettings.toString());
+    showValues[0] = Application.Properties.getValue("ShowValue1") as Number;
+    showValues[1] = Application.Properties.getValue("ShowValue2") as Number;
+    showValues[2] = Application.Properties.getValue("ShowValue3") as Number;
+    showValues[3] = Application.Properties.getValue("ShowValue4") as Number;
+    showValues[4] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
+    showValues[5] = Application.Properties.getValue("Logging") as Boolean;
+    debug("User Settings: " + showValues.toString());
 }
