@@ -60,6 +60,7 @@ class DataManager {
         _currTerm as String = "",
         _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
 
+    //! Constructor
     public function initialize() {
         for (var i = 0; i < FLdata.size(); i++) {
             FLdata[i] = -1;
@@ -202,7 +203,9 @@ class DataManager {
         
     } 
 
-    // helper function to safely convert a string with unknown content to a number value
+    //! helper function to safely convert a string with unknown content to a number value
+    //! @param string to be converted to a number valus, min as lower corner, max as higher corner
+    //! @return a Number if string was converted successfully, otherwise -1
     public function commitValue(str as String, min as Number, max as Number) as Number {
         var v = str.toNumber();
         if (null == v) {
