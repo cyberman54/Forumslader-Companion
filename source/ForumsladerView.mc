@@ -3,6 +3,7 @@ import Toybox.Lang;
 import Toybox.Time;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
+import Toybox.FitContributor;
 
 class ForumsladerView extends WatchUi.SimpleDataField {
 
@@ -10,24 +11,47 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _displayString as String = "";
 
     private var 
+        _unitString as String = "",
         _data as DataManager,
         _speed as Float = 0.0,       // calculated field from dynamo pulses, poles and wheelsize
         _battVoltage as Float = 0.0, // calculated field from cell voltages
         _connecting as String,
         _initializing as String,
-        _loadingdata as String;
+        _loadingdata as String,
+        _fitRecording1 as FitContributor.Field,
+        _fitRecording2 as FitContributor.Field,
+        _fitRecording3 as FitContributor.Field,
+        _fitRecording4 as FitContributor.Field;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager) {
         SimpleDataField.initialize();
         getUserSettings();
-        label = "Forumslader";
-        _data = dataManager;
+        label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
         _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
         _displayString = _initializing;
+        _data = dataManager;
+
+        // Create custom FIT data fields for recording of up to 4 user selected values
+        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 1, FitContributor.DATA_TYPE_FLOAT,
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
+            as FitContributor.Field;
+        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 2, FitContributor.DATA_TYPE_UINT8,
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
+            as FitContributor.Field;
+        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 3, FitContributor.DATA_TYPE_FLOAT,
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
+            as FitContributor.Field;
+        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String, 4, FitContributor.DATA_TYPE_FLOAT,
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCurrentLabel) as String}) 
+            as FitContributor.Field;
     }
 
     //! process the $FLx data, calculate and show values every one second
@@ -46,92 +70,103 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             if (_data.tick <= _data.MAX_AGE_SEC) {
 
                 _displayString = "";
-                var freq = isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
+                _unitString = "";
 
-                for (var i=0; i < userSettings.size() - 1; i++)
+                var freq = isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
+                var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
+                var speed = _data.FLdata[FL_poles] > 0 ? freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 : 0.0;
+                var capacity = 0;
+                var logValue = 0.0;
+
+                if (showValues[4] == true) { // use coloumb calculation method
+                    var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
+                    var x2 = _data.FLdata[FL_fullChargeCapacity];
+                    capacity = (x1 / x2).toNumber();
+                } else { // use voltage calculation method
+                    capacity = _data.FLdata[FL_socState]; 
+                }
+                
+                // display user selected values
+                for (var i = 0; i < showValues.size() - 2; i++)
                 {  
                     _displayString += (_displayString.length() > 0) ? " " : "";
                     
-                    switch (userSettings[i] as Number)
+                    switch (showValues[i] as Number)
                     {
                         case 1: // trip energy
+                            _unitString = "Wh";
                             _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
-                            _displayString += "Wh";
                             break;
 
                         case 2: // temperature
+                            _unitString = "°C";
                             _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f");
-                            _displayString += "°C";
                             break;
 
                         case 3: // dynamo power
-                            _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                            _displayString += (_data.FLdata[FL_frequency] > 0) ? (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
-                            _displayString += "W";
+                            _unitString = "W";
+                            _displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
                             break;
 
                         case 4: // generator gear
+                            _unitString = "";
                             _displayString += (_data.FLdata[FL_gear] >= 0) ? _data.FLdata[FL_gear] : "--";
                             break;
 
                         case 5: // dynamo impulse frequency
+                            _unitString = "Hz";
                             _displayString += freq >= 0 ? freq.toNumber() : "--";
-                            _displayString += "Hz";
                             break;
 
                         case 6: // battery voltage
-                            _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-                            _displayString += (_battVoltage > 0) ? _battVoltage.format("%.1f") : "--";
-                            _displayString += "V";
+                            _unitString = "V";
+                            _displayString += (battVoltage > 0) ? battVoltage.format("%.1f") : "--";
                             break;
 
                         case 7: // battery current
+                            _unitString = "A";
                             _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f");
-                            _displayString += "A";
                             break;
 
                         case 8: // load current
+                            _unitString = "A";
                             _displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") : "--";
-                            _displayString += "A";
                             break;
 
                         case 9: // speed
+                            _unitString = "km/h";
                             if (_data.FLdata[FL_poles] > 0) {
-                                _speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
-                                _displayString += _speed.toNumber();
+                                _displayString += speed.toNumber();
                             } else {
-                                _displayString += "--";    
+                                _displayString += "--";
                             }
-                            _displayString += "km/h";
                             break;
 
                         case 10: // remaining battery capacity
-                            var _capacity = 0;
-                            if (userSettings[4] == true) { // use coloumb calculation method
-                                var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
-                                var x2 = _data.FLdata[FL_fullChargeCapacity];
-                                _capacity = (x1 / x2).toNumber();
-                            } else { // use voltage calculation method
-                                _capacity = _data.FLdata[FL_socState]; 
-                            }
-                            _displayString += (_capacity > 0) ? _capacity : "--";
-                            _displayString += "%";
+                            _unitString = "%";
+                            _displayString += (capacity > 0) ? capacity : "--";
                             break;
 
                         default: // off
+                        _unitString = "";
                         break;
                     }
+                    _displayString += _unitString;
                 }
-            }
-        
-            // we don't have recent data
-            else 
-            {
-                // maybe to come: do we want some action for connection handling here?
+
+                // write some values to fit file, if user enabled logging
+                if (showValues[5] == true) { 
+                    _fitRecording1.setData(battVoltage);
+                    _fitRecording2.setData(capacity);
+                    _fitRecording3.setData(battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                    _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
+                }
+
+            } else {
+                // we don't have recent data
                 _displayString = _loadingdata;
             }
         }
-  
         return _displayString;
     }
 }

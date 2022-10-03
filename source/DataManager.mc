@@ -311,17 +311,17 @@ class DataManager {
         var _view = new $.ForumsladerView(_data as DataManager);
 
         try {
-            Application.Properties.setValue("Item1", 10);
-            Application.Properties.setValue("Item2", 3);
-            Application.Properties.setValue("Item3", 6);
-            Application.Properties.setValue("Item4", 9);
+            Application.Properties.setValue("ShowValue1", 10);
+            Application.Properties.setValue("ShowValue2", 3);
+            Application.Properties.setValue("ShowValue3", 6);
+            Application.Properties.setValue("ShowValue4", 9);
+            Application.Properties.setValue("Logging", true);
             Application.Properties.setValue("BatteryCalcMethod", true);
             getUserSettings();
         }
         catch(exception) {
             return false;
         }
-        
 
         for (var i = 0; i < _testDataSet.size(); i++) {
             debug(_testDataSet[i]);
