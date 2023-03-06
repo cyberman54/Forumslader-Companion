@@ -9,8 +9,8 @@ class DeviceManager {
     private const _RSSI_threshold = -80;
 	// command to request pole and wheelsize
 	private const _CMD_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
-    // command to request firmware version
-	private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+    // command to request firmware version (currently unused)
+	//private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
     private var _profileManager as ProfileManager;
     private var _data as DataManager;

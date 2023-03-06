@@ -22,7 +22,6 @@ import Toybox.Activity;
         FL_tablesize
     }
 
-
 class DataManager {
 
     // types of forumslader data sentences
@@ -82,8 +81,7 @@ class DataManager {
             {
             // end of term
             case ',': 
-                //_parity ^= b;  /* we need a workaround here as long as SDK has XOR compiler error */
-                _parity = _parity & ~b | ~_parity & b;
+                _parity ^= b;
             case '\r':
             case '\n':
             case '*':
@@ -116,8 +114,7 @@ class DataManager {
                 }
                 if (!_isChecksumTerm)
                 {
-                    //_parity ^= b;  /* we need a workaround here as long as SDK has XOR compiler error */
-                    _parity = _parity & ~b | ~_parity & b;
+                    _parity ^= b;
                 }
             }
         }
