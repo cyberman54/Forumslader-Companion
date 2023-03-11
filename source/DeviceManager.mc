@@ -35,6 +35,11 @@ class DeviceManager {
         bleDelegate.notifyDescWrite(self);
     }
 
+    //! Start BLE scanning
+    public function start() as Void {
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+    }
+
     //! Process scan result
     //! @param scanResult The scan result
     public function procScanResult(scanResult as ScanResult) as Void {

@@ -26,6 +26,7 @@ class ForumsladerApp extends Application.AppBase {
 
     private var _profileManager as ProfileManager?;
     private var _bleDelegate as ForumsladerDelegate?;
+    private var _deviceManager as DeviceManager?;
     private var _dataManager as DataManager?;
     
     //! Constructor
@@ -40,15 +41,16 @@ class ForumsladerApp extends Application.AppBase {
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate(_profileManager as ProfileManager);
-        new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
+        _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();
-        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        (_deviceManager as DeviceManager).start();
     }
 
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
+        _deviceManager = null;
         _bleDelegate = null;
         _profileManager = null;
         _dataManager = null;
