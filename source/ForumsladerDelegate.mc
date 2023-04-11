@@ -5,7 +5,6 @@ public var isConnected as Boolean = false;
 
 class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
 
-    private var _profileManager as ProfileManager;
     private var _onScanResult as WeakReference?;
     private var _onConnection as WeakReference?;
     private var _onCharWrite as WeakReference?;
@@ -13,34 +12,33 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     private var _onDescWrite as WeakReference?;
     
 	//! Constructor
-    //! @param profileManager The profile manager
-    public function initialize(profileManager as ProfileManager) {
+    public function initialize() {
         BleDelegate.initialize();
-        _profileManager = profileManager;
     }
 	
 	//! Handle new Scan Results being received
     //! @param scanResults An iterator of new scan result objects
     public function onScanResults(scanResults as Iterator) as Void {
         for (var result = scanResults.next(); result != null; result = scanResults.next()) {
-            if (result instanceof ScanResult) {
-
-				// first try to identify a forumslader device by it's advertised UUID
-                if (contains(result.getServiceUuids(), _profileManager.FL5_SERVICE) ||
-				 	contains(result.getServiceUuids(), _profileManager.FL6_SERVICE)) {
-                    broadcastScanResult(result);
-					return;
+            if (result instanceof ScanResult) { 
+                // identify a FLV5 forumslader device by it's advertised manufacturer ID
+                var iter = result.getManufacturerSpecificDataIterator();
+                for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
+                    if (dict.get(:companyId) == 0x4d48) {
+                        debug("found FL by Company ID");
+                        broadcastScanResult(result);
+                        return;
+                    }
                 }
-
-				// as fallback try to identify a forumslader device by it's advertised local name
-				var _deviceName = result.getDeviceName() as String;
-				if (_deviceName != null) {
-					if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
-						debug("found=" + _deviceName);
-						broadcastScanResult(result);
-						return;
-					}
-				}
+                // identify a forumslader device by it's advertised local name
+                var _deviceName = result.getDeviceName() as String;
+                if (_deviceName != null) { 
+                    if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
+                        debug("found FL by Devicename: " + _deviceName);
+                        broadcastScanResult(result);
+                        return;
+                    }
+                }
             }
         }
     }
@@ -89,6 +87,21 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             }
         }
     }
+
+    /*
+    //! Handle the completion of a read operation on a characteristic
+    //! @param characteristic The characteristic that was read
+    //! @param status The BluetoothLowEnergy status indicating the result of the operation
+    //! @param data The data which is delivered by the characteristic
+    public function onCharacteristicRead(characteristic as Characteristic, status as Status, data as ByteArray) as Void {
+        var onCharRead = _onCharRead;
+        if (onCharRead != null) {
+            if (onCharRead.stillAlive()) {
+                (onCharRead.get() as DeviceManager).procData(data);
+            }
+        }
+    }
+    */
 
     //! Handle the completion of a write operation on a descriptor
     //! @param descriptor The descriptor that was written

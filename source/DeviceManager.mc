@@ -101,8 +101,8 @@ class DeviceManager {
         }
     }
 
-    //! Send $FLT command to forumslader device
-    //! @param $FLT command string
+    //! Send command to forumslader device
+    //! @param cmd as command ByteArray
     public function sendCommand(cmd as ByteArray) as Boolean {
         if ((null == _device) || _writeInProgress) {
             return false;
@@ -143,7 +143,7 @@ class DeviceManager {
                     var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
                     if (null != cccd) {
                         _writeInProgress = true;
-                        cccd.requestWrite([0x01, 0x00]b);
+                        cccd.requestWrite([1,0]b);
                     }
                 }
             }
