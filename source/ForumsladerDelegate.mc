@@ -88,21 +88,6 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         }
     }
 
-    /*
-    //! Handle the completion of a read operation on a characteristic
-    //! @param characteristic The characteristic that was read
-    //! @param status The BluetoothLowEnergy status indicating the result of the operation
-    //! @param data The data which is delivered by the characteristic
-    public function onCharacteristicRead(characteristic as Characteristic, status as Status, data as ByteArray) as Void {
-        var onCharRead = _onCharRead;
-        if (onCharRead != null) {
-            if (onCharRead.stillAlive()) {
-                (onCharRead.get() as DeviceManager).procData(data);
-            }
-        }
-    }
-    */
-
     //! Handle the completion of a write operation on a descriptor
     //! @param descriptor The descriptor that was written
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
