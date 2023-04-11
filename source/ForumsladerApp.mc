@@ -40,7 +40,7 @@ class ForumsladerApp extends Application.AppBase {
         debug("--- Field started ---");
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
-        _bleDelegate = new $.ForumsladerDelegate(_profileManager as ProfileManager);
+        _bleDelegate = new $.ForumsladerDelegate();
         _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();

@@ -71,6 +71,7 @@ class DataManager {
     public function encode(sentence as ByteArray) as Void {
 
         var _size = sentence.size();
+        //debug(sentence.toString());
 
 		for (var i = 0; i < _size; i++) {
 
