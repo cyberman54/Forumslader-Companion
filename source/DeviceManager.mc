@@ -51,7 +51,7 @@ class DeviceManager {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("Pairing Error, Device: " + ScanResult.getDeviceName());
+                debug("Pairing Error, Device: " + scanResult.getDeviceName());
                 debug("Error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
