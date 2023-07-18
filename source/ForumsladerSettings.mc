@@ -5,6 +5,7 @@ var showValues as Array = [10, 3, 6, 7, false, false];
 
 //! read user settings from GCM properties in showValues array
 function getUserSettings() as Void {
+    if ($ has :_isTest) { return; } // use default showValues for test
     showValues[0] = Application.Properties.getValue("ShowValue1") as Number;
     showValues[1] = Application.Properties.getValue("ShowValue2") as Number;
     showValues[2] = Application.Properties.getValue("ShowValue3") as Number;
