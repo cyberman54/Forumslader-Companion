@@ -5,6 +5,14 @@ import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 
+(:test) const _isTest as Boolean = true;
+
+class TestFitContributorField {
+    public function setData(input as Lang.Object) as Void {
+        // do nothing
+    }
+}
+
 class ForumsladerView extends WatchUi.SimpleDataField {
 
     public var
@@ -20,6 +28,16 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _fitRecording2 as FitContributor.Field,
         _fitRecording3 as FitContributor.Field,
         _fitRecording4 as FitContributor.Field;
+
+
+    //! Overload function createField for unit test purposes
+    public function createField(name as Lang.String, fieldId as Lang.Number, type as FitContributor.DataType, options) as FitContributor.Field {
+            if ($ has :_isTest) {
+                return new TestFitContributorField() as FitContributor.Field;
+            } else {
+                return WatchUi.SimpleDataField.createField(name, fieldId, type, options);
+            }   
+    } 
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -67,7 +85,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 
         _data.tick++;    // increase data age seconds counter
 
-        if (!isConnected){
+        if (!$.isConnected){
             _displayString = _connecting;
         }
         else
@@ -78,12 +96,12 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 _displayString = "";
                 _unitString = "";
 
-                var freq = isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
+                var freq = $.isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
                 var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
                 var speed = _data.FLdata[FL_poles] > 0 ? freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 : 0.0;
                 var capacity = 0;
 
-                if (showValues[4] == true) { // use coloumb calculation method
+                if ($.showValues[4] == true) { // use coloumb calculation method
                     var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
                     var x2 = _data.FLdata[FL_fullChargeCapacity];
                     capacity = (x1 / x2).toNumber();
@@ -92,11 +110,11 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 }
                 
                 // display user selected values
-                for (var i = 0; i < showValues.size() - 2; i++)
+                for (var i = 0; i < $.showValues.size() - 2; i++)
                 {  
                     _displayString += (_displayString.length() > 0) ? " " : "";
                     
-                    switch (showValues[i] as Number)
+                    switch ($.showValues[i] as Number)
                     {
                         case 1: // trip energy
                             _unitString = "Wh";
@@ -160,7 +178,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 }
 
                 // write logging values to fit file, if logging is enabled by user
-                if (showValues[5] == true) { 
+                if ($.showValues[5] == true) { 
                     _fitRecording1.setData(battVoltage);
                     _fitRecording2.setData(capacity);
                     _fitRecording3.setData(battVoltage * _data.FLdata[FL_loadCurrent] / 1000);

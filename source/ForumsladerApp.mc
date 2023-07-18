@@ -6,7 +6,6 @@ to do:
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
 [ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
 [ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
-[ ] Testdatensatz für Mockup erweitern (hierzu reale Testdaten während der Fahrt loggen)
  */
 
 import Toybox.Application;
@@ -28,7 +27,7 @@ class ForumsladerApp extends Application.AppBase {
     private var _bleDelegate as ForumsladerDelegate?;
     private var _deviceManager as DeviceManager?;
     private var _dataManager as DataManager?;
-    
+
     //! Constructor
     public function initialize() {
         AppBase.initialize();

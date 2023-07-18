@@ -45,6 +45,7 @@ class ProfileManager {
 		
     //! Register all BLE profiles
     public function registerProfiles() as Void {
+        if ($ has :_isTest) { return; }
         BluetoothLowEnergy.registerProfile(_profileV5);
         BluetoothLowEnergy.registerProfile(_profileV6);
     }

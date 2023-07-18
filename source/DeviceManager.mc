@@ -51,7 +51,7 @@ class DeviceManager {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("Pairing Error, Device: " + ScanResult.getDeviceName());
+                debug("Pairing Error, Device: " + scanResult.getDeviceName());
                 debug("Error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
@@ -122,10 +122,10 @@ class DeviceManager {
 
         // set forumslader v5 / v6 type
         if (_profileManager.FL_SERVICE == _profileManager.FL6_SERVICE ) {
-            isV6 = true;
+            $.isV6 = true;
             debug("setup V6");
         } else {
-            isV6 = false;
+            $.isV6 = false;
             debug("setup V5");
         }
 
