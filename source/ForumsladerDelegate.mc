@@ -50,10 +50,10 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         var onConnection = _onConnection;
 
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
-            isConnected = true;
+            $.isConnected = true;
             debug ("connected");
         } else {
-            isConnected = false;
+            $.isConnected = false;
             debug ("disconnected");
         }
 
