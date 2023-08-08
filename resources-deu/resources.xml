@@ -1,5 +1,4 @@
 <resources>
     <string id="connecting">verbinden</string>
-    <string id="initializing">initialisieren</string>
     <string id="loadingdata">Daten laden</string>
 </resources>
