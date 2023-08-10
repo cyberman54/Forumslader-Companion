@@ -36,7 +36,8 @@ class DataManager {
     }
 
     public const 
-        MAX_AGE_SEC = 8; // timeout in seconds for $FLx data, triggers "no data" on display
+        MAX_AGE_SEC = 8, // timeout in seconds for $FLx data, triggers data loading message on display
+        MAX_READ_SEC = 30; // timeout in seconds for $FLx data, triggers unpair and reconnect
     
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP", "FLV"] as Array<String>,

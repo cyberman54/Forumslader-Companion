@@ -185,7 +185,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
             } else {
                 // we don't have recent data
-                _displayString = _loadingdata;
+                _displayString = (_data.tick >= _data.MAX_READ_SEC) ? _connecting : _loadingdata;
             }
         }
         return _displayString;

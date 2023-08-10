@@ -60,6 +60,8 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         if (onConnection != null) {
             if (onConnection.stillAlive()) {
                 (onConnection.get() as DeviceManager).procConnection(device);
+            } else {
+                debug ("procConnection disrupted");
             }
         }
     }
@@ -72,6 +74,8 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         if (onCharChanged != null) {
             if (onCharChanged.stillAlive()) {
                 (onCharChanged.get() as DeviceManager).procData(data);
+            } else {
+                debug ("procData disrupted");
             }
         }
 	}
@@ -84,6 +88,8 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         if (onCharWrite != null) {
             if (onCharWrite.stillAlive()) {
                 (onCharWrite.get() as DeviceManager).procCharWrite(characteristic, status);
+            } else {
+                debug ("procCharWrite disrupted");
             }
         }
     }
@@ -96,6 +102,8 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         if (onDescWrite != null) {
             if (onDescWrite.stillAlive()) {
                 (onDescWrite.get() as DeviceManager).procDescWrite(descriptor, status);
+            } else {
+                debug ("procDescWrite disrupted");
             }
         }
     }
@@ -137,6 +145,8 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         if (onScanResult != null) {
             if (onScanResult.stillAlive()) {
                 (onScanResult.get() as DeviceManager).procScanResult(scanResult);
+            } else {
+                debug ("procScanResult disrupted");
             }
         }
     }
