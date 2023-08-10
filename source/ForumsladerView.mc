@@ -22,7 +22,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _unitString as String = "",
         _data as DataManager,
         _connecting as String,
-        _initializing as String,
         _loadingdata as String,
         _fitRecording1 as FitContributor.Field,
         _fitRecording2 as FitContributor.Field,
@@ -46,9 +45,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         getUserSettings();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
-        _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
-        _displayString = _initializing;
+        _displayString = _connecting;
         _data = dataManager;
 
         // Create custom FIT data fields for recording of 4 forumslader values
@@ -187,7 +185,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
             } else {
                 // we don't have recent data
-                _displayString = _loadingdata;
+                _displayString = (_data.tick >= _data.MAX_READ_SEC) ? _connecting : _loadingdata;
             }
         }
         return _displayString;

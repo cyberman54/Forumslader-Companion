@@ -37,6 +37,9 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function start() as Void {
+        if (_device != null) { 
+            BluetoothLowEnergy.unpairDevice(_device);
+        }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
     }
 
@@ -65,7 +68,8 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device.isConnected() && _profileManager.isForumslader(device)) {
             _device = device;
-            if (!_data.cfgDone) {
+            // note: setup for FLv5 once after pairing, however for FLv6 after each reconnect
+            if ((!_data.cfgDone) || ($.isV6)) {
                 setupForumslader();
             }
         } else {

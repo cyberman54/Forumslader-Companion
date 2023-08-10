@@ -1,6 +1,5 @@
 <resources>
     <string id="connecting">connecting</string>
-    <string id="initializing">initializing</string>
     <string id="loadingdata">loading data</string>
     <fitContributions>
         <fitField id="1" displayInChart="true" sortOrder="0" precision="1" chartTitle="@Strings.BatteryVoltage" dataLabel="@Strings.BatteryVoltage" unitLabel="@Strings.BatteryVoltageLabel" fillColor="#FF0000"/>
