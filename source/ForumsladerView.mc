@@ -21,6 +21,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     private var 
         _unitString as String = "",
         _data as DataManager,
+        _device as DeviceManager,
         _connecting as String,
         _loadingdata as String,
         _fitRecording1 as FitContributor.Field,
@@ -40,7 +41,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
-    public function initialize(dataManager as DataManager) {
+    public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
         getUserSettings();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
@@ -48,6 +49,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _loadingdata =  WatchUi.loadResource($.Rez.Strings.loadingdata) as String;
         _displayString = _connecting;
         _data = dataManager;
+        _device = deviceManager;
 
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
@@ -80,10 +82,11 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-                
-        _data.tick++;    // increase data age seconds counter
 
-        if (!$.isConnected){
+        _data.tick++; // increase data age seconds counter
+        _device.updateState($.FLstate); // call state machine
+
+        if ($.FLstate != FL_READY){
             _displayString = _connecting;
         }
         else

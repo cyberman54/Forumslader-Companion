@@ -91,7 +91,7 @@ import Toybox.Activity;
         "$FL5,00C000,0,0,3788,3789,3688,-8,0,296,1,224,1217,3282,8873*5F",
         "$FLC,5,826,55,1386,31,33156710*4A"] as Array<String>;
 
-        $.isConnected = true; // flag to suppress BLE connection for test
+        $.FLstate = FL_READY;
 
         var _data = new $.DataManager();
         var _view = new $.ForumsladerView(_data as DataManager);

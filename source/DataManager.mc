@@ -32,7 +32,7 @@ class DataManager {
         SENTENCE_FLB,
         SENTENCE_FLC,
         SENTENCE_FLP,
-        SENTENCE_FLV,
+        SENTENCE_FLV
     }
 
     public const 
@@ -46,8 +46,7 @@ class DataManager {
 
     public var
         tick as Number = MAX_AGE_SEC,
-        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
-        cfgDone as Boolean = false;
+        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
 
     private var 
         _parity as Number = 0,
@@ -153,14 +152,15 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        cfgDone = true;
                         debug("Config Done (" + FLdata[FL_poles] + " poles @ " + FLdata[FL_wheelsize] + "mm wheel)");
+                        $.FLstate = FL_FLV;
                         break;
 
                     case SENTENCE_FLV:
                         _FLversion1                 = _FLterm[1];
                         _FLversion2                 = _FLterm[2];
                         debug("Forumslader v" + _FLversion1 + " BT" + _FLversion2);
+                        $.FLstate = FL_READY;
                         break;
 
                     case SENTENCE_FLB:

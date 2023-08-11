@@ -1,7 +1,17 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
+// forumslader device states
+    enum {
+        FL_SETUP,
+        FL_FLP,
+        FL_FLV,
+        FL_START,
+        FL_READY
+    }
+
 var isV6 as Boolean = false;
+var FLstate as Number = FL_SETUP;
 
 class DeviceManager {
 
@@ -9,8 +19,8 @@ class DeviceManager {
     private const _RSSI_threshold = -80;
 	// command to request pole and wheelsize
 	private const _CMD_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
-    // command to request firmware version (currently unused)
-	//private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+    // command to request firmware version
+    private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
     private var _profileManager as ProfileManager;
     private var _data as DataManager;
@@ -68,12 +78,14 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device.isConnected() && _profileManager.isForumslader(device)) {
             _device = device;
-            // note: setup for FLv5 once after pairing, however for FLv6 after each reconnect
-            if ((!_data.cfgDone) || ($.isV6)) {
-                setupForumslader();
+            if ($.FLstate == FL_READY) {
+                $.FLstate = FL_START;
+            } else {
+                $.FLstate = FL_SETUP;
             }
         } else {
             _device = null;
+            debug ("procConnection failed");
         }
     }
 
@@ -99,17 +111,13 @@ class DeviceManager {
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
         debug("Write Desc: (" + desc.getUuid() + ") - " + status);
         _writeInProgress = false;
-        // Request data for wheelsize and poles, only once during init
-        if (!_data.cfgDone) {
-            sendCommand(_CMD_REQ_FLP);
-        }
     }
 
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
-    public function sendCommand(cmd as ByteArray) as Boolean {
+    public function sendCommand(cmd as ByteArray) as Void {
         if ((null == _device) || _writeInProgress) {
-            return false;
+            return;
         }
         debug("Send Command: " + cmd.toString());
         var command = _command;
@@ -117,11 +125,10 @@ class DeviceManager {
             _writeInProgress = true;
             command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
         }
-        return true;
     }
 
     //! Start the data stream on the forumslader device
-    private function setupForumslader() as Void {
+    private function setupFL() as Void {
         var device = _device;
 
         // set forumslader v5 / v6 type
@@ -140,8 +147,12 @@ class DeviceManager {
             if (null != service) {
                 _command = service.getCharacteristic(_profileManager.FL_COMMAND);
                 _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+            }
+        }
+    }
 
-                // Write notification to descriptor to start data stream
+    //! Write notification to descriptor to start data stream on forumslader device
+    private function startDatastreamFL() as Void {
                 var char = _config;
                 if (null != char) {
                     var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
@@ -150,7 +161,36 @@ class DeviceManager {
                         cccd.requestWrite([1,0]b);
                     }
                 }
-            }
-        }
     }
+
+    //! device control state machine
+    public function updateState(state as Number) as Void {
+        switch(state)
+            {
+            // device is up and running
+            case FL_READY:
+                break;
+            // cold start
+            case FL_SETUP: 
+                setupFL();
+                startDatastreamFL();
+                $.FLstate = FL_FLP;
+                break;
+            // warm start
+            case FL_START:
+                startDatastreamFL();
+                $.FLstate = FL_READY;
+                break;
+            // request wheelsize and poles
+            case FL_FLP:
+                sendCommand(_CMD_REQ_FLP);
+                break;
+            // request firmware version
+            case FL_FLV:
+                sendCommand(_CMD_REQ_FLV);
+                break;
+            default:
+            }
+    }
+
 }
