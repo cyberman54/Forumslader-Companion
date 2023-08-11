@@ -5,14 +5,6 @@ import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 
-(:test) const _isTest as Boolean = true;
-
-class TestFitContributorField {
-    public function setData(input as Lang.Object) as Void {
-        // do nothing
-    }
-}
-
 class ForumsladerView extends WatchUi.SimpleDataField {
 
     public var
@@ -28,16 +20,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _fitRecording2 as FitContributor.Field,
         _fitRecording3 as FitContributor.Field,
         _fitRecording4 as FitContributor.Field;
-
-
-    //! Overload function createField for unit test purposes
-    public function createField(name as Lang.String, fieldId as Lang.Number, type as FitContributor.DataType, options) as FitContributor.Field {
-            if ($ has :_isTest) {
-                return new TestFitContributorField() as FitContributor.Field;
-            } else {
-                return WatchUi.SimpleDataField.createField(name, fieldId, type, options);
-            }   
-    } 
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
