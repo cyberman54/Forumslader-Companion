@@ -36,8 +36,7 @@ class DataManager {
     }
 
     public const 
-        MAX_AGE_SEC = 8, // timeout in seconds for $FLx data, triggers data loading message on display
-        MAX_READ_SEC = 30; // timeout in seconds for $FLx data, triggers unpair and reconnect
+        MAX_AGE_SEC = 8; // timeout in seconds for $FLx data
     
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP", "FLV"] as Array<String>,
@@ -152,15 +151,21 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        debug("Config Done (" + FLdata[FL_poles] + " poles @ " + FLdata[FL_wheelsize] + "mm wheel)");
-                        $.FLstate = FL_FLV;
+                        // if we are in setup procedure, switch state
+                        if ($.FLstate == FL_BUSY) {
+                            debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                            $.FLstate = FL_FLV;
+                        }
                         break;
 
                     case SENTENCE_FLV:
                         _FLversion1                 = _FLterm[1];
                         _FLversion2                 = _FLterm[2];
-                        debug("Forumslader v" + _FLversion1 + " BT" + _FLversion2);
-                        $.FLstate = FL_READY;
+                        // if we are in setup procedure, switch state
+                        if ($.FLstate == FL_BUSY) {
+                            debug("FL " + _FLversion1 + ", BT " + _FLversion2);
+                            $.FLstate = FL_READY;
+                        }
                         break;
 
                     case SENTENCE_FLB:

@@ -53,6 +53,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             debug ("connected");
         } else {
             debug ("disconnected");
+            $.FLstate = FL_DISCONNECT;
             return;
         }
 
