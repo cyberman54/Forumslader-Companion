@@ -1,7 +1,20 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
+// forumslader device states
+    enum {
+        FL_SEARCH,
+        FL_BUSY,
+        FL_COLDSTART,
+        FL_WARMSTART,
+        FL_FLP,
+        FL_FLV,
+        FL_READY,
+        FL_DISCONNECT
+    }
+
 var isV6 as Boolean = false;
+var FLstate as Number = FL_SEARCH;
 
 class DeviceManager {
 
@@ -9,8 +22,8 @@ class DeviceManager {
     private const _RSSI_threshold = -80;
 	// command to request pole and wheelsize
 	private const _CMD_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
-    // command to request firmware version (currently unused)
-	//private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+    // command to request firmware version
+    private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
     private var _profileManager as ProfileManager;
     private var _data as DataManager;
@@ -48,7 +61,7 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            debug("trying to connect, rssi " + scanResult.getRssi());
+            debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
@@ -68,12 +81,15 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device.isConnected() && _profileManager.isForumslader(device)) {
             _device = device;
-            // note: setup for FLv5 once after pairing, however for FLv6 after each reconnect
-            if ((!_data.cfgDone) || ($.isV6)) {
-                setupForumslader();
+            if ($.FLstate == FL_SEARCH) {
+                $.FLstate = FL_COLDSTART;
+            } else {
+                $.FLstate = FL_WARMSTART;
             }
         } else {
             _device = null;
+            $.FLstate = FL_SEARCH;
+            debug ("procConnection failed");
         }
     }
 
@@ -89,7 +105,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        debug("Write Char: (" + char.getUuid() + ") - " + status);
+        //debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -97,31 +113,26 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        debug("Write Desc: (" + desc.getUuid() + ") - " + status);
+        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
-        // Request data for wheelsize and poles, only once during init
-        if (!_data.cfgDone) {
-            sendCommand(_CMD_REQ_FLP);
-        }
     }
 
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
-    public function sendCommand(cmd as ByteArray) as Boolean {
+    public function sendCommandFL(cmd as ByteArray) as Void {
         if ((null == _device) || _writeInProgress) {
-            return false;
+            return;
         }
-        debug("Send Command: " + cmd.toString());
+        //debug("Send Command: " + cmd.toString());
         var command = _command;
         if (null != command) {
             _writeInProgress = true;
             command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
         }
-        return true;
     }
 
     //! Start the data stream on the forumslader device
-    private function setupForumslader() as Void {
+    private function setupFL() as Void {
         var device = _device;
 
         // set forumslader v5 / v6 type
@@ -140,8 +151,12 @@ class DeviceManager {
             if (null != service) {
                 _command = service.getCharacteristic(_profileManager.FL_COMMAND);
                 _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+            }
+        }
+    }
 
-                // Write notification to descriptor to start data stream
+    //! Write notification to descriptor to start data stream on forumslader device
+    private function startDatastreamFL() as Void {
                 var char = _config;
                 if (null != char) {
                     var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
@@ -150,7 +165,44 @@ class DeviceManager {
                         cccd.requestWrite([1,0]b);
                     }
                 }
-            }
-        }
     }
+
+    //! device control state machine
+    public function updateState(state as Number) as Void {
+        //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
+        switch(state)
+            {
+            // nothing to do, waiting for connection event
+            case FL_READY:
+            case FL_BUSY:
+            case FL_SEARCH:
+            case FL_DISCONNECT:
+                break;
+            // cold start (used after pairing)
+            case FL_COLDSTART:
+                setupFL();
+                startDatastreamFL();
+                $.FLstate = FL_FLP;
+                break;
+            // warm start (used after reconnecting)
+            case FL_WARMSTART:
+                startDatastreamFL();
+                $.FLstate = FL_READY;
+                break;
+            // request wheelsize and poles data
+            case FL_FLP:
+                $.FLstate = FL_BUSY;
+                sendCommandFL(_CMD_REQ_FLP);
+                break;
+            // request firmware version data
+            case FL_FLV:
+                $.FLstate = FL_BUSY;
+                sendCommandFL(_CMD_REQ_FLV);
+                break;
+            // should never be reached
+            default:
+                debug("error: unknown FL state");
+            }
+    }
+
 }

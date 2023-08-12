@@ -36,7 +36,7 @@ class ForumsladerApp extends Application.AppBase {
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
-        debug("--- Field started ---");
+        debug("--- started ---");
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -53,15 +53,16 @@ class ForumsladerApp extends Application.AppBase {
         _bleDelegate = null;
         _profileManager = null;
         _dataManager = null;
-        debug("--- Field stopped ---");
+        debug("--- stopped ---");
     }
 
     //! Return the initial view for the app
     //! @return Array [View]
     public function getInitialView() as Array<Views or InputDelegates>? {
         var dataManager = _dataManager;
-        if (dataManager != null) {
-            return [new $.ForumsladerView(dataManager as DataManager)] as Array<Views>;
+        var deviceManager = _deviceManager;
+        if ((dataManager != null) && (deviceManager != null)) {
+            return [new $.ForumsladerView(dataManager as DataManager, deviceManager as DeviceManager)] as Array<Views>;
         } 
         return null; 
     }
