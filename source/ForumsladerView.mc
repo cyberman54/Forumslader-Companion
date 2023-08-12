@@ -65,8 +65,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
-        _data.tick++; // increase data age seconds counter
         _device.updateState($.FLstate); // call state machine
+        _data.tick++; // increase data age seconds counter
 
         if ($.FLstate != FL_READY){
             _displayString = _connecting;
@@ -170,7 +170,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
             } else {
                 // we don't have recent data
-                _displayString = (_data.tick >= _data.MAX_READ_SEC) ? _connecting : _loadingdata;
+                _data.tick = _data.MAX_AGE_SEC;
+                _displayString = _connecting;
             }
         }
         return _displayString;

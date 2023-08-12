@@ -3,15 +3,16 @@ import Toybox.Lang;
 
 // forumslader device states
     enum {
-        FL_SETUP,
+        FL_WAIT,
+        FL_COLDSTART,
+        FL_WARMSTART,
         FL_FLP,
         FL_FLV,
-        FL_START,
         FL_READY
     }
 
 var isV6 as Boolean = false;
-var FLstate as Number = FL_SETUP;
+var FLstate as Number = FL_WAIT;
 
 class DeviceManager {
 
@@ -78,10 +79,10 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device.isConnected() && _profileManager.isForumslader(device)) {
             _device = device;
-            if ($.FLstate == FL_READY) {
-                $.FLstate = FL_START;
+            if ($.FLstate == FL_WAIT) {
+                $.FLstate = FL_COLDSTART;
             } else {
-                $.FLstate = FL_SETUP;
+                $.FLstate = FL_WARMSTART;
             }
         } else {
             _device = null;
@@ -101,7 +102,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        debug("Write Char: (" + char.getUuid() + ") - " + status);
+        debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -109,13 +110,13 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        debug("Write Desc: (" + desc.getUuid() + ") - " + status);
+        debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
-    public function sendCommand(cmd as ByteArray) as Void {
+    public function sendCommandFL(cmd as ByteArray) as Void {
         if ((null == _device) || _writeInProgress) {
             return;
         }
@@ -165,31 +166,36 @@ class DeviceManager {
 
     //! device control state machine
     public function updateState(state as Number) as Void {
+        debug(_data.tick.format("%d"));
         switch(state)
             {
-            // device is up and running
+            // nothing to do
             case FL_READY:
+            case FL_WAIT:
                 break;
-            // cold start
-            case FL_SETUP: 
+            // cold start (used after pairing)
+            case FL_COLDSTART:
                 setupFL();
                 startDatastreamFL();
                 $.FLstate = FL_FLP;
                 break;
-            // warm start
-            case FL_START:
+            // warm start (used after reconnecting)
+            case FL_WARMSTART:
                 startDatastreamFL();
                 $.FLstate = FL_READY;
                 break;
-            // request wheelsize and poles
+            // request wheelsize and poles data
             case FL_FLP:
-                sendCommand(_CMD_REQ_FLP);
+                $.FLstate = FL_WAIT;
+                sendCommandFL(_CMD_REQ_FLP);
                 break;
-            // request firmware version
+            // request firmware version data
             case FL_FLV:
-                sendCommand(_CMD_REQ_FLV);
+                $.FLstate = FL_WAIT;
+                sendCommandFL(_CMD_REQ_FLV);
                 break;
             default:
+                debug("unknown FL state");
             }
     }
 
