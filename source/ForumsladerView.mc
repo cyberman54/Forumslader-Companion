@@ -166,37 +166,37 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
-        _device.updateState($.FLstate); // cycle the state machine
+        if ($.FLstate == FL_READY) {
+            _data.tick++; // increase data age seconds counter
 
-        switch ($.FLstate) 
-        {
-            case FL_SEARCH:
-                _displayString = _searching;
-                break;
-            case FL_DISCONNECT:
-                _displayString = _connecting;
-                break;
-            case FL_COLDSTART:
-            case FL_WARMSTART:
-            case FL_BUSY:
-            case FL_FLP:
-            case FL_FLV:
-                _displayString = _initializing;
-                break;
-            case FL_READY:
-            default:
-                _data.tick++; // increase data age seconds counter
-
-                // if we have recent data, we display and log it
-                if (_data.tick <= _data.MAX_AGE_SEC) {
-                    _displayString = computeDisplayString();
-                }
-                // otherwise assuming we are (re-)connecting
-                else {      
-                    _data.tick = _data.MAX_AGE_SEC;
-                    _displayString = _connecting;
-                }
+            // if we have recent data, we display and log it
+            if (_data.tick <= _data.MAX_AGE_SEC) {
+                _displayString = computeDisplayString();
             }
+            // otherwise assuming we are (re-)connecting
+            else {      
+                _data.tick = _data.MAX_AGE_SEC;
+                _displayString = _connecting;
+            }
+        } else {
+            _device.updateState($.FLstate);
+            switch ($.FLstate) 
+            {
+                case FL_SEARCH:
+                    _displayString = _searching;
+                    break;
+                case FL_DISCONNECT:
+                    _displayString = _connecting;
+                    break;
+                case FL_COLDSTART:
+                case FL_WARMSTART:
+                case FL_BUSY:
+                case FL_FLP:
+                case FL_FLV:
+                    _displayString = _initializing;
+                    break;
+                }
+        }
         return _displayString;
     }
 
