@@ -36,7 +36,7 @@ class DataManager {
     }
 
     public const 
-        MAX_AGE_SEC = 8; // timeout in seconds for $FLx data
+        MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
     
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP", "FLV"] as Array<String>,

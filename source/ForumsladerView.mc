@@ -17,6 +17,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _searching as String,
         _connecting as String,
         _initializing as String,
+        _datastale as String,
         _fitRecording1 as FitContributor.Field,
         _fitRecording2 as FitContributor.Field,
         _fitRecording3 as FitContributor.Field,
@@ -29,8 +30,9 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         getUserSettings();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _searching = WatchUi.loadResource($.Rez.Strings.searching) as String;
-        _connecting =  WatchUi.loadResource($.Rez.Strings.connecting) as String;
-        _initializing =  WatchUi.loadResource($.Rez.Strings.initializing) as String;
+        _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
+        _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
+        _datastale = WatchUi.loadResource($.Rez.Strings.datastale) as String;
         _displayString = _initializing;
         _data = dataManager;
         _device = deviceManager;
@@ -166,17 +168,14 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
+        // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
-            _data.tick++; // increase data age seconds counter
-
-            // if we have recent data, we display and log it
             if (_data.tick <= _data.MAX_AGE_SEC) {
                 _displayString = computeDisplayString();
+                _data.tick++; // increase data age seconds counter
             }
-            // otherwise assuming we are (re-)connecting
             else {      
-                _data.tick = _data.MAX_AGE_SEC;
-                _displayString = _connecting;
+                _displayString = _datastale;
             }
         } else {
             _device.updateState($.FLstate);
