@@ -36,7 +36,7 @@ class DataManager {
     }
 
     public const 
-        MAX_AGE_SEC = 8; // timeout in seconds for $FLx data
+        MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
     
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP", "FLV"] as Array<String>,
@@ -151,21 +151,15 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        // if we are in setup procedure, switch state
-                        if ($.FLstate == FL_BUSY) {
-                            debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                            $.FLstate = FL_FLV;
-                        }
+                        debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLV:
                         _FLversion1                 = _FLterm[1];
                         _FLversion2                 = _FLterm[2];
-                        // if we are in setup procedure, switch state
-                        if ($.FLstate == FL_BUSY) {
-                            debug("FL " + _FLversion1 + ", BT " + _FLversion2);
-                            $.FLstate = FL_READY;
-                        }
+                        debug("FL " + _FLversion1 + ", BT " + _FLversion2);
+                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLB:
@@ -187,7 +181,7 @@ class DataManager {
 
             // invalid term
             else {
-                debug ("Checksum error in $" + (_currSentenceType == SENTENCE_OTHER ? "FL?" : _sentenceType[_currSentenceType]));
+                debug ("Checksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
 
             return;

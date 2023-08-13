@@ -23,10 +23,11 @@ function debug(str as String) as Void {
 //! show up to 4 user selectable values every 1 second in a simpledatafield.
 class ForumsladerApp extends Application.AppBase {
 
-    private var _profileManager as ProfileManager?;
-    private var _bleDelegate as ForumsladerDelegate?;
-    private var _deviceManager as DeviceManager?;
-    private var _dataManager as DataManager?;
+private var
+    _profileManager as ProfileManager?,
+    _bleDelegate as ForumsladerDelegate?,
+    _deviceManager as DeviceManager?,
+    _dataManager as DataManager?;
 
     //! Constructor
     public function initialize() {

@@ -1,15 +1,16 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
-public var isConnected as Boolean = false;
+var isConnected as Boolean = false;
 
 class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
 
-    private var _onScanResult as WeakReference?;
-    private var _onConnection as WeakReference?;
-    private var _onCharWrite as WeakReference?;
-	private var _onCharChanged as WeakReference?;
-    private var _onDescWrite as WeakReference?;
+    private var 
+        _onScanResult as WeakReference?,
+        _onConnection as WeakReference?,
+        _onCharWrite as WeakReference?,
+	    _onCharChanged as WeakReference?,
+        _onDescWrite as WeakReference?;
     
 	//! Constructor
     public function initialize() {
