@@ -172,9 +172,8 @@ class DeviceManager {
                 }
     }
 
-    //! device control state machine
+    //! finite state machine
     public function updateState() as Number {
-        
         switch($.FLstate)
             {
             // nothing to do, waiting for connection event
@@ -193,6 +192,7 @@ class DeviceManager {
             // warm start (used after reconnecting)
             case FL_WARMSTART:
                 $.FLnextState = FL_READY;
+                $.FLstate = FL_BUSY;
                 startDatastreamFL();
                 break;
             // request wheelsize and poles data
@@ -207,9 +207,6 @@ class DeviceManager {
                 $.FLstate = FL_BUSY;
                 sendCommandFL(FLV);
                 break;
-            // should never be reached
-            default:
-                debug("error: unknown FL state");
             }
         return $.FLstate;
     }
