@@ -5,12 +5,11 @@ import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 
-var displayString as String = "";
-
 class ForumsladerView extends WatchUi.SimpleDataField {
 
     private var 
         _unitString as String = "",
+        _displayString as String = "",
         _data as DataManager,
         _device as DeviceManager,
         _searching as String,
@@ -64,7 +63,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
 
-            $.displayString = "";
+            _displayString = "";
             _unitString = "";
 
             var freq = $.isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
@@ -83,69 +82,69 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             // display user selected values
             for (var i = 0; i < $.showValues.size() - 2; i++)
             {  
-                $.displayString += ($.displayString.length() > 0) ? " " : "";
+                _displayString += (_displayString.length() > 0) ? " " : "";
                 
                 switch ($.showValues[i] as Number)
                 {
                     case 1: // trip energy
                         _unitString = "Wh";
-                        $.displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
+                        _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
                         break;
 
                     case 2: // temperature
                         _unitString = "°C";
-                        $.displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f");
+                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f");
                         break;
 
                     case 3: // dynamo power
                         _unitString = "W";
-                        $.displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
+                        _displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
                         break;
 
                     case 4: // generator gear
                         _unitString = "";
-                        $.displayString += (_data.FLdata[FL_gear] >= 0) ? _data.FLdata[FL_gear] : "--";
+                        _displayString += (_data.FLdata[FL_gear] >= 0) ? _data.FLdata[FL_gear] : "--";
                         break;
 
                     case 5: // dynamo impulse frequency
                         _unitString = "Hz";
-                        $.displayString += freq >= 0 ? freq.toNumber() : "--";
+                        _displayString += freq >= 0 ? freq.toNumber() : "--";
                         break;
 
                     case 6: // battery voltage
                         _unitString = "V";
-                        $.displayString += (battVoltage > 0) ? battVoltage.format("%.1f") : "--";
+                        _displayString += (battVoltage > 0) ? battVoltage.format("%.1f") : "--";
                         break;
 
                     case 7: // battery current
                         _unitString = "A";
-                        $.displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f");
+                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f");
                         break;
 
                     case 8: // load current
                         _unitString = "A";
-                        $.displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") : "--";
+                        _displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") : "--";
                         break;
 
                     case 9: // speed
                         _unitString = "km/h";
                         if (_data.FLdata[FL_poles] > 0) {
-                            $.displayString += speed.toNumber();
+                            _displayString += speed.toNumber();
                         } else {
-                            $.displayString += "--";
+                            _displayString += "--";
                         }
                         break;
 
                     case 10: // remaining battery capacity
                         _unitString = "%";
-                        $.displayString += (capacity > 0) ? capacity : "--";
+                        _displayString += (capacity > 0) ? capacity : "--";
                         break;
 
                     default: // off
                     _unitString = "";
                     break;
                 }
-                $.displayString += _unitString;
+                _displayString += _unitString;
             }
 
             // write values to fit file, if logging is enabled by user
@@ -156,7 +155,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
             }
 
-            return $.displayString;
+            return _displayString;
     }
 
     //! switch device state, process the $FLx data, calculate and show values every one second
@@ -169,24 +168,24 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
             if (_data.tick <= _data.MAX_AGE_SEC) {
-                $.displayString = computeDisplayString(); // display and log current values
+                _displayString = computeDisplayString(); // display and log current values
                 _data.tick++; // increase data age seconds counter
             }
             else {      
-                $.displayString = _datastale; // display data stale message
+                _displayString = _datastale; // display data stale message
             }
         } else {
             switch (_device.updateState()) 
             {
                 case FL_SEARCH:
-                    $.displayString = _searching;
+                    _displayString = _searching;
                     break;
                 default:
-                    $.displayString = _connecting;
+                    _displayString = _connecting;
                     break;
                 }
         }
-        return $.displayString;
+        return _displayString;
     }
 
 }

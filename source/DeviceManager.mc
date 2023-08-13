@@ -176,12 +176,6 @@ class DeviceManager {
     public function updateState() as Number {
         switch($.FLstate)
             {
-            // nothing to do, waiting for connection event
-            case FL_READY:
-            case FL_BUSY:
-            case FL_SEARCH:
-            case FL_DISCONNECT:
-                break;
             // cold start (used after pairing)
             case FL_COLDSTART:
                 setupFL();
@@ -206,6 +200,9 @@ class DeviceManager {
                 $.FLnextState = FL_REQFLP;
                 $.FLstate = FL_BUSY;
                 sendCommandFL(FLV);
+                break;
+            // nothing to do in all other states
+            default:
                 break;
             }
         return $.FLstate;
