@@ -164,23 +164,24 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
+        //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
+
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
             if (_data.tick <= _data.MAX_AGE_SEC) {
-                $.displayString = computeDisplayString();
+                $.displayString = computeDisplayString(); // display and log current values
                 _data.tick++; // increase data age seconds counter
             }
             else {      
-                $.displayString = _datastale;
+                $.displayString = _datastale; // display data stale message
             }
         } else {
-            _device.updateState($.FLstate);
-            switch ($.FLstate) 
+            switch (_device.updateState()) 
             {
                 case FL_SEARCH:
                     $.displayString = _searching;
                     break;
-                case FL_DISCONNECT:
+                default:
                     $.displayString = _connecting;
                     break;
                 }

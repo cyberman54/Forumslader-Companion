@@ -151,22 +151,15 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        // if we are in setup procedure, switch state
-                        if ($.FLstate == FL_BUSY) {
-                            debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                            $.FLstate = FL_READY;
-                        }
+                        debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLV:
                         _FLversion1                 = _FLterm[1];
                         _FLversion2                 = _FLterm[2];
-                        // if we are in setup procedure, switch state
-                        if ($.FLstate == FL_BUSY) {
-                            debug("FL " + _FLversion1 + ", BT " + _FLversion2);
-                            $.displayString = "FL" + _FLversion1 + ", BT" + _FLversion2;
-                            $.FLstate = FL_FLP;
-                        }
+                        debug("FL " + _FLversion1 + ", BT " + _FLversion2);
+                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLB:

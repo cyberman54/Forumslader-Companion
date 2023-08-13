@@ -3,35 +3,39 @@ import Toybox.Lang;
 
 // forumslader device states
     enum {
-        FL_SEARCH,
-        FL_BUSY,
-        FL_COLDSTART,
-        FL_WARMSTART,
-        FL_FLP,
-        FL_FLV,
-        FL_READY,
-        FL_DISCONNECT
+        FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
+        FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
+        FL_WARMSTART,   // 2 = start $FLx data stream
+        FL_REQFLV,      // 3 = request $FLV data (firmware version)
+        FL_REQFLP,      // 4 = request $FLP data (dynamo poles & wheelsize)
+        FL_BUSY,        // 5 = waiting for answer on request
+        FL_DISCONNECT,  // 6 = disconnected state
+        FL_READY        // 7 = exit state (datafield is up and running)
     }
 
-var isV6 as Boolean = false;
-var FLstate as Number = FL_SEARCH;
+var 
+    isV6 as Boolean = false,
+    FLstate as Number = FL_SEARCH,
+    FLnextState as Number = FL_SEARCH;
 
 class DeviceManager {
 
-     // threshold rssi for detecting forumslader devices
-    private const _RSSI_threshold = -80;
-	// command to request pole and wheelsize
-	private const _CMD_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
-    // command to request firmware version
-    private const _CMD_REQ_FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+    private const
+        // threshold rssi for detecting forumslader devices
+        _RSSI_threshold = -80,
+	    // command to request pole and wheelsize
+	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b, // $FLT,5*47<lf>
+        // command to request firmware version
+        FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
-    private var _profileManager as ProfileManager;
-    private var _data as DataManager;
-    private var _device as Device?;
-    private var _service as Service?;
-    private var _command as Characteristic?;
-    private var _config as Characteristic?;
-    private var _writeInProgress as Boolean = false;
+    private var 
+        _profileManager as ProfileManager,
+        _data as DataManager,
+        _device as Device?,
+        _service as Service?,
+        _command as Characteristic?,
+        _config as Characteristic?,
+        _writeInProgress as Boolean = false;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate
@@ -115,6 +119,7 @@ class DeviceManager {
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
         //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
+        $.FLstate = $.FLnextState;
     }
 
     //! Send command to forumslader device
@@ -168,9 +173,9 @@ class DeviceManager {
     }
 
     //! device control state machine
-    public function updateState(state as Number) as Void {
-        //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
-        switch(state)
+    public function updateState() as Number {
+        
+        switch($.FLstate)
             {
             // nothing to do, waiting for connection event
             case FL_READY:
@@ -181,28 +186,32 @@ class DeviceManager {
             // cold start (used after pairing)
             case FL_COLDSTART:
                 setupFL();
+                $.FLnextState = FL_REQFLV;
+                $.FLstate = FL_BUSY;
                 startDatastreamFL();
-                $.FLstate = FL_FLV;
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
+                $.FLnextState = FL_READY;
                 startDatastreamFL();
-                $.FLstate = FL_READY;
                 break;
             // request wheelsize and poles data
-            case FL_FLP:
+            case FL_REQFLP:
+                $.FLnextState = FL_READY;
                 $.FLstate = FL_BUSY;
-                sendCommandFL(_CMD_REQ_FLP);
+                sendCommandFL(FLP);
                 break;
             // request firmware version data
-            case FL_FLV:
+            case FL_REQFLV:
+                $.FLnextState = FL_REQFLP;
                 $.FLstate = FL_BUSY;
-                sendCommandFL(_CMD_REQ_FLV);
+                sendCommandFL(FLV);
                 break;
             // should never be reached
             default:
                 debug("error: unknown FL state");
             }
+        return $.FLstate;
     }
 
 }
