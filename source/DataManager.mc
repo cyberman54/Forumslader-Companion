@@ -154,7 +154,7 @@ class DataManager {
                         // if we are in setup procedure, switch state
                         if ($.FLstate == FL_BUSY) {
                             debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                            $.FLstate = FL_FLV;
+                            $.FLstate = FL_READY;
                         }
                         break;
 
@@ -164,7 +164,8 @@ class DataManager {
                         // if we are in setup procedure, switch state
                         if ($.FLstate == FL_BUSY) {
                             debug("FL " + _FLversion1 + ", BT " + _FLversion2);
-                            $.FLstate = FL_READY;
+                            $.displayString = "FL" + _FLversion1 + ", BT" + _FLversion2;
+                            $.FLstate = FL_FLP;
                         }
                         break;
 
@@ -187,7 +188,7 @@ class DataManager {
 
             // invalid term
             else {
-                debug ("Checksum error in $" + (_currSentenceType == SENTENCE_OTHER ? "FL?" : _sentenceType[_currSentenceType]));
+                debug ("Checksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
 
             return;

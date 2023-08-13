@@ -182,7 +182,7 @@ class DeviceManager {
             case FL_COLDSTART:
                 setupFL();
                 startDatastreamFL();
-                $.FLstate = FL_FLP;
+                $.FLstate = FL_FLV;
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
