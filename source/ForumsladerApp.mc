@@ -44,7 +44,7 @@ private var
         _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_profileManager as ProfileManager).registerProfiles();
-        (_deviceManager as DeviceManager).start();
+        (_deviceManager as DeviceManager).startScan();
     }
 
     //! Handle app shutdown

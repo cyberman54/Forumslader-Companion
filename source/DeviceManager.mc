@@ -53,7 +53,7 @@ class DeviceManager {
     }
 
     //! Start BLE scanning
-    public function start() as Void {
+    public function startScan() as Void {
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
@@ -91,9 +91,9 @@ class DeviceManager {
                 $.FLstate = FL_WARMSTART;
             }
         } else {
-            _device = null;
-            $.FLstate = FL_SEARCH;
             debug ("procConnection failed");
+            $.FLstate = FL_SEARCH;
+            startScan();
         }
     }
 
