@@ -3,6 +3,7 @@ import Toybox.Lang;
 
 // forumslader device states
     enum {
+        FL_INIT = -1,   // fsm not started
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
         FL_WARMSTART,   // 2 = start $FLx data stream
@@ -15,8 +16,8 @@ import Toybox.Lang;
 
 var 
     isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH,
-    FLnextState as Number = FL_SEARCH;
+    FLstate as Number = FL_INIT,
+    FLnextState as Number = FL_INIT;
 
 class DeviceManager {
 
@@ -35,7 +36,8 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
-        _writeInProgress as Boolean = false;
+        _writeInProgress as Boolean = false,
+        _configDone as Boolean = false;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate
@@ -58,6 +60,8 @@ class DeviceManager {
             BluetoothLowEnergy.unpairDevice(_device);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        $.FLstate = FL_SEARCH;
+        _configDone = false;
     }
 
     //! Process scan result
@@ -71,8 +75,8 @@ class DeviceManager {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("Pairing Error, Device: " + scanResult.getDeviceName());
-                debug("Error: " + ex.getErrorMessage());
+                debug("cannot pair device " + scanResult.getDeviceName());
+                debug("error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
         } else {
@@ -83,16 +87,11 @@ class DeviceManager {
     //! Process a new device connection
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
-        if (device.isConnected() && _profileManager.isForumslader(device)) {
+        if (device.isConnected()) {
             _device = device;
-            if ($.FLstate == FL_SEARCH) {
-                $.FLstate = FL_COLDSTART;
-            } else {
-                $.FLstate = FL_WARMSTART;
-            }
+            $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
-            debug ("procConnection failed");
-            $.FLstate = FL_SEARCH;
+            debug ("connection failed, restarting scan");
             startScan();
         }
     }
@@ -136,28 +135,24 @@ class DeviceManager {
         }
     }
 
-    //! Start the data stream on the forumslader device
-    private function setupFL() as Void {
+    //! identify forumslader and get characteristic of it's GATT service
+    private function setupFL() as Boolean {
         var device = _device;
-
-        // set forumslader v5 / v6 type
-        if (_profileManager.FL_SERVICE == _profileManager.FL6_SERVICE ) {
-            $.isV6 = true;
-            debug("setup V6");
-        } else {
-            $.isV6 = false;
-            debug("setup V5");
-        }
-
-        // get characteristics of GATT service
         if (null != device) {
-            _service = device.getService(_profileManager.FL_SERVICE);
-            var service = _service;
-            if (null != service) {
-                _command = service.getCharacteristic(_profileManager.FL_COMMAND);
-                _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+            if (_profileManager.isForumslader(device)) {
+                _service = device.getService(_profileManager.FL_SERVICE);
+                var service = _service;
+                if (null != service) {
+                    _command = service.getCharacteristic(_profileManager.FL_COMMAND);
+                    _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+                }
+                _configDone = true;
+                return true;
             }
         }
+        debug("error: not a forumslader or unknown type");
+        startScan();
+        return false;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device
@@ -178,10 +173,13 @@ class DeviceManager {
             {
             // cold start (used after pairing)
             case FL_COLDSTART:
-                setupFL();
-                $.FLnextState = FL_REQFLV;
-                $.FLstate = FL_BUSY;
-                startDatastreamFL();
+                if (setupFL()) {
+                    $.FLnextState = FL_REQFLV;
+                    $.FLstate = FL_BUSY;
+                    startDatastreamFL();
+                } else {
+                    $.FLstate = FL_SEARCH;
+                }
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
