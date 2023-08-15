@@ -45,7 +45,9 @@ class DataManager {
 
     public var
         tick as Number = MAX_AGE_SEC,
-        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
+        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
+        _FLversion1 as String = "",
+        _FLversion2 as String = "";
 
     private var 
         _parity as Number = 0,
@@ -53,8 +55,6 @@ class DataManager {
         _currSentenceType as Number = SENTENCE_OTHER,
         _currTermNumber as Number = 0,
         _currTermOffset as Number = 0,
-        _FLversion1 as String = "",
-        _FLversion2 as String = "",
         _currTerm as String = "",
         _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
 
@@ -152,14 +152,12 @@ class DataManager {
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
                         debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLV:
                         _FLversion1                 = _FLterm[1];
                         _FLversion2                 = _FLterm[2];
                         debug("FL " + _FLversion1 + ", BT " + _FLversion2);
-                        $.FLstate = $.FLnextState;
                         break;
 
                     case SENTENCE_FLB:

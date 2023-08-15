@@ -3,21 +3,21 @@ import Toybox.Lang;
 
 // forumslader device states
     enum {
-        FL_INIT = -1,   // fsm not started
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
-        FL_WARMSTART,   // 2 = start $FLx data stream
+        FL_WAIT1,       // 2 = waiting for data stream turning on
         FL_REQFLV,      // 3 = request $FLV data (firmware version)
-        FL_REQFLP,      // 4 = request $FLP data (dynamo poles & wheelsize)
-        FL_BUSY,        // 5 = waiting for answer on request
-        FL_DISCONNECT,  // 6 = disconnected state
-        FL_READY        // 7 = exit state (datafield is up and running)
+        FL_WAIT2,       // 4 = waiting for $FLV message
+        FL_REQFLP,      // 5 = request $FLP data (dynamo poles & wheelsize)
+        FL_WAIT3,       // 6 = waiting for $FLP message
+        FL_DISCONNECT,  // 7 = disconnected state
+        FL_WARMSTART,   // 8 = start $FLx data stream
+        FL_READY        // 9 = running state (all setup is done)
     }
 
 var 
     isV6 as Boolean = false,
-    FLstate as Number = FL_INIT,
-    FLnextState as Number = FL_INIT;
+    FLstate as Number = FL_SEARCH;
 
 class DeviceManager {
 
@@ -118,7 +118,6 @@ class DeviceManager {
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
         //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
-        $.FLstate = $.FLnextState;
     }
 
     //! Send command to forumslader device
@@ -146,7 +145,6 @@ class DeviceManager {
                     _command = service.getCharacteristic(_profileManager.FL_COMMAND);
                     _config = service.getCharacteristic(_profileManager.FL_CONFIG);
                 }
-                _configDone = true;
                 return true;
             }
         }
@@ -171,11 +169,15 @@ class DeviceManager {
     public function updateState() as Number {
         switch($.FLstate)
             {
+            // cases before/after setup
+            case FL_READY:
+            case FL_SEARCH:
+            case FL_DISCONNECT:
+                break;
             // cold start (used after pairing)
             case FL_COLDSTART:
                 if (setupFL()) {
-                    $.FLnextState = FL_REQFLV;
-                    $.FLstate = FL_BUSY;
+                    $.FLstate = FL_WAIT1;
                     startDatastreamFL();
                 } else {
                     $.FLstate = FL_SEARCH;
@@ -183,24 +185,35 @@ class DeviceManager {
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
-                $.FLnextState = FL_READY;
-                $.FLstate = FL_BUSY;
+                $.FLstate = FL_READY;
                 startDatastreamFL();
-                break;
-            // request wheelsize and poles data
-            case FL_REQFLP:
-                $.FLnextState = FL_READY;
-                $.FLstate = FL_BUSY;
-                sendCommandFL(FLP);
                 break;
             // request firmware version data
             case FL_REQFLV:
-                $.FLnextState = FL_REQFLP;
-                $.FLstate = FL_BUSY;
+                $.FLstate = FL_WAIT2;
                 sendCommandFL(FLV);
                 break;
-            // nothing to do in all other states
-            default:
+            // request wheelsize and poles data
+            case FL_REQFLP:
+                $.FLstate = FL_WAIT3;
+                sendCommandFL(FLP);
+                break;
+            // wait stages during startup
+            case FL_WAIT1: // data stream was turned on
+                if (_data.tick == 0) {
+                $.FLstate = FL_REQFLV;
+                }
+                break;
+            case FL_WAIT2: // FLV message was catched
+                if (_data._FLversion1 != "") {
+                    $.FLstate = FL_REQFLP;
+                }
+                break;
+            case FL_WAIT3: // FLP message was catched
+                if (_data.FLdata[FL_poles] > 0) {
+                _configDone = true;
+                $.FLstate = FL_READY;
+                }
                 break;
             }
         return $.FLstate;
