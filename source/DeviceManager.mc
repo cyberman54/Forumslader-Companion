@@ -1,28 +1,29 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
-// forumslader device states
+// datafield app states
     enum {
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
-        FL_WARMSTART,   // 2 = start $FLx data stream
+        FL_WAIT1,       // 2 = waiting for data stream turning on
         FL_REQFLV,      // 3 = request $FLV data (firmware version)
-        FL_REQFLP,      // 4 = request $FLP data (dynamo poles & wheelsize)
-        FL_BUSY,        // 5 = waiting for answer on request
-        FL_DISCONNECT,  // 6 = disconnected state
-        FL_READY        // 7 = exit state (datafield is up and running)
+        FL_WAIT2,       // 4 = waiting for $FLV message
+        FL_REQFLP,      // 5 = request $FLP data (dynamo poles & wheelsize)
+        FL_WAIT3,       // 6 = waiting for $FLP message
+        FL_DISCONNECT,  // 7 = forumslader has disconnected
+        FL_WARMSTART,   // 8 = only start $FLx data stream
+        FL_READY        // 9 = running state (all setup is done)
     }
 
 var 
     isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH,
-    FLnextState as Number = FL_SEARCH;
+    FLstate as Number = FL_SEARCH;
 
 class DeviceManager {
 
     private const
         // threshold rssi for detecting forumslader devices
-        _RSSI_threshold = -80,
+        _RSSI_threshold = -85,
 	    // command to request pole and wheelsize
 	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b, // $FLT,5*47<lf>
         // command to request firmware version
@@ -35,7 +36,8 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
-        _writeInProgress as Boolean = false;
+        _writeInProgress as Boolean = false,
+        _configDone as Boolean = false;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate
@@ -53,11 +55,13 @@ class DeviceManager {
     }
 
     //! Start BLE scanning
-    public function start() as Void {
+    public function startScan() as Void {
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        $.FLstate = FL_SEARCH;
+        _configDone = false;
     }
 
     //! Process scan result
@@ -71,8 +75,8 @@ class DeviceManager {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("Pairing Error, Device: " + scanResult.getDeviceName());
-                debug("Error: " + ex.getErrorMessage());
+                debug("cannot pair device " + scanResult.getDeviceName());
+                debug("error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
         } else {
@@ -83,17 +87,12 @@ class DeviceManager {
     //! Process a new device connection
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
-        if (device.isConnected() && _profileManager.isForumslader(device)) {
+        if (device.isConnected()) {
             _device = device;
-            if ($.FLstate == FL_SEARCH) {
-                $.FLstate = FL_COLDSTART;
-            } else {
-                $.FLstate = FL_WARMSTART;
-            }
+            $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
-            _device = null;
-            $.FLstate = FL_SEARCH;
-            debug ("procConnection failed");
+            debug ("connection failed, restarting scan");
+            startScan();
         }
     }
 
@@ -119,7 +118,6 @@ class DeviceManager {
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
         //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
-        $.FLstate = $.FLnextState;
     }
 
     //! Send command to forumslader device
@@ -136,28 +134,23 @@ class DeviceManager {
         }
     }
 
-    //! Start the data stream on the forumslader device
-    private function setupFL() as Void {
+    //! identify forumslader and get characteristic of it's GATT service
+    private function setupFL() as Boolean {
         var device = _device;
-
-        // set forumslader v5 / v6 type
-        if (_profileManager.FL_SERVICE == _profileManager.FL6_SERVICE ) {
-            $.isV6 = true;
-            debug("setup V6");
-        } else {
-            $.isV6 = false;
-            debug("setup V5");
-        }
-
-        // get characteristics of GATT service
         if (null != device) {
-            _service = device.getService(_profileManager.FL_SERVICE);
-            var service = _service;
-            if (null != service) {
-                _command = service.getCharacteristic(_profileManager.FL_COMMAND);
-                _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+            if (_profileManager.isForumslader(device)) {
+                _service = device.getService(_profileManager.FL_SERVICE);
+                var service = _service;
+                if (null != service) {
+                    _command = service.getCharacteristic(_profileManager.FL_COMMAND);
+                    _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+                }
+                return true;
             }
         }
+        debug("error: not a forumslader or unknown type");
+        startScan();
+        return false;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device
@@ -176,36 +169,51 @@ class DeviceManager {
     public function updateState() as Number {
         switch($.FLstate)
             {
-            // nothing to do, waiting for connection event
+            // cases before/after setup
             case FL_READY:
-            case FL_BUSY:
             case FL_SEARCH:
             case FL_DISCONNECT:
                 break;
             // cold start (used after pairing)
             case FL_COLDSTART:
-                setupFL();
-                $.FLnextState = FL_REQFLV;
-                $.FLstate = FL_BUSY;
-                startDatastreamFL();
+                if (setupFL()) {
+                    $.FLstate = FL_WAIT1;
+                    startDatastreamFL();
+                } else {
+                    $.FLstate = FL_SEARCH;
+                }
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
-                $.FLnextState = FL_READY;
-                $.FLstate = FL_BUSY;
+                $.FLstate = FL_READY;
                 startDatastreamFL();
-                break;
-            // request wheelsize and poles data
-            case FL_REQFLP:
-                $.FLnextState = FL_READY;
-                $.FLstate = FL_BUSY;
-                sendCommandFL(FLP);
                 break;
             // request firmware version data
             case FL_REQFLV:
-                $.FLnextState = FL_REQFLP;
-                $.FLstate = FL_BUSY;
+                $.FLstate = FL_WAIT2;
                 sendCommandFL(FLV);
+                break;
+            // request wheelsize and poles data
+            case FL_REQFLP:
+                $.FLstate = FL_WAIT3;
+                sendCommandFL(FLP);
+                break;
+            // wait stages during startup
+            case FL_WAIT1: // data stream was turned on
+                if (_data.tick == 0) {
+                $.FLstate = FL_REQFLV;
+                }
+                break;
+            case FL_WAIT2: // FLV message was catched
+                if (_data._FLversion1 != "") {
+                    $.FLstate = FL_REQFLP;
+                }
+                break;
+            case FL_WAIT3: // FLP message was catched
+                if (_data.FLdata[FL_poles] > 0) {
+                _configDone = true;
+                $.FLstate = FL_READY;
+                }
                 break;
             }
         return $.FLstate;
