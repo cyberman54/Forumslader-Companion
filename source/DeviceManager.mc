@@ -1,7 +1,7 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
-// forumslader device states
+// datafield app states
     enum {
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
@@ -10,8 +10,8 @@ import Toybox.Lang;
         FL_WAIT2,       // 4 = waiting for $FLV message
         FL_REQFLP,      // 5 = request $FLP data (dynamo poles & wheelsize)
         FL_WAIT3,       // 6 = waiting for $FLP message
-        FL_DISCONNECT,  // 7 = disconnected state
-        FL_WARMSTART,   // 8 = start $FLx data stream
+        FL_DISCONNECT,  // 7 = forumslader has disconnected
+        FL_WARMSTART,   // 8 = only start $FLx data stream
         FL_READY        // 9 = running state (all setup is done)
     }
 
@@ -23,7 +23,7 @@ class DeviceManager {
 
     private const
         // threshold rssi for detecting forumslader devices
-        _RSSI_threshold = -80,
+        _RSSI_threshold = -85,
 	    // command to request pole and wheelsize
 	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b, // $FLT,5*47<lf>
         // command to request firmware version

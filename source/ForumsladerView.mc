@@ -15,6 +15,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _searching as String,
         _connecting as String,
         _datastale as String,
+        _initializing as String,
         _fitRecording1 as FitContributor.Field,
         _fitRecording2 as FitContributor.Field,
         _fitRecording3 as FitContributor.Field,
@@ -29,6 +30,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _searching = WatchUi.loadResource($.Rez.Strings.searching) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
         _datastale = WatchUi.loadResource($.Rez.Strings.datastale) as String;
+        _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _data = dataManager;
         _device = deviceManager;
 
@@ -98,7 +100,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                     case 3: // dynamo power
                         _unitString = "W";
-                        _displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * _data.FLdata[FL_loadCurrent] / 1000).toNumber() : "0";
+                        _displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() : "0";
                         break;
 
                     case 4: // generator gear
@@ -174,14 +176,25 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             else {      
                 _displayString = _datastale; // display data stale message
             }
+        // otherwise toggle state machine for setup / reconnect
         } else {
             switch (_device.updateState()) 
             {
                 case FL_SEARCH:
                     _displayString = _searching;
                     break;
-                default:
+                case FL_DISCONNECT:
+                case FL_WARMSTART:
+                case FL_READY:
                     _displayString = _connecting;
+                    break;
+                case FL_COLDSTART:
+                case FL_WAIT1:
+                case FL_REQFLV:
+                case FL_WAIT2:
+                case FL_REQFLP:
+                case FL_WAIT3:
+                    _displayString = _initializing;
                     break;
                 }
         }
