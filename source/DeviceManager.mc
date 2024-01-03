@@ -199,20 +199,20 @@ class DeviceManager {
                 sendCommandFL(FLP);
                 break;
             // wait stages during startup
-            case FL_WAIT1: // data stream was turned on
+            case FL_WAIT1: // wait until data stream was turned on, check if FLV record was already catched
                 if (_data.tick == 0) {
-                $.FLstate = FL_REQFLV;
+                    $.FLstate = _data._FLversion1.equals("") ? FL_REQFLV : FL_REQFLP;
                 }
                 break;
-            case FL_WAIT2: // FLV message was catched
-                if (_data._FLversion1 != "") {
+            case FL_WAIT2: // wait until FLV message was catched
+                if (!_data._FLversion1.equals("")) {
                     $.FLstate = FL_REQFLP;
                 }
                 break;
-            case FL_WAIT3: // FLP message was catched
+            case FL_WAIT3: // wait until FLP message was catched
                 if (_data.FLdata[FL_poles] > 0) {
-                _configDone = true;
-                $.FLstate = FL_READY;
+                    _configDone = true;
+                    $.FLstate = FL_READY;
                 }
                 break;
             }

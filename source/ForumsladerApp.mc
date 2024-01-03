@@ -59,13 +59,11 @@ private var
 
     //! Return the initial view for the app
     //! @return Array [View]
-    public function getInitialView() as Array<Views or InputDelegates>? {
-        var dataManager = _dataManager;
-        var deviceManager = _deviceManager;
-        if ((dataManager != null) && (deviceManager != null)) {
-            return [new $.ForumsladerView(dataManager as DataManager, deviceManager as DeviceManager)] as Array<Views>;
-        } 
-        return null; 
+    public function getInitialView() as [Views] or [Views, InputDelegates] {
+        if (_deviceManager != null && _dataManager != null) {
+            return [new $.ForumsladerView(_dataManager, _deviceManager)];
+        }
+        System.error("Initialisation failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
