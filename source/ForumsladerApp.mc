@@ -59,6 +59,16 @@ private var
 
     //! Return the initial view for the app
     //! @return Array [View]
+    // new API syntax for SDK 7.x
+    //public function getInitialView() as [Views] or [Views, InputDelegates] {
+    //    if (_deviceManager != null && _dataManager != null) {
+    //        return [new $.ForumsladerView(_dataManager, _deviceManager)];
+    //    }
+    //    System.error("Initialisation failure");
+    //}
+
+    //! Return the initial view for the app
+    //! @return Array [View]
     public function getInitialView() as Array<Views or InputDelegates>? {
         var dataManager = _dataManager;
         var deviceManager = _deviceManager;

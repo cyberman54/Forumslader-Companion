@@ -21,21 +21,21 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     //! @param scanResults An iterator of new scan result objects
     public function onScanResults(scanResults as Iterator) as Void {
         for (var result = scanResults.next(); result != null; result = scanResults.next()) {
-            if (result instanceof ScanResult) { 
-                // identify a FLV5 forumslader device by it's advertised manufacturer ID
-                var iter = result.getManufacturerSpecificDataIterator();
-                for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
-                    if (dict.get(:companyId) == 0x4d48) {
-                        debug("found FL by Company ID");
-                        broadcastScanResult(result);
-                        return;
-                    }
-                }
+            if (result instanceof ScanResult) {
                 // identify a forumslader device by it's advertised local name
                 var _deviceName = result.getDeviceName() as String;
                 if (_deviceName != null) { 
                     if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
                         debug("found FL by Devicename: " + _deviceName);
+                        broadcastScanResult(result);
+                        return;
+                    }
+                } 
+                // identify a FLV5 forumslader device by it's advertised manufacturer ID
+                var iter = result.getManufacturerSpecificDataIterator();
+                for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
+                    if (dict.get(:companyId) == 0x4d48) {
+                        debug("found FL by Company ID");
                         broadcastScanResult(result);
                         return;
                     }
@@ -52,18 +52,16 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
 
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
             debug ("connected");
+            if (onConnection != null) {
+                if (onConnection.stillAlive()) {
+                    (onConnection.get() as DeviceManager).procConnection(device);
+                } else {
+                    debug ("procConnection disrupted");
+                }
+            }
         } else {
             debug ("disconnected");
             $.FLstate = FL_DISCONNECT;
-            return;
-        }
-
-        if (onConnection != null) {
-            if (onConnection.stillAlive()) {
-                (onConnection.get() as DeviceManager).procConnection(device);
-            } else {
-                debug ("procConnection disrupted");
-            }
         }
     }
 

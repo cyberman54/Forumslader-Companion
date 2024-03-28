@@ -184,17 +184,19 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     _displayString = _searching;
                     break;
                 case FL_DISCONNECT:
+                case FL_COLDSTART:
                 case FL_WARMSTART:
                 case FL_READY:
                     _displayString = _connecting;
                     break;
-                case FL_COLDSTART:
                 case FL_WAIT1:
-                case FL_REQFLV:
                 case FL_WAIT2:
+                case FL_REQFLV:
+                    _displayString = _initializing;
+                    break;
                 case FL_REQFLP:
                 case FL_WAIT3:
-                    _displayString = _initializing;
+                    _displayString = "FL" + _data._FLversion1 + " BT" + _data._FLversion2;
                     break;
                 }
         }
