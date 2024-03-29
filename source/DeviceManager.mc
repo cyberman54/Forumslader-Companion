@@ -5,14 +5,11 @@ import Toybox.Lang;
     enum {
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
-        FL_WAIT1,       // 2 = waiting for data stream turning on
-        FL_REQFLV,      // 3 = request $FLV data (firmware version)
-        FL_WAIT2,       // 4 = waiting for $FLV message
-        FL_REQFLP,      // 5 = request $FLP data (dynamo poles & wheelsize)
-        FL_WAIT3,       // 6 = waiting for $FLP message
-        FL_DISCONNECT,  // 7 = forumslader has disconnected
-        FL_WARMSTART,   // 8 = only start $FLx data stream
-        FL_READY        // 9 = running state (all setup is done)
+        FL_CONFIG1,     // 2 = configuration step 1
+        FL_CONFIG2,     // 3 = configuration step 2
+        FL_DISCONNECT,  // 4 = forumslader has disconnected
+        FL_WARMSTART,   // 5 = start data stream, skip configuration
+        FL_READY        // 6 = running state (all setup is done)
     }
 
 var 
@@ -178,7 +175,7 @@ class DeviceManager {
             // cold start (used after pairing)
             case FL_COLDSTART:
                 if (setupProfile()) {
-                    $.FLstate = FL_WAIT1;
+                    $.FLstate = FL_CONFIG1;
                     startDatastreamFL();
                 } else {
                     $.FLstate = FL_SEARCH;
@@ -189,28 +186,18 @@ class DeviceManager {
                 $.FLstate = FL_READY;
                 startDatastreamFL();
                 break;
-            // request firmware version data
-            case FL_REQFLV:
-                $.FLstate = FL_WAIT2;
-                sendCommandFL(FLV);
-                break;
-            // request wheelsize and poles data
-            case FL_REQFLP:
-                $.FLstate = FL_WAIT3;
-                sendCommandFL(FLP);
-                break;
-            // wait stages during startup
-            case FL_WAIT1: // wait until data stream was turned on, check if FLV record was already catched
-                if (_data.tick == 0) {
-                    $.FLstate = _data._FLversion1.equals("") ? FL_REQFLV : FL_REQFLP;
+            // 2-steps configuration sequence during startup
+            case FL_CONFIG1:
+                if (_data.tick == 0) {      // wait until data stream was turned on
+                    if (_data.FLversion1.equals("")) {
+                        sendCommandFL(FLV); // request firmware and bt version
+                    } else {
+                        sendCommandFL(FLP); // request wheelsize and poles data
+                        $.FLstate = FL_CONFIG2;
+                    }
                 }
                 break;
-            case FL_WAIT2: // wait until FLV message was catched
-                if (!_data._FLversion1.equals("")) {
-                    $.FLstate = FL_REQFLP;
-                } 
-                break;
-            case FL_WAIT3: // wait until FLP message was catched
+            case FL_CONFIG2:
                 if (_data.FLdata[FL_poles] > 0) {
                     _configDone = true;
                     $.FLstate = FL_READY;
