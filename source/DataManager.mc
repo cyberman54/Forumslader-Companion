@@ -46,8 +46,8 @@ class DataManager {
     public var
         tick as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
-        _FLversion1 as String = "",
-        _FLversion2 as String = "";
+        FLversion1 as String = "",
+        FLversion2 as String = "";
 
     private var 
         _parity as Number = 0,
@@ -155,9 +155,9 @@ class DataManager {
                         break;
 
                     case SENTENCE_FLV:
-                        _FLversion1                 = _FLterm[1];
-                        _FLversion2                 = _FLterm[2];
-                        debug("FL " + _FLversion1 + ", BT " + _FLversion2);
+                        FLversion1                 = _FLterm[1];
+                        FLversion2                 = _FLterm[2];
+                        debug("FL " + FLversion1 + ", BT " + FLversion2);
                         break;
 
                     case SENTENCE_FLB:
