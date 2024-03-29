@@ -37,8 +37,7 @@ class DeviceManager {
         _command as Characteristic?,
         _config as Characteristic?,
         _writeInProgress as Boolean = false,
-        _configDone as Boolean = false,
-        _waitTicks as Number = 0;
+        _configDone as Boolean = false;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate
@@ -168,16 +167,16 @@ class DeviceManager {
 
     //! finite state machine
     public function updateState() as Number {
+
         switch($.FLstate)
             {
-            // cases before/after setup
+            // waiting for delegate event, nothing to do meanwhile
             case FL_READY:
             case FL_SEARCH:
             case FL_DISCONNECT:
                 break;
             // cold start (used after pairing)
             case FL_COLDSTART:
-                _waitTicks = 0;
                 if (setupProfile()) {
                     $.FLstate = FL_WAIT1;
                     startDatastreamFL();
@@ -202,37 +201,19 @@ class DeviceManager {
                 break;
             // wait stages during startup
             case FL_WAIT1: // wait until data stream was turned on, check if FLV record was already catched
-                _waitTicks ++;
                 if (_data.tick == 0) {
                     $.FLstate = _data._FLversion1.equals("") ? FL_REQFLV : FL_REQFLP;
-                    break;
-                }
-                // timeout to prevent endless waiting
-                if (_waitTicks > _data.MAX_AGE_SEC) {
-                    $.FLstate = FL_COLDSTART;
                 }
                 break;
             case FL_WAIT2: // wait until FLV message was catched
-                _waitTicks ++;
                 if (!_data._FLversion1.equals("")) {
                     $.FLstate = FL_REQFLP;
-                    break;
                 } 
-                // timeout to prevent endless waiting
-                if (_waitTicks > 2 * _data.MAX_AGE_SEC) {
-                    $.FLstate = FL_COLDSTART;
-                }
                 break;
             case FL_WAIT3: // wait until FLP message was catched
-                _waitTicks ++;
                 if (_data.FLdata[FL_poles] > 0) {
                     _configDone = true;
                     $.FLstate = FL_READY;
-                    break;
-                }
-                // timeout to prevent endless waiting
-                if (_waitTicks > 3 * _data.MAX_AGE_SEC) {
-                    $.FLstate = FL_COLDSTART;
                 }
                 break;
             }
