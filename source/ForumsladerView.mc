@@ -129,9 +129,10 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                         break;
 
                     case 9: // speed
-                        _unitString = "km/h";
+                        
+                        _unitString = $.showValues[6] ? "mph" : "km/h";
                         if (_data.FLdata[FL_poles] > 0) {
-                            _displayString += speed.toNumber();
+                            _displayString += $.showValues[6] ? 0.621371 * speed.toNumber() : speed.toNumber(); 
                         } else {
                             _displayString += "--";
                         }

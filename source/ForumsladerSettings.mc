@@ -1,7 +1,7 @@
 import Toybox.Application;
 import Toybox.Lang;
 
-var showValues as Array = [10, 3, 6, 7, false, false];
+var showValues as Array = [10, 3, 6, 7, false, false, false];
 
 //! read user settings from GCM properties in showValues array
 function getUserSettings() as Void {
@@ -11,5 +11,6 @@ function getUserSettings() as Void {
     $.showValues[3] = Application.Properties.getValue("ShowValue4") as Number;
     $.showValues[4] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
     $.showValues[5] = Application.Properties.getValue("Logging") as Boolean;
+    $.showValues[6] = Application.Properties.getValue("Milesperhour") as Boolean;
     debug("User Settings: " + $.showValues.toString());
 }

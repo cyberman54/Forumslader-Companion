@@ -1,6 +1,7 @@
 <properties>
     <property id="BatteryCalcMethod" type="Boolean">false</property>    <!-- default use voltage method -->
     <property id="Logging" type="Boolean">false</property>              <!-- default don't log data -->
+    <property id="Milesperhour" type="Boolean">false</property>         <!-- default show km/h -->
     <property id="ShowValue1" type="Number">10</property>			    <!-- default show batt remaining -->
     <property id="ShowValue2" type="Number">3</property>				<!-- default show dynamo power -->
     <property id="ShowValue3" type="Number">6</property>				<!-- default show battery voltage -->
