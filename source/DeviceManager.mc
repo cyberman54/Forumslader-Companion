@@ -7,9 +7,10 @@ import Toybox.Lang;
         FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
         FL_CONFIG1,     // 2 = configuration step 1
         FL_CONFIG2,     // 3 = configuration step 2
-        FL_DISCONNECT,  // 4 = forumslader has disconnected
-        FL_WARMSTART,   // 5 = start data stream, skip configuration
-        FL_READY        // 6 = running state (all setup is done)
+        FL_CONFIG3,     // 4 = configuration step 3
+        FL_DISCONNECT,  // 5 = forumslader has disconnected
+        FL_WARMSTART,   // 6 = start data stream, skip configuration
+        FL_READY = 9    // 9 = running state (all setup is done)
     }
 
 var 
@@ -22,9 +23,9 @@ class DeviceManager {
         // threshold rssi for detecting forumslader devices
         _RSSI_threshold = -85,
 	    // command to request pole and wheelsize
-	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b, // $FLT,5*47<lf>
-        // command to request firmware version
-        FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
+        // command to request firmware version, currently unused
+        //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
     private var 
         _profileManager as ProfileManager,
@@ -165,45 +166,60 @@ class DeviceManager {
     //! finite state machine
     public function updateState() as Number {
 
-        switch($.FLstate)
-            {
-            // waiting for delegate event, nothing to do meanwhile
-            case FL_READY:
-            case FL_SEARCH:
-            case FL_DISCONNECT:
-                break;
-            // cold start (used after pairing)
-            case FL_COLDSTART:
-                if (setupProfile()) {
-                    $.FLstate = FL_CONFIG1;
-                    startDatastreamFL();
-                } else {
-                    $.FLstate = FL_SEARCH;
-                }
-                break;
-            // warm start (used after reconnecting)
-            case FL_WARMSTART:
-                $.FLstate = FL_READY;
-                startDatastreamFL();
-                break;
-            // 2-steps configuration sequence during startup
-            case FL_CONFIG1:
-                if (_data.tick == 0) {      // wait until data stream was turned on
-                    if (_data.FLversion1.equals("")) {
-                        sendCommandFL(FLV); // request firmware and bt version
+        // watchdog
+        if (_data.tick >= 10) {
+            startScan();
+        }
+        else {
+            switch($.FLstate)
+                {
+                // waiting for delegate event, nothing to do meanwhile
+                case FL_READY:
+                case FL_SEARCH:
+                case FL_DISCONNECT:
+                    break;
+                // cold start (used after pairing)
+                case FL_COLDSTART:
+                    if (setupProfile()) {
+                        $.FLstate ++;
+                        startDatastreamFL();
                     } else {
-                        sendCommandFL(FLP); // request wheelsize and poles data
-                        $.FLstate = FL_CONFIG2;
+                        $.FLstate --;
                     }
-                }
-                break;
-            case FL_CONFIG2:
-                if (_data.FLdata[FL_poles] > 0) {
-                    _configDone = true;
+                    break;
+                // warm start (used after reconnecting)
+                case FL_WARMSTART:
                     $.FLstate = FL_READY;
+                    startDatastreamFL();
+                    break;
+                // 3-steps configuration sequence during startup
+                // step1: request parameters
+                case FL_CONFIG1:
+                    if (_data.tick == 0) {  // wait until data stream was turned on
+                        sendCommandFL(FLP); // request wheelsize and poles data
+                        $.FLstate ++;
+                    }
+                    break;
+                // step2: check parameters, first try
+                case FL_CONFIG2:
+                    if (_data.FLdata[FL_poles] > 0) {
+                        _configDone = true;
+                        $.FLstate = FL_READY;
+                    } else {
+                        $.FLstate ++;
+                    }
+                    break;
+                // step3: check parameters, second try (for FLV5)
+                case FL_CONFIG3:
+                    if (_data.FLdata[FL_poles] > 0) {
+                        _configDone = true;
+                        $.FLstate = FL_READY;
+                    } else {
+                        $.FLstate = FL_CONFIG1;
+                    }
+                    break;
                 }
-                break;
-            }
+            }   
         return $.FLstate;
     }
 
