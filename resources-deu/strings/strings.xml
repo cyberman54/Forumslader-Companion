@@ -1,4 +1,5 @@
 <strings>
+    <string id="AppVersionTitle">Softwareversion</string>
     <string id="AppName">Forumslader</string>
     <string id="ShowTitle1">Anzeigewert 1</string>
     <string id="ShowTitle2">Anzeigewert 2</string>
