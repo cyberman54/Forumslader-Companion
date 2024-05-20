@@ -70,7 +70,7 @@ class DataManager {
     //! @param none
     public function encode() as Void {
 
-        //debug(FLpayload.toString());
+        ////debug(FLpayload.toString());
         var _size = FLpayload.size();
 
 		for (var i = 0; i < _size; i++) {
@@ -154,13 +154,13 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        //debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;
 
                     case SENTENCE_FLV:
                         FLversion1                 = _FLterm[1];
                         FLversion2                 = _FLterm[2];
-                        debug("FL " + FLversion1 + ", BT " + FLversion2);
+                        //debug("FL " + FLversion1 + ", BT " + FLversion2);
                         break;
 
                     case SENTENCE_FLB:
@@ -182,7 +182,7 @@ class DataManager {
 
             // invalid term
             else {
-                debug ("Checksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
+                //debug ("Checksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
 
             return;

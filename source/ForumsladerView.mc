@@ -166,7 +166,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
-        //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
+        ////debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
 
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {

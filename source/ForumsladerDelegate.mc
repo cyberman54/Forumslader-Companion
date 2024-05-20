@@ -26,7 +26,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
                 var _deviceName = result.getDeviceName() as String;
                 if (_deviceName != null) { 
                     if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
-                        debug("found FL by Devicename: " + _deviceName);
+                        //debug("found FL by Devicename: " + _deviceName);
                         broadcastScanResult(result);
                         return;
                     }
@@ -35,7 +35,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
                 var iter = result.getManufacturerSpecificDataIterator();
                 for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
                     if (dict.get(:companyId) == 0x4d48) {
-                        debug("found FL by Company ID");
+                        //debug("found FL by Company ID");
                         broadcastScanResult(result);
                         return;
                     }
@@ -51,16 +51,16 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
         var onConnection = _onConnection;
 
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
-            debug ("connected");
+            //debug ("connected");
             if (onConnection != null) {
                 if (onConnection.stillAlive()) {
                     (onConnection.get() as DeviceManager).procConnection(device);
                 } else {
-                    debug ("procConnection disrupted");
+                    //debug ("procConnection disrupted");
                 }
             }
         } else {
-            debug ("disconnected");
+            //debug ("disconnected");
             $.FLstate = FL_DISCONNECT;
         }
     }
@@ -74,7 +74,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             if (onCharChanged.stillAlive()) {
                 (onCharChanged.get() as DeviceManager).procData(data);
             } else {
-                debug ("procData disrupted");
+                //debug ("procData disrupted");
             }
         }
 	}
@@ -88,7 +88,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             if (onCharWrite.stillAlive()) {
                 (onCharWrite.get() as DeviceManager).procCharWrite(characteristic, status);
             } else {
-                debug ("procCharWrite disrupted");
+                //debug ("procCharWrite disrupted");
             }
         }
     }
@@ -102,7 +102,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             if (onDescWrite.stillAlive()) {
                 (onDescWrite.get() as DeviceManager).procDescWrite(descriptor, status);
             } else {
-                debug ("procDescWrite disrupted");
+                //debug ("procDescWrite disrupted");
             }
         }
     }
@@ -145,7 +145,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             if (onScanResult.stillAlive()) {
                 (onScanResult.get() as DeviceManager).procScanResult(scanResult);
             } else {
-                debug ("procScanResult disrupted");
+                //debug ("procScanResult disrupted");
             }
         }
     }
@@ -157,7 +157,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     private function contains(iter as Iterator, obj as Uuid) as Boolean {
         for (var uuid = iter.next(); uuid != null; uuid = iter.next()) {
             if (uuid.equals(obj)) {
-				debug("found="+uuid.toString());
+				//debug("found="+uuid.toString());
                 return true;
             }
         }

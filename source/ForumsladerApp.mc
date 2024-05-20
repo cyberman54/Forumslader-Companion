@@ -13,9 +13,9 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 
-function debug(str as String) as Void {
-    //System.println(str);
-}
+//function debug(str as String) as Void {
+//    System.println(str);
+//}
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -36,7 +36,7 @@ private var
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
-        debug("--- started ---");
+        //debug("--- started ---");
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -53,7 +53,7 @@ private var
         _bleDelegate = null;
         _profileManager = null;
         _dataManager = null;
-        debug("--- stopped ---");
+        //debug("--- stopped ---");
     }
 
     //! Return the initial view for the app

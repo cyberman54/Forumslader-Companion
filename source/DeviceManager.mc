@@ -67,18 +67,18 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            debug("trying to pair device, rssi " + scanResult.getRssi());
+            //debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("cannot pair device " + scanResult.getDeviceName());
-                debug("error: " + ex.getErrorMessage());
+                //debug("cannot pair device " + scanResult.getDeviceName());
+                //debug("error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
         } else {
-            debug("signal too weak, rssi " + scanResult.getRssi());
+            //debug("signal too weak, rssi " + scanResult.getRssi());
         }
     }
 
@@ -89,7 +89,7 @@ class DeviceManager {
             _device = device;
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
-            debug ("connection failed, restarting scan");
+            //debug ("connection failed, restarting scan");
             startScan();
         }
     }
@@ -106,7 +106,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        //debug("Write Char: " + char.getUuid() + " -> " + status);
+        ////debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -114,7 +114,7 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
+        ////debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -124,7 +124,7 @@ class DeviceManager {
         if ((null == _device) || _writeInProgress) {
             return;
         }
-        //debug("Send Command: " + cmd.toString());
+        ////debug("Send Command: " + cmd.toString());
         var command = _command;
         if (null != command) {
             _writeInProgress = true;
@@ -146,7 +146,7 @@ class DeviceManager {
                 return true;
             }
         }
-        debug("error: not a forumslader or unknown type");
+        //debug("error: not a forumslader or unknown type");
         startScan();
         return false;
     }

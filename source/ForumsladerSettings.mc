@@ -12,5 +12,5 @@ function getUserSettings() as Void {
     $.showValues[4] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
     $.showValues[5] = Application.Properties.getValue("Logging") as Boolean;
     $.showValues[6] = Application.Properties.getValue("Milesperhour") as Boolean;
-    debug("User Settings: " + $.showValues.toString());
+    //debug("User Settings: " + $.showValues.toString());
 }

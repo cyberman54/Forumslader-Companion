@@ -70,7 +70,7 @@ class ProfileManager {
 						FL_COMMAND = _FL5_RX_CHARACTERISTIC;
                         rc = true;
                         $.isV6 = false;
-                        debug("FLv5 detected");
+                        //debug("FLv5 detected");
 					}
 					else {
 						if (r.getUuid().equals(FL6_SERVICE))
@@ -80,7 +80,7 @@ class ProfileManager {
 							FL_COMMAND = _FL6_TX_CHARACTERISTIC;
                             rc = true;
                             $.isV6 = true;
-                            debug("FLv6 detected");
+                            //debug("FLv6 detected");
 						}
 					}
 				}
