@@ -70,7 +70,7 @@ class DataManager {
     //! @param none
     public function encode() as Void {
 
-        ////debug(FLpayload.toString());
+        //debug(FLpayload.toString());
         var _size = FLpayload.size();
 
 		for (var i = 0; i < _size; i++) {

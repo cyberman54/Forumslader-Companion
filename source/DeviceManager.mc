@@ -106,7 +106,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        ////debug("Write Char: " + char.getUuid() + " -> " + status);
+        //debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -114,7 +114,7 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        ////debug("Write Desc: " + desc.getUuid() + " -> " + status);
+        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -124,7 +124,7 @@ class DeviceManager {
         if ((null == _device) || _writeInProgress) {
             return;
         }
-        ////debug("Send Command: " + cmd.toString());
+        //debug("Send Command: " + cmd.toString());
         var command = _command;
         if (null != command) {
             _writeInProgress = true;
