@@ -14,7 +14,7 @@ import Toybox.WatchUi;
 import Toybox.System;
 
 function debug(str as String) as Void {
-    System.println(str);
+    //System.println(str);
 }
 
 //! This data field app uses the BLE data interface of a forumslader.
