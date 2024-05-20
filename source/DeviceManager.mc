@@ -94,11 +94,11 @@ class DeviceManager {
         }
     }
 
-    //! Process incoming data from the device
-    //! @param data The data which is delivered by the device
+    //! Buffers $FLx data stream of Forumslader
+    //! @param byte array containing $FL<x> ascii stream
     public function procData(data as ByteArray or Null) as Void {
         if (null != data) {
-            _data.encode(data);
+            _data.FLpayload.addAll(data);
 		}
     }
 

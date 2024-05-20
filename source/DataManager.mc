@@ -47,7 +47,8 @@ class DataManager {
         tick as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
         FLversion1 as String = "",
-        FLversion2 as String = "";
+        FLversion2 as String = "",
+        FLpayload as ByteArray = []b;
 
     private var 
         _parity as Number = 0,
@@ -65,22 +66,23 @@ class DataManager {
         }
     }
 
-    //! Interpretes payload of Forumslader char by char
-    //! @param any part of a Forumslader $FLx data stream
-    public function encode(sentence as ByteArray) as Void {
+    //! Interpretes $FLx data stream of Forumslader char by char
+    //! @param none
+    public function encode() as Void {
 
-        var _size = sentence.size();
-        //debug(sentence.toString());
+        //debug(FLpayload.toString());
+        var _size = FLpayload.size();
 
 		for (var i = 0; i < _size; i++) {
 
-            var c = sentence[i].toChar();
+            var b = FLpayload[i] as Number; // safe conversion to number from ByteArray
+            var c = b.toChar();
 
             switch(c)
             {
             // end of term
             case ',': 
-                _parity ^= sentence[i];
+                _parity ^= b;
             case '\r':
             case '\n':
             case '*':
@@ -113,11 +115,13 @@ class DataManager {
                 }
                 if (!_isChecksumTerm)
                 {
-                    _parity ^= sentence[i];
+                    _parity ^= b;
                 }
             }
         }
+        FLpayload = []b; // clear buffer
     }
+
 
     //! Processes a term of a $FLx sentence
     //! @param a term of a $FLx string
