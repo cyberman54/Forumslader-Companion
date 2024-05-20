@@ -74,14 +74,13 @@ class DataManager {
 
 		for (var i = 0; i < _size; i++) {
 
-            var b = sentence[i] as Number; // safe conversion to number from ByteArray
-            var c = b.toChar();
+            var c = sentence[i].toChar();
 
             switch(c)
             {
             // end of term
             case ',': 
-                _parity ^= b;
+                _parity ^= sentence[i];
             case '\r':
             case '\n':
             case '*':
@@ -114,7 +113,7 @@ class DataManager {
                 }
                 if (!_isChecksumTerm)
                 {
-                    _parity ^= b;
+                    _parity ^= sentence[i];
                 }
             }
         }
@@ -207,11 +206,10 @@ class DataManager {
         if (null == v) {
             return -1;
         }
-        if (min != 0 && max != 0) {
-            return (v >= min && v <= max) ? v : -1;
-        }
-        else {
+        if (min == 0 && max == 0) {
             return v;
+        } else {
+            return (v >= min && v <= max) ? v : -1;
         }
     }
 }
