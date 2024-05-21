@@ -31,23 +31,20 @@ class DataManager {
         SENTENCE_FL6,
         SENTENCE_FLB,
         SENTENCE_FLC,
-        SENTENCE_FLP,
-        SENTENCE_FLV
+        SENTENCE_FLP
     }
 
     public const 
         MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
     
     private const 
-        _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP", "FLV"] as Array<String>,
+        _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
         _MAX_TERM_SIZE = 30,  // max size of a term in a $FLx sentence (assumption, should be verified)
         _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, should be verified)
 
     public var
         tick as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
-        FLversion1 as String = "",
-        FLversion2 as String = "",
         FLpayload as ByteArray = []b;
 
     private var 
@@ -169,12 +166,6 @@ class DataManager {
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
                         //debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                        break;
-
-                    case SENTENCE_FLV:
-                        FLversion1                 = _FLterm[1];
-                        FLversion2                 = _FLterm[2];
-                        //debug("FL " + FLversion1 + ", BT " + FLversion2);
                         break;
                 } 
                 return;
