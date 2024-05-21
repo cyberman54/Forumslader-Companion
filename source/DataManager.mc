@@ -150,19 +150,6 @@ class DataManager {
                         FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);
                         break;
 
-                    case SENTENCE_FLP:
-                        FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
-                        FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
-                        FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        //debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
-                        break;
-
-                    case SENTENCE_FLV:
-                        FLversion1                 = _FLterm[1];
-                        FLversion2                 = _FLterm[2];
-                        //debug("FL " + FLversion1 + ", BT " + FLversion2);
-                        break;
-
                     case SENTENCE_FLB:
                         FLdata[FL_temperature]      = commitValue(_FLterm[1], -300, 800);
                         FLdata[FL_pressure]         = commitValue(_FLterm[2], 0, 1200000);
@@ -176,6 +163,19 @@ class DataManager {
                             FLdata[FL_tourElevation + _FLCsetnr * 5 + i] = commitValue(_FLterm[i + 2], 0, 0);
                         }
                         break;
+
+                    case SENTENCE_FLP:
+                        FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
+                        FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
+                        FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
+                        //debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        break;
+
+                    case SENTENCE_FLV:
+                        FLversion1                 = _FLterm[1];
+                        FLversion2                 = _FLterm[2];
+                        //debug("FL " + FLversion1 + ", BT " + FLversion2);
+                        break;
                 } 
                 return;
             }
@@ -188,18 +188,17 @@ class DataManager {
             return;
         }
 
+        // split up sentence in terms and store them in string array
+        if (_currSentenceType != SENTENCE_OTHER) {
+            _FLterm[_currTermNumber] = term;
+            return;
+        }
+
         // the first term determines the sentence type
         if (_currTermNumber == 0) {
             _currSentenceType = _sentenceType.indexOf(term);
             return;
         }
-
-        // split up sentence in single terms
-        if (_currSentenceType != SENTENCE_OTHER && term != "") {
-            _FLterm[_currTermNumber] = term;
-            return;
-        }
-        
     } 
 
     //! helper function to safely convert a string with unknown content to a number value
