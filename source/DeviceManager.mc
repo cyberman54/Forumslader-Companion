@@ -4,7 +4,7 @@ import Toybox.Lang;
 // datafield app states
     enum {
         FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
-        FL_COLDSTART,   // 1 = request FLP & FLV data + start $FLx data stream
+        FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
         FL_CONFIG1,     // 2 = configuration step 1
         FL_CONFIG2,     // 3 = configuration step 2
         FL_CONFIG3,     // 4 = configuration step 3
