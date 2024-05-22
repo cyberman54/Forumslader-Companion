@@ -39,8 +39,8 @@ class DataManager {
     
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
-        _MAX_TERM_SIZE = 30,  // max size of a term in a $FLx sentence (assumption, should be verified)
-        _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, should be verified)
+        _MAX_TERM_SIZE = 30,  // max size of a term in a $FLx sentence (assumption, not verified with FL)
+        _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, not verified with FL)
 
     public var
         tick as Number = MAX_AGE_SEC,
@@ -68,9 +68,8 @@ class DataManager {
     public function encode() as Void {
 
         //debug(FLpayload.toString());
-        var _size = FLpayload.size();
 
-		for (var i = 0; i < _size; i++) {
+		for (var i = 0; i < FLpayload.size(); i++) {
 
             var b = FLpayload[i] as Number; // safe conversion to number from ByteArray
             var c = b.toChar();
@@ -118,7 +117,6 @@ class DataManager {
         }
         FLpayload = []b; // clear buffer
     }
-
 
     //! Processes a term of a $FLx sentence
     //! @param a term of a $FLx string
