@@ -13,9 +13,9 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 
-//function debug(str as String) as Void {
-//    System.println(str);
-//}
+(:debug) function debug(str as String) as Void {
+    System.println(str);
+}
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
