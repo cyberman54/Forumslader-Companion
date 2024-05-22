@@ -1,5 +1,5 @@
 <properties>
-    <property id="appVersion" type="string">1.5.0</property>            <!-- used to display app version -->
+    <property id="appVersion" type="string">1.5.2</property>            <!-- used to display app version -->
     <property id="BatteryCalcMethod" type="Boolean">false</property>    <!-- default use voltage method -->
     <property id="Logging" type="Boolean">false</property>              <!-- default don't log data -->
     <property id="Milesperhour" type="Boolean">false</property>         <!-- default show km/h -->
