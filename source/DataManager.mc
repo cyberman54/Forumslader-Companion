@@ -68,8 +68,9 @@ class DataManager {
     public function encode() as Void {
 
         //debug(FLpayload.toString());
+        var _size = FLpayload.size();
 
-		for (var i = 0; i < FLpayload.size(); i++) {
+		for (var i = 0; i < _size; i++) {
 
             var b = FLpayload[i] as Number; // safe conversion to number from ByteArray
             var c = b.toChar();
