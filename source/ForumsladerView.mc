@@ -111,7 +111,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 {
                     case 1: // trip energy
                         _unitString = "Wh";
-                        _displayString += (_data.FLdata[FL_tripEnergy] >= 0) ? _data.FLdata[FL_tripEnergy] : "--";
+                        _displayString += _data.FLdata[FL_tripEnergy];
                         break;
 
                     case 2: // temperature
@@ -121,22 +121,22 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                     case 3: // dynamo power
                         _unitString = "W";
-                        _displayString += (_data.FLdata[FL_frequency] > 0) ? (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() : "0";
+                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber();
                         break;
 
                     case 4: // generator gear
                         _unitString = "";
-                        _displayString += (_data.FLdata[FL_gear] >= 0) ? _data.FLdata[FL_gear] : "--";
+                        _displayString += _data.FLdata[FL_gear];
                         break;
 
                     case 5: // dynamo impulse frequency
                         _unitString = "Hz";
-                        _displayString += freq >= 0 ? freq.toNumber() : "--";
+                        _displayString += freq.toNumber();
                         break;
 
                     case 6: // battery voltage
                         _unitString = "V";
-                        _displayString += (battVoltage > 0) ? battVoltage.format("%.1f") : "--";
+                        _displayString += battVoltage.format("%.1f");
                         break;
 
                     case 7: // battery current
@@ -146,7 +146,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                     case 8: // load current
                         _unitString = "A";
-                        _displayString += (_data.FLdata[FL_loadCurrent] >= 0) ? (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") : "--";
+                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f");
                         break;
 
                     case 9: // speed
@@ -156,7 +156,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
                     case 10: // remaining battery capacity
                         _unitString = "%";
-                        _displayString += (capacity > 0) ? capacity : "--";
+                        _displayString += capacity;
                         break;
 
                     default: // off

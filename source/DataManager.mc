@@ -59,7 +59,7 @@ class DataManager {
     public function initialize() {
         var k = FLdata.size();
         for (var i = 0; i < k; i++) {
-            FLdata[i] = -1;
+            FLdata[i] = 0;
         }
     }
 
@@ -185,16 +185,16 @@ class DataManager {
 
     //! helper function to safely convert a string with unknown content to a number value
     //! @param string to be converted to a number valus, min as lower corner, max as higher corner
-    //! @return a Number if string was converted successfully, otherwise -1
+    //! @return a Number if string was converted successfully, otherwise 0
     public function commitValue(str as String, min as Number, max as Number) as Number {
         var v = str.toNumber();
         if (null == v) {
-            return -1;
+            return 0;
         }
         if (min == 0 && max == 0) {
             return v;
         } else {
-            return (v >= min && v <= max) ? v : -1;
+            return (v >= min && v <= max) ? v : 0;
         }
     }
 }
