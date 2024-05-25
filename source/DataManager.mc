@@ -44,8 +44,7 @@ class DataManager {
 
     public var
         tick as Number = MAX_AGE_SEC,
-        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
-        FLpayload as ByteArray = []b;
+        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
 
     private var 
         _parity as Number = 0,
@@ -58,65 +57,58 @@ class DataManager {
 
     //! Constructor
     public function initialize() {
-        for (var i = 0; i < FLdata.size(); i++) {
+        var k = FLdata.size();
+        for (var i = 0; i < k; i++) {
             FLdata[i] = -1;
         }
     }
 
-    //! Interpretes $FLx data stream of Forumslader char by char
+    //! Interpretes $FLx data stream of Forumslader byte by byte
     //! @param none
-    public function encode() as Void {
+    public function encode(b as Number) as Void {
 
-        //debug(FLpayload.toString());
-        var _size = FLpayload.size();
+        var c = b.toChar();
+        //debug(c);
 
-		for (var i = 0; i < _size; i++) {
-
-            var b = FLpayload[i] as Number; // safe conversion to number from ByteArray
-            var c = b.toChar();
-
-            switch(c)
+        switch(c)
+        {
+        // end of term
+        case ',': 
+            _parity ^= b;
+        case '\r':
+        case '*':
+            if (_currTermOffset < _MAX_TERM_SIZE)
             {
-            // end of term
-            case ',': 
+                parseTerm(_currTerm);
+            }
+            _currTermNumber++;
+            _currTermOffset = 0;
+            _currTerm = "";
+            _isChecksumTerm = c == '*';
+            break;
+
+        // start of sentence
+        case '$':
+            _currSentenceType = SENTENCE_OTHER;
+            _parity = 0;
+            _currTermNumber = 0;
+            _currTermOffset = 0;
+            _currTerm = "";
+            _isChecksumTerm = false;
+            break;
+
+            // payload (or noise)
+        default:
+            if (_currTermOffset < _MAX_TERM_SIZE - 1)
+            {
+                _currTermOffset++;
+                _currTerm += c;
+            }
+            if (!_isChecksumTerm)
+            {
                 _parity ^= b;
-            case '\r':
-            case '\n':
-            case '*':
-                if (_currTermOffset < _MAX_TERM_SIZE)
-                {
-                    parseTerm(_currTerm);
-                }
-                _currTermNumber++;
-                _currTermOffset = 0;
-                _currTerm = "";
-                _isChecksumTerm = c == '*';
-                break;
-
-            // start of sentence
-            case '$':
-                _currSentenceType = SENTENCE_OTHER;
-                _parity = 0;
-                _currTermNumber = 0;
-                _currTermOffset = 0;
-                _currTerm = "";
-                _isChecksumTerm = false;
-                break;
-
-             // payload (or noise)
-            default:
-                if (_currTermOffset < _MAX_TERM_SIZE - 1)
-                {
-                    _currTermOffset++;
-                    _currTerm += c;
-                }
-                if (!_isChecksumTerm)
-                {
-                    _parity ^= b;
-                }
             }
         }
-        FLpayload = []b; // clear buffer
     }
 
     //! Processes a term of a $FLx sentence
@@ -164,7 +156,7 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        //debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        //debug("\n" + FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;
                 } 
                 return;
@@ -172,7 +164,7 @@ class DataManager {
 
             // invalid term
             else {
-                //debug ("Checksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
+                //debug ("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
 
             return;

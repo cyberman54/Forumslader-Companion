@@ -15,7 +15,8 @@ import Toybox.Lang;
 
 var 
     isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH;
+    FLstate as Number = FL_SEARCH,
+    FLpayload as ByteArray = []b;
 
 class DeviceManager {
 
@@ -98,7 +99,7 @@ class DeviceManager {
     //! @param byte array containing $FL<x> ascii stream
     public function procData(data as ByteArray or Null) as Void {
         if (null != data) {
-            _data.FLpayload.addAll(data);
+            FLpayload.addAll(data);
 		}
     }
 

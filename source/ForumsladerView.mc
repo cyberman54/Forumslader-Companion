@@ -82,7 +82,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             }
             
             // display user selected values
-            for (var i = 0; i < $.showValues.size() - 2; i++)
+            var k = $.showValues.size();
+            for (var i = 0; i < k - 2; i++)
             {  
                 _displayString += (_displayString.length() > 0) ? " " : "";
                 
@@ -166,9 +167,14 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
-        // decode input data from buffer
-        _data.encode();
         //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
+        
+        // decode input data from buffer, then clear buffer
+		var _size = FLpayload.size();        
+        for (var i = 0; i < _size; i++) {
+            _data.encode(FLpayload[i]);
+        }
+        FLpayload = []b;
 
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {

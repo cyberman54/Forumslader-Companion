@@ -13,8 +13,18 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 
-(:debug) function debug(str as String) as Void {
-    System.println(str);
+(:debug) function debug(val as String or Char or Number) as Void {
+    switch(val) {
+        case instanceof Lang.Number:
+            System.println(val as Number);
+            break;
+        case instanceof Lang.Char:
+            System.print(val as Char);
+            break;
+        case instanceof Lang.String:
+            System.println(val as String);
+            break;
+    }
 }
 
 //! This data field app uses the BLE data interface of a forumslader.
