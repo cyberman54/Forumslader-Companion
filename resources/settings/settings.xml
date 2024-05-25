@@ -12,10 +12,6 @@
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.Milesperhour" title="@Strings.SelectSpeedUnit">
-        <settingConfig type="boolean" />
-    </setting>
-
     <setting propertyKey="@Properties.ShowValue1" title="@Strings.ShowTitle1">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>

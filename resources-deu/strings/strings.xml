@@ -8,7 +8,6 @@
     <string id="Off">-- Aus --</string>
     <string id="SelectCapacityMethod">Coloumb Zähler für Akkufüllstand nutzen</string>
     <string id="SelectLogging">Daten protokollieren</string>
-    <string id="SelectSpeedUnit">Zeige mph statt km/h</string>
     <string id="TripEnergy">Tagesleistung</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperatur</string>

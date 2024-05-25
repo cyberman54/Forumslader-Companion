@@ -19,7 +19,11 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _fitRecording1 as FitContributor.Field,
         _fitRecording2 as FitContributor.Field,
         _fitRecording3 as FitContributor.Field,
-        _fitRecording4 as FitContributor.Field;
+        _fitRecording4 as FitContributor.Field,
+        _metric as Number = System.UNIT_METRIC,
+        _speedunit as String = "",
+        _speedfactor as Float = 1.0,
+        _freqfactor as Number = 1;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -34,6 +38,22 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _data = dataManager;
         _device = deviceManager;
 
+        // get device settings to determine whether metric or statue units
+        var sys = System.getDeviceSettings();
+        _metric = sys.distanceUnits;
+
+        // setup speed calculation
+        if (_metric == System.UNIT_METRIC) {
+            _speedunit = "km/h";
+            _speedfactor = 1.0;
+        } else {
+            _speedunit = "mph";
+            _speedfactor = 0.621371;
+        }
+
+        // setup frequency calculation
+        _freqfactor = $.isV6 ? 10 : 1;
+        
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
         _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
@@ -68,9 +88,9 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             _displayString = "";
             _unitString = "";
 
-            var freq = $.isV6 ? _data.FLdata[FL_frequency] / 10 : _data.FLdata[FL_frequency];
+            var freq = _data.FLdata[FL_frequency] / _freqfactor;
             var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-            var speed = _data.FLdata[FL_poles] > 0 ? freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 : 0.0;
+            var speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
             var capacity = 0;
 
             if ($.showValues[4] == true) { // use coloumb calculation method
@@ -130,13 +150,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                         break;
 
                     case 9: // speed
-                        
-                        _unitString = $.showValues[6] ? "mph" : "km/h";
-                        if (_data.FLdata[FL_poles] > 0) {
-                            _displayString += $.showValues[6] ? (0.621371 * speed).toNumber() : speed.toNumber(); 
-                        } else {
-                            _displayString += "--";
-                        }
+                        _unitString = _speedunit;
+                        _displayString += (speed * _speedfactor).format("%u");
                         break;
 
                     case 10: // remaining battery capacity
