@@ -98,11 +98,9 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             }
             
             // display user selected values
-            var k = $.showValues.size();
-            for (var i = 0; i < k - 2; i++)
+            var k = $.showValues.size() - 2;
+            for (var i = 0; i < k; i++)
             {  
-                _displayString += (_displayString.length() > 0) ? " " : "";
-                
                 switch ($.showValues[i] as Number)
                 {
                     case 1: // trip energy
@@ -159,7 +157,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     _unitString = "";
                     break;
                 }
-                _displayString += _unitString;
+                _displayString += _unitString + (i <= k-1 ? " " : "");
             }
 
             // write values to fit file, if logging is enabled by user
