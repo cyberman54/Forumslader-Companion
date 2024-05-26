@@ -129,7 +129,7 @@ class DataManager {
                     case SENTENCE_FL5:
                     case SENTENCE_FL6:
                         FLdata[FL_gear]             = commitValue(_FLterm[2], 0, 10);
-                        FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 500);
+                        FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 5000);
                         FLdata[FL_battVoltage1]     = commitValue(_FLterm[4], 0, 5000);
                         FLdata[FL_battVoltage2]     = commitValue(_FLterm[5], 0, 5000);
                         FLdata[FL_battVoltage3]     = commitValue(_FLterm[6], 0, 5000);
