@@ -22,8 +22,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _fitRecording4 as FitContributor.Field,
         _metric as Number = System.UNIT_METRIC,
         _speedunit as String = "",
-        _speedfactor as Float = 1.0,
-        _freqfactor as Number = 1;
+        _speedfactor as Float = 1.0;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -50,9 +49,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             _speedunit = "mph";
             _speedfactor = 0.621371;
         }
-
-        // setup frequency calculation
-        _freqfactor = $.isV6 ? 10 : 1;
         
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
@@ -88,13 +84,13 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             _displayString = "";
             _unitString = "";
 
-            var freq = _data.FLdata[FL_frequency] / _freqfactor;
-            var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0;
-            var speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777;
+            var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
+            var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
+            var speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
             var capacity = 0;
 
             if ($.showValues[4] == true) { // use coloumb calculation method
-                var x1 = (_data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16).toFloat();
+                var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
                 capacity = (x1 / x2).toNumber();
             } else { // use voltage calculation method
