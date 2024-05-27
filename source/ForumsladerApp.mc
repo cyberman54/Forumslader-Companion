@@ -50,7 +50,6 @@ private var
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
-        //BluetoothLowEnergy.setDelegate(_bleDelegate);
         if (_bleDelegate != null && _profileManager != null && _dataManager != null)
         {
             _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
