@@ -20,18 +20,26 @@ class ProfileManager {
         FL_CONFIG as BluetoothLowEnergy.Uuid    = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-00805f9b34fb"),
         FL_COMMAND as BluetoothLowEnergy.Uuid   = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-00805f9b34fb");
 
-	//! BLE profile for Forumslader v5
-    private const _profileV5 = {
+    //! Constructor
+    public function initialize() {
+        registerProfiles();
+    }
+
+    //! Register all BLE profiles
+    private function registerProfiles() as Void {
+        //! Register BLE profile for Forumslader v5
+        var _profileV5 = {
         :uuid => FL5_SERVICE,
         :characteristics => [{
                 :uuid => _FL5_RX_CHARACTERISTIC,
                 :descriptors => [BluetoothLowEnergy.cccdUuid()]
             }
         ]
-    };
+        };
+        BluetoothLowEnergy.registerProfile(_profileV5);
 
-    //! BLE profile for Forumslader v6
-    private const _profileV6 = {
+        //! Register BLE profile for Forumslader v6
+        var _profileV6 = {
         :uuid => FL6_SERVICE,
         :characteristics => [{
                 :uuid => _FL6_RX_CHARACTERISTIC,
@@ -41,11 +49,7 @@ class ProfileManager {
                 :descriptors => [BluetoothLowEnergy.cccdUuid()]
             },
         ]
-    };
-		
-    //! Register all BLE profiles
-    public function registerProfiles() as Void {
-        BluetoothLowEnergy.registerProfile(_profileV5);
+        };
         BluetoothLowEnergy.registerProfile(_profileV6);
     }
 
