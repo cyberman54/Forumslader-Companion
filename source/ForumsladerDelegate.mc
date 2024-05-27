@@ -15,6 +15,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
 	//! Constructor
     public function initialize() {
         BleDelegate.initialize();
+        BluetoothLowEnergy.setDelegate(self);
     }
 	
 	//! Handle new Scan Results being received

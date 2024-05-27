@@ -50,13 +50,13 @@ private var
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
-        BluetoothLowEnergy.setDelegate(_bleDelegate);
+        //BluetoothLowEnergy.setDelegate(_bleDelegate);
         if (_bleDelegate != null && _profileManager != null && _dataManager != null)
         {
             _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
         } else 
         {
-            System.error("App initialisation failure");
+            System.error("App initialization failure");
         }
     }
 
@@ -76,7 +76,7 @@ private var
         if (_dataManager != null && _deviceManager != null) {
             return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
-        System.error("View nitialisation failure");
+        System.error("View nitialization failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
