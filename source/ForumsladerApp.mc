@@ -50,10 +50,14 @@ private var
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
-        _deviceManager = new $.DeviceManager(_bleDelegate as ForumsladerDelegate, _profileManager as ProfileManager, _dataManager as DataManager);
-        BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
-        (_profileManager as ProfileManager).registerProfiles();
-        (_deviceManager as DeviceManager).startScan();
+        BluetoothLowEnergy.setDelegate(_bleDelegate);
+        if (_bleDelegate != null && _profileManager != null && _dataManager != null)
+        {
+            _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
+        } else 
+        {
+            System.error("App initialisation failure");
+        }
     }
 
     //! Handle app shutdown
@@ -69,10 +73,10 @@ private var
     //! Return the initial view for the app
     //! @return Array [View]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
-        if ((_dataManager != null) && (_deviceManager != null)) {
+        if (_dataManager != null && _deviceManager != null) {
             return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
-        System.error("Initialisation failure");
+        System.error("View nitialisation failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
