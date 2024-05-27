@@ -45,12 +45,12 @@ class DeviceManager {
         _device = null;
         _profileManager = profileManager;
         _data = dataManager;
-
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
         bleDelegate.notifyCharChanged(self);
         bleDelegate.notifyDescWrite(self);
+        startScan();
     }
 
     //! Start BLE scanning
