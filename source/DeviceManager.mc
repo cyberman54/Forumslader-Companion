@@ -18,6 +18,9 @@ var
     FLstate as Number = FL_SEARCH,
     FLpayload as ByteArray = []b;
 
+const 
+    MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
+
 class DeviceManager {
 
     private const
@@ -99,7 +102,7 @@ class DeviceManager {
     //! @param byte array containing $FL<x> ascii stream
     public function procData(data as ByteArray or Null) as Void {
         if (null != data) {
-            FLpayload.addAll(data);
+            $.FLpayload.addAll(data);
 		}
     }
 

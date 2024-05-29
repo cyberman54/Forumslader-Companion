@@ -177,15 +177,15 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         //debug("age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d"));
         
         // decode input data from buffer, then clear buffer
-		var _size = FLpayload.size();        
+		var _size = $.FLpayload.size();        
         for (var i = 0; i < _size; i++) {
-            _data.encode(FLpayload[i]);
+            _data.encode($.FLpayload[i]);
         }
-        FLpayload = []b;
+        $.FLpayload = []b;
 
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
-            if (_data.tick <= _data.MAX_AGE_SEC) {
+            if (_data.tick <= $.MAX_AGE_SEC) {
                 _displayString = computeDisplayString(); // display and log current values
                 _data.tick++; // increase data age seconds counter
             }
