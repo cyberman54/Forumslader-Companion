@@ -84,11 +84,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             _displayString = "";
             _unitString = "";
 
-            var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
             var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
-            var speed = freq / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
             var capacity = 0;
-
             if ($.showValues[4] == true) { // use coloumb calculation method
                 var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
@@ -96,10 +93,9 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             } else { // use voltage calculation method
                 capacity = _data.FLdata[FL_socState]; 
             }
-            
+   
             // display user selected values
-            var k = $.showValues.size() - 2;
-            for (var i = 0; i < k; i++)
+            for (var i = 0; i < 4; i++)
             {  
                 switch ($.showValues[i] as Number)
                 {
@@ -124,6 +120,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                         break;
 
                     case 5: // dynamo impulse frequency
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
                         _unitString = "Hz";
                         _displayString += freq.toNumber();
                         break;
@@ -144,6 +141,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                         break;
 
                     case 9: // speed
+                        var speed = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
                         _unitString = _speedunit;
                         _displayString += (speed * _speedfactor).format("%u");
                         break;
@@ -157,7 +155,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                     _unitString = "";
                     break;
                 }
-                _displayString += _unitString + (i <= k-1 ? " " : "");
+                _displayString += _unitString + (i < 3 ? " " : "");
             }
 
             // write values to fit file, if logging is enabled by user
