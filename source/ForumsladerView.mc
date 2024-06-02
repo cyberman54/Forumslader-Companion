@@ -43,7 +43,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
         // setup speed calculation
         if (_metric == System.UNIT_METRIC) {
-            _speedunit = "km/h";
+            _speedunit = "kmh";
             _speedfactor = 1.0;
         } else {
             _speedunit = "mph";
