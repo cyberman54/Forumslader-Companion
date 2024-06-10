@@ -47,6 +47,7 @@ private var
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
         //debug("--- started ---");
+        getUserSettings();
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();

@@ -1,3 +1,3 @@
 project.manifest = manifest.xml
-project.typecheck = 3
+project.typecheck = 0
 project.optimization = 3z
