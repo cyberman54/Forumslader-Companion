@@ -7,7 +7,8 @@
     <string id="ShowTitle4">Displayvalue 4</string>
     <string id="Off">-- hide --</string>
     <string id="SelectCapacityMethod">Use Coloumb counter for battery capacity</string>
-    <string id="SelectLogging">Logging data</string>
+    <string id="SelectFitLogging">Log data</string>
+    <string id="SelectDeviceLock">Retain connected Forumloader</string>
     <string id="TripEnergy">Trip Energy</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperature</string>

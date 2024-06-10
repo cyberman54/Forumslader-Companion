@@ -1,9 +1,10 @@
 <properties>
-    <property id="appVersion" type="string">1.5.4</property>            <!-- used to display app version -->
+    <property id="appVersion" type="string">1.5.7</property>            <!-- used to display app version -->
     <property id="BatteryCalcMethod" type="Boolean">false</property>    <!-- default use voltage method -->
-    <property id="Logging" type="Boolean">false</property>              <!-- default don't log data -->
-    <property id="ShowValue1" type="Number">10</property>			    <!-- default show batt remaining -->
-    <property id="ShowValue2" type="Number">3</property>				<!-- default show dynamo power -->
-    <property id="ShowValue3" type="Number">6</property>				<!-- default show battery voltage -->
-    <property id="ShowValue4" type="Number">7</property>				<!-- default show battery current -->
+    <property id="FitLogging" type="Boolean">false</property>           <!-- default don't log data -->
+    <property id="DeviceLock" type="Boolean">false</property>           <!-- default no lock -->
+    <property id="UserSetting1" type="Number">10</property>			    <!-- default show batt remaining -->
+    <property id="UserSetting2" type="Number">3</property>				<!-- default show dynamo power -->
+    <property id="UserSetting3" type="Number">6</property>				<!-- default show battery voltage -->
+    <property id="UserSetting4" type="Number">7</property>				<!-- default show battery current -->
 </properties>

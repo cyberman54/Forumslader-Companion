@@ -1,5 +1,6 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
+import Toybox.Application.Storage;
 
 // datafield app states
     enum {
@@ -38,6 +39,7 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
+        _scanResult as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false;
 
@@ -58,6 +60,17 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
+        // try to connect to a definite forumloader without scanning
+        if ($.UserSettings[$.DeviceLock] == true) {
+            //debug("trying to connect definite device");
+            _scanResult = Storage.getValue("MyDevice");
+            if (_scanResult != null) {
+                procScanResult(_scanResult);
+                return;
+            }
+        }
+        // otherwhise start scanning to search for a forumloader
+        //debug("start scanning");
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
@@ -66,13 +79,14 @@ class DeviceManager {
         _configDone = false;
     }
 
-    //! Process scan result
+    //! Process scan result of incoming BLE advertises
     //! @param scanResult The scan result
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
             //debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+            _scanResult = scanResult;
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
@@ -91,6 +105,9 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device.isConnected()) {
             _device = device;
+            if ($.UserSettings[$.DeviceLock] == true) {
+                    Storage.setValue("MyDevice", _scanResult);     
+            }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
             //debug ("connection failed, restarting scan");
@@ -151,6 +168,7 @@ class DeviceManager {
             }
         }
         //debug("error: not a forumslader or unknown type");
+        Storage.deleteValue("MyDevice");
         startScan();
         return false;
     }

@@ -6,9 +6,9 @@
         to update the application attributes.
     -->
     <!-- PROD -->
-    <iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d69" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0">
-        <!-- TEST -->
-        <!-- iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.1.0" -->
+    <!-- iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d69" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0" -->
+    <!-- TEST -->
+    <iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0">
         <!--
             Use the following from the Visual Studio Code comand palette to edit
             the build targets:
@@ -24,20 +24,15 @@
             <iq:product id="edge1030bontrager"/>
             <iq:product id="edge1030plus"/>
             <iq:product id="edge1040"/>
-            <iq:product id="edge520plus"/>
             <iq:product id="edge530"/>
             <iq:product id="edge540"/>
             <iq:product id="edge830"/>
             <iq:product id="edge840"/>
-            <iq:product id="edgeexplore"/>
             <iq:product id="edgeexplore2"/>
             <iq:product id="enduro"/>
             <iq:product id="epix2"/>
-            <iq:product id="fenix5"/>
             <iq:product id="fenix5plus"/>
-            <iq:product id="fenix5s"/>
             <iq:product id="fenix5splus"/>
-            <iq:product id="fenix5x"/>
             <iq:product id="fenix5xplus"/>
             <iq:product id="fenix6"/>
             <iq:product id="fenix6pro"/>
@@ -47,7 +42,6 @@
             <iq:product id="fenix7"/>
             <iq:product id="fenix7s"/>
             <iq:product id="fenix7x"/>
-            <iq:product id="fenixchronos"/>
             <iq:product id="fr245"/>
             <iq:product id="fr245m"/>
             <iq:product id="fr255"/>
@@ -57,10 +51,8 @@
             <iq:product id="fr265"/>
             <iq:product id="fr265s"/>
             <iq:product id="fr55"/>
-            <iq:product id="fr645"/>
             <iq:product id="fr645m"/>
             <iq:product id="fr745"/>
-            <iq:product id="fr935"/>
             <iq:product id="fr945"/>
             <iq:product id="fr945lte"/>
             <iq:product id="fr955"/>

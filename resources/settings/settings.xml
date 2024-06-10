@@ -8,11 +8,15 @@
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.Logging" title="@Strings.SelectLogging">
+    <setting propertyKey="@Properties.FitLogging" title="@Strings.SelectFitLogging">
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.ShowValue1" title="@Strings.ShowTitle1">
+    <setting propertyKey="@Properties.DeviceLock" title="@Strings.SelectDeviceLock">
+        <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.UserSetting1" title="@Strings.ShowTitle1">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>
             <listEntry value="1">@Strings.TripEnergy</listEntry>
@@ -28,7 +32,7 @@
         </settingConfig>
     </setting>
 
-    <setting propertyKey="@Properties.ShowValue2" title="@Strings.ShowTitle2">
+    <setting propertyKey="@Properties.UserSetting2" title="@Strings.ShowTitle2">
             <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>
             <listEntry value="1">@Strings.TripEnergy</listEntry>
@@ -44,7 +48,7 @@
             </settingConfig>
         </setting>
 
-    <setting propertyKey="@Properties.ShowValue3" title="@Strings.ShowTitle3">
+    <setting propertyKey="@Properties.UserSetting3" title="@Strings.ShowTitle3">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>
             <listEntry value="1">@Strings.TripEnergy</listEntry>
@@ -60,7 +64,7 @@
         </settingConfig>
     </setting>
 
-    <setting propertyKey="@Properties.ShowValue4" title="@Strings.ShowTitle4">
+    <setting propertyKey="@Properties.UserSetting4" title="@Strings.ShowTitle4">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>
             <listEntry value="1">@Strings.TripEnergy</listEntry>

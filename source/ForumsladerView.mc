@@ -28,7 +28,6 @@ class ForumsladerView extends WatchUi.SimpleDataField {
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
-        getUserSettings();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _searching = WatchUi.loadResource($.Rez.Strings.searching) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
@@ -86,7 +85,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
             var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
             var capacity = 0;
-            if ($.showValues[4] == true) { // use coloumb calculation method
+            if ($.UserSettings[$.BattCalcMethod] == true) { // use coloumb calculation method
                 var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
                 capacity = (x1 / x2).toNumber();
@@ -95,9 +94,9 @@ class ForumsladerView extends WatchUi.SimpleDataField {
             }
    
             // display user selected values
-            for (var i = 0; i < 4; i++)
+            for (var i = 0; i <= $.DisplayField4; i++)
             {  
-                switch ($.showValues[i] as Number)
+                switch ($.UserSettings[i] as Number)
                 {
                     case 1: // trip energy
                         _unitString = "Wh";
@@ -158,8 +157,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 _displayString += _unitString + (i < 3 ? " " : "");
             }
 
-            // write values to fit file, if logging is enabled by user
-            if ($.showValues[5] == true) { 
+            // write values to fit file, if FitLogging is enabled by user
+            if ($.UserSettings[$.FitLogging] == true) { 
                 _fitRecording1.setData(battVoltage);
                 _fitRecording2.setData(capacity);
                 _fitRecording3.setData(battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
