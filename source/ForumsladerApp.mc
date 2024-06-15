@@ -7,24 +7,24 @@ to do:
  */
 
 import Toybox.Application;
+import Toybox.Application.Storage;
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 
-(:debug) function debug(val as String or Char or Number) as Void {
-    switch(val) {
-        case instanceof Lang.Number:
-            System.println(val as Number);
-            break;
-        case instanceof Lang.Char:
-            System.print(val as Char);
-            break;
-        case instanceof Lang.String:
-            System.println(val as String);
-            break;
+var UserSettings as Array = [10, 3, 6, 7, false, false, false];
+
+// settings adjustable by user in garmin mobile app / garmin express
+enum {
+        DisplayField1,
+        DisplayField2,
+        DisplayField3,
+        DisplayField4,
+        BattCalcMethod, 
+        FitLogging,
+        DeviceLock
     }
-}
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -32,7 +32,6 @@ import Toybox.System;
 class ForumsladerApp extends Application.AppBase {
 
 private var
-    _profileManager as ProfileManager?,
     _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
     _dataManager as DataManager?;
@@ -47,12 +46,10 @@ private var
     public function onStart(state as Dictionary?) as Void {
         //debug("--- started ---");
         getUserSettings();
-        _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
-        _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
+        _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
-        (_profileManager as ProfileManager).registerProfiles();
         (_deviceManager as DeviceManager).startScan();
     }
 
@@ -61,7 +58,6 @@ private var
     public function onStop(state as Dictionary?) as Void {
         _deviceManager = null;
         _bleDelegate = null;
-        _profileManager = null;
         _dataManager = null;
         //debug("--- stopped ---");
     }
@@ -80,4 +76,34 @@ private var
     	getUserSettings();
         WatchUi.requestUpdate();
 	}
+
+    //! read user settings from GCM properties in UserSettings array
+    function getUserSettings() as Void {
+        $.UserSettings[$.DisplayField1] = Application.Properties.getValue("UserSetting1") as Number;
+        $.UserSettings[$.DisplayField2] = Application.Properties.getValue("UserSetting2") as Number;
+        $.UserSettings[$.DisplayField3] = Application.Properties.getValue("UserSetting3") as Number;
+        $.UserSettings[$.DisplayField4] = Application.Properties.getValue("UserSetting4") as Number;
+        $.UserSettings[$.BattCalcMethod] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
+        $.UserSettings[$.FitLogging] = Application.Properties.getValue("FitLogging") as Boolean;
+        $.UserSettings[$.DeviceLock] = Application.Properties.getValue("DeviceLock") as Boolean;
+        if ($.UserSettings[$.DeviceLock] == false) { 
+            Storage.deleteValue("MyDevice");
+        }
+        //debug("User Settings: " + $.UserSettings.toString());
+    }
+
+    (:debug) function debug(val as String or Char or Number) as Void {
+    switch(val) {
+        case instanceof Lang.Number:
+            System.println(val as Number);
+            break;
+        case instanceof Lang.Char:
+            System.print(val as Char);
+            break;
+        case instanceof Lang.String:
+            System.println(val as String);
+            break;
+        }
+    }   
+
 }

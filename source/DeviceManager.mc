@@ -33,23 +33,23 @@ class DeviceManager {
         //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
     private var 
-        _profileManager as ProfileManager,
         _data as DataManager,
         _device as Device?,
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
         _scanResult as ScanResult?,
+        _FL_SERVICE as Uuid?,
+        _FL_CONFIG as Uuid?,
+        _FL_COMMAND as Uuid?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
-    //! @param profileManager The profileManager class which scans and connects the BLE device
     //! @param dataManager The DataManager class which processes the received data stream of the BLE device
-    public function initialize(bleDelegate as ForumsladerDelegate, profileManager as ProfileManager, dataManager as DataManager) {
+    public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
         _device = null;
-        _profileManager = profileManager;
         _data = dataManager;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
@@ -155,12 +155,12 @@ class DeviceManager {
     //! identify forumslader and get characteristic of it's GATT service
     private function setupProfile() as Boolean {
         if (null != _device) {
-            if (_profileManager.isForumslader(_device)) {
-                _service = (_device as Device).getService(_profileManager.FL_SERVICE);
+            if (isForumslader(_device)) {
+                _service = (_device as Device).getService(_FL_SERVICE);
                 var service = _service;
                 if (null != service) {
-                    _command = service.getCharacteristic(_profileManager.FL_COMMAND);
-                    _config = service.getCharacteristic(_profileManager.FL_CONFIG);
+                    _command = service.getCharacteristic(_FL_COMMAND);
+                    _config = service.getCharacteristic(_FL_CONFIG);
                 }
                 return true;
             }
@@ -169,6 +169,45 @@ class DeviceManager {
         Storage.deleteValue("MyDevice");
         startScan();
         return false;
+    }
+
+    //! Identify the forumslader type and setup it's UUIDs
+    //! @param Device to be validated as forumslader
+    //! @return Boolean to indicate if the device was identified as a forumslader
+    public function isForumslader(device as Device) as Boolean {
+        var rc = false;
+        if (device != null) {
+            // select FL type
+			var iter = device.getServices();
+			for (var r = iter.next(); r != null; r = iter.next())
+			{
+				r = r as Service;
+				if (r != null)
+				{
+					if (r.getUuid().equals(FL5_SERVICE))
+					{
+						_FL_SERVICE = FL5_SERVICE;
+						_FL_CONFIG = FL5_RXTX_CHARACTERISTIC;
+						_FL_COMMAND = FL5_RXTX_CHARACTERISTIC;
+                        rc = true;
+                        $.isV6 = false;
+                        //debug("FLv5 detected");
+					}
+					else {
+						if (r.getUuid().equals(FL6_SERVICE))
+						{
+							_FL_SERVICE = FL6_SERVICE;
+							_FL_CONFIG = FL6_RX_CHARACTERISTIC;
+							_FL_COMMAND = FL6_TX_CHARACTERISTIC;
+                            rc = true;
+                            $.isV6 = true;
+                            //debug("FLv6 detected");
+						}
+					}
+				}
+			}
+        }
+        return rc;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device
