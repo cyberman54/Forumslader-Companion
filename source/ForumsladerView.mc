@@ -189,6 +189,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
                 _data.tick++; // increase data age seconds counter
             }
             else {      
+                //debug("stale");
                 _displayString = _datastale; // display data stale message
             }
         // otherwise toggle state machine for setup / reconnect

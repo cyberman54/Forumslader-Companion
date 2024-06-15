@@ -1,6 +1,5 @@
 /* 
 to do:
-[ ] Garmin Connect Settings-Menü: "Lock to Device" Schalter
 [ ] Bluetooth Bonding mit SDK v7 implementieren
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
 [ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
@@ -51,13 +50,10 @@ private var
         _profileManager = new $.ProfileManager();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
-        if (_bleDelegate != null && _profileManager != null && _dataManager != null)
-        {
-            _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
-        } else 
-        {
-            System.error("App initialization failure");
-        }
+        _deviceManager = new $.DeviceManager(_bleDelegate, _profileManager, _dataManager);
+        BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
+        (_profileManager as ProfileManager).registerProfiles();
+        (_deviceManager as DeviceManager).startScan();
     }
 
     //! Handle app shutdown

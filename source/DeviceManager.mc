@@ -44,8 +44,9 @@ class DeviceManager {
         _configDone as Boolean = false;
 
     //! Constructor
-    //! @param bleDelegate The BLE delegate
-    //! @param profileManager The profile manager
+    //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
+    //! @param profileManager The profileManager class which scans and connects the BLE device
+    //! @param dataManager The DataManager class which processes the received data stream of the BLE device
     public function initialize(bleDelegate as ForumsladerDelegate, profileManager as ProfileManager, dataManager as DataManager) {
         _device = null;
         _profileManager = profileManager;
@@ -53,9 +54,8 @@ class DeviceManager {
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
-        bleDelegate.notifyCharChanged(self);
         bleDelegate.notifyDescWrite(self);
-        startScan();
+        bleDelegate.notifyProfileRegister(self);
     }
 
     //! Start BLE scanning
@@ -103,7 +103,7 @@ class DeviceManager {
     //! Process a new device connection
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
-        if (device.isConnected()) {
+        if (device != null && device.isConnected()) {
             _device = device;
             if ($.UserSettings[$.DeviceLock] == true) {
                     Storage.setValue("MyDevice", _scanResult);     
@@ -113,14 +113,6 @@ class DeviceManager {
             //debug ("connection failed, restarting scan");
             startScan();
         }
-    }
-
-    //! Buffers $FLx data stream of Forumslader
-    //! @param byte array containing $FL<x> ascii stream
-    public function procData(data as ByteArray or Null) as Void {
-        if (null != data) {
-            $.FLpayload.addAll(data);
-		}
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -139,6 +131,13 @@ class DeviceManager {
         _writeInProgress = false;
     }
 
+    //! Handle the completion of a profile registration
+    //! @param uuid Profile UUID that this callback is related to
+    //! @param status The BluetoothLowEnergy status indicating the result of the operation
+    public function procProfileRegister(uuid as Uuid, status as Status) as Void {
+        //debug("Profile register: " + uuid.toString() + " -> " + status);
+    }
+
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
     public function sendCommandFL(cmd as ByteArray) as Void {
@@ -155,10 +154,9 @@ class DeviceManager {
 
     //! identify forumslader and get characteristic of it's GATT service
     private function setupProfile() as Boolean {
-        var device = _device;
-        if (null != device) {
-            if (_profileManager.isForumslader(device)) {
-                _service = device.getService(_profileManager.FL_SERVICE);
+        if (null != _device) {
+            if (_profileManager.isForumslader(_device)) {
+                _service = (_device as Device).getService(_profileManager.FL_SERVICE);
                 var service = _service;
                 if (null != service) {
                     _command = service.getCharacteristic(_profileManager.FL_COMMAND);
@@ -175,6 +173,7 @@ class DeviceManager {
 
     //! Write notification to descriptor to start data stream on forumslader device
     private function startDatastreamFL() as Void {
+                //debug("start datastream");
                 var char = _config;
                 if (null != char) {
                     var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
@@ -190,6 +189,7 @@ class DeviceManager {
 
         // watchdog
         if (_data.tick >= 10) {
+            //debug("timeout");
             startScan();
         }
         else {

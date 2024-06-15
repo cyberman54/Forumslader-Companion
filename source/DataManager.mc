@@ -65,7 +65,7 @@ class DataManager {
     public function encode(b as Number) as Void {
 
         var c = b.toChar();
-        //debug(c);
+        ////debug(c);
 
         switch(c)
         {
