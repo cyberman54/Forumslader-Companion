@@ -38,7 +38,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
         // get device settings to determine whether metric or statue units
         var sys = System.getDeviceSettings();
-        _metric = sys.distanceUnits;
+        _metric = sys.paceUnits;
 
         // setup speed calculation
         if (_metric == System.UNIT_METRIC) {

@@ -1,5 +1,4 @@
 import Toybox.BluetoothLowEnergy;
-import Toybox.Lang;
 
 //! BLE profiles for Forumslader v5/v6
 const 
