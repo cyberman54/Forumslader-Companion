@@ -39,11 +39,11 @@ class DeviceManager {
         _command as Characteristic?,
         _config as Characteristic?,
         _scanResult as ScanResult?,
-        _FL_SERVICE as Uuid?,
-        _FL_CONFIG as Uuid?,
-        _FL_COMMAND as Uuid?,
         _writeInProgress as Boolean = false,
-        _configDone as Boolean = false;
+        _configDone as Boolean = false,
+        _FL_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
+        _FL_CONFIG as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
+        _FL_COMMAND as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
 
     //! Constructor
     //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks

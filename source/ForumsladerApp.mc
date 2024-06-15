@@ -26,12 +26,26 @@ enum {
         DeviceLock
     }
 
+(:debug) function debug(val as String or Char or Number) as Void {
+    switch(val) {
+        case instanceof Lang.Number:
+            System.println(val as Number);
+            break;
+        case instanceof Lang.Char:
+            System.print(val as Char);
+            break;
+        case instanceof Lang.String:
+            System.println(val as String);
+            break;
+        }
+}   
+
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
 //! show up to 4 user selectable values every 1 second in a simpledatafield.
 class ForumsladerApp extends Application.AppBase {
 
-private var
+    private var
     _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
     _dataManager as DataManager?;
@@ -91,19 +105,5 @@ private var
         }
         //debug("User Settings: " + $.UserSettings.toString());
     }
-
-    (:debug) function debug(val as String or Char or Number) as Void {
-    switch(val) {
-        case instanceof Lang.Number:
-            System.println(val as Number);
-            break;
-        case instanceof Lang.Char:
-            System.print(val as Char);
-            break;
-        case instanceof Lang.String:
-            System.println(val as String);
-            break;
-        }
-    }   
 
 }
