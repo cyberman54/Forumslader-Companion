@@ -62,7 +62,7 @@ class DeviceManager {
     public function startScan() as Void {
         // try to connect to a definite forumloader without scanning
         if ($.UserSettings[$.DeviceLock] == true) {
-            //debug("trying to connect definite device");
+            debug("trying to connect definite device");
             _scanResult = Storage.getValue("MyDevice");
             if (_scanResult != null) {
                 procScanResult(_scanResult);
@@ -70,7 +70,7 @@ class DeviceManager {
             }
         }
         // otherwhise start scanning to search for a forumloader
-        //debug("start scanning");
+        debug("start scanning");
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
@@ -84,19 +84,19 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            //debug("trying to pair device, rssi " + scanResult.getRssi());
+            debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             _scanResult = scanResult;
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                //debug("cannot pair device " + scanResult.getDeviceName());
-                //debug("error: " + ex.getErrorMessage());
+                debug("cannot pair device " + scanResult.getDeviceName());
+                debug("error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
             }
         } else {
-            //debug("signal too weak, rssi " + scanResult.getRssi());
+            debug("signal too weak, rssi " + scanResult.getRssi());
         }
     }
 
@@ -110,7 +110,7 @@ class DeviceManager {
             }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
-            //debug ("connection failed, restarting scan");
+            debug ("connection failed, restarting scan");
             startScan();
         }
     }
@@ -119,7 +119,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        //debug("Write Char: " + char.getUuid() + " -> " + status);
+        debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -127,7 +127,7 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
+        debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -135,7 +135,7 @@ class DeviceManager {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function procProfileRegister(uuid as Uuid, status as Status) as Void {
-        //debug("Profile register: " + uuid.toString() + " -> " + status);
+        debug("Profile register: " + uuid.toString() + " -> " + status);
     }
 
     //! Send command to forumslader device
@@ -144,7 +144,7 @@ class DeviceManager {
         if ((null == _device) || _writeInProgress) {
             return;
         }
-        //debug("Send Command: " + cmd.toString());
+        debug("Send Command: " + cmd.toString());
         var command = _command;
         if (null != command) {
             _writeInProgress = true;
@@ -165,7 +165,7 @@ class DeviceManager {
                 return true;
             }
         }
-        //debug("error: not a forumslader or unknown type");
+        debug("error: not a forumslader or unknown type");
         Storage.deleteValue("MyDevice");
         startScan();
         return false;
@@ -191,7 +191,7 @@ class DeviceManager {
 						_FL_COMMAND = FL5_RXTX_CHARACTERISTIC;
                         rc = true;
                         $.isV6 = false;
-                        //debug("FLv5 detected");
+                        debug("FLv5 detected");
 					}
 					else {
 						if (r.getUuid().equals(FL6_SERVICE))
@@ -201,7 +201,7 @@ class DeviceManager {
 							_FL_COMMAND = FL6_TX_CHARACTERISTIC;
                             rc = true;
                             $.isV6 = true;
-                            //debug("FLv6 detected");
+                            debug("FLv6 detected");
 						}
 					}
 				}
@@ -212,7 +212,7 @@ class DeviceManager {
 
     //! Write notification to descriptor to start data stream on forumslader device
     private function startDatastreamFL() as Void {
-                //debug("start datastream");
+                debug("start datastream");
                 var char = _config;
                 if (null != char) {
                     var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
@@ -228,7 +228,7 @@ class DeviceManager {
 
         // watchdog
         if (_data.tick >= 10) {
-            //debug("timeout");
+            debug("data timeout");
             startScan();
         }
         else {

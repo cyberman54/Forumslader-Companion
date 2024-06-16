@@ -1,7 +1,6 @@
 import Toybox.Lang;
 import Toybox.System;
 
-// debug output
 (:debug) function debug(val as String or Char or Number) as Void {
     switch(val) {
         case instanceof Lang.Number:

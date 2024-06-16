@@ -64,7 +64,7 @@ class DataManager {
     public function encode(b as Number) as Void {
 
         var c = b.toChar();
-        ////debug(c);
+        //debug(c);
 
         switch(c)
         {
@@ -152,7 +152,7 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        //debug("\n" + FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        debug("\n" + FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;
                 } 
                 return;
@@ -160,7 +160,7 @@ class DataManager {
 
             // invalid term
             else {
-                //debug ("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
+                debug ("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
 
             return;

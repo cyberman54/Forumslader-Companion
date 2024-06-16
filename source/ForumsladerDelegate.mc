@@ -26,7 +26,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
                 var _deviceName = result.getDeviceName() as String;
                 if (_deviceName != null) { 
                     if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
-                        //debug("found FL by Devicename: " + _deviceName);
+                        debug("found FL by Devicename: " + _deviceName);
                         BluetoothLowEnergy.registerProfile(FL6_profile);
                         broadcastScanResult(result);
                         return;
@@ -36,7 +36,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
                 var iter = result.getManufacturerSpecificDataIterator();
                 for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
                     if (dict.get(:companyId) == 0x4d48) {
-                        //debug("found FL by Company ID");
+                        debug("found FL by Company ID");
                         BluetoothLowEnergy.registerProfile(FL5_profile);
                         broadcastScanResult(result);
                         return;
@@ -54,7 +54,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
             if (onScanResult.stillAlive()) {
                 (onScanResult.get() as DeviceManager).procScanResult(scanResult);
             } else {
-                //debug ("procScanResult disrupted");
+                debug ("procScanResult disrupted");
             }
         }
     }
@@ -66,7 +66,7 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     private function contains(iter as Iterator, obj as Uuid) as Boolean {
         for (var uuid = iter.next(); uuid != null; uuid = iter.next()) {
             if (uuid.equals(obj)) {
-				//debug("found="+uuid.toString());
+				debug("found="+uuid.toString());
                 return true;
             }
         }
@@ -79,16 +79,16 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     public function onConnectedStateChanged(device as Device, state as ConnectionState) as Void {
         var onConnection = _onConnection;
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
-            //debug ("connected");
+            debug ("connected");
             if (onConnection != null) {
                 if (onConnection.stillAlive()) {
                     (onConnection.get() as DeviceManager).procConnection(device);
                 } else {
-                    //debug ("procConnection disrupted");
+                    debug ("procConnection disrupted");
                 }
             }
         } else {
-            //debug ("disconnected");
+            debug ("disconnected");
             $.FLstate = FL_DISCONNECT;
         }
     }
@@ -107,13 +107,13 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     //! @param characteristic The characteristic that was written
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
-        //debug("onCharWrite");
+        debug("onCharWrite");
         var onCharWrite = _onCharWrite;
         if (onCharWrite != null) {
             if (onCharWrite.stillAlive()) {
                 (onCharWrite.get() as DeviceManager).procCharWrite(characteristic, status);
             } else {
-                //debug ("procCharWrite disrupted");
+                debug ("procCharWrite disrupted");
             }
         }
     }
@@ -122,13 +122,13 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     //! @param descriptor The descriptor that was written
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onDescriptorWrite(descriptor as Descriptor, status as Status) as Void {
-        //debug("onDescrWrite");
+        debug("onDescrWrite");
         var onDescWrite = _onDescWrite;
         if (onDescWrite != null) {
             if (onDescWrite.stillAlive()) {
                 (onDescWrite.get() as DeviceManager).procDescWrite(descriptor, status);
             } else {
-                //debug ("procDescWrite disrupted");
+                debug ("procDescWrite disrupted");
             }
         }
     }
@@ -137,13 +137,13 @@ class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onProfileRegister(uuid as Uuid, status as Status) as Void {
-        //debug("onProfileRegister");
+        debug("onProfileRegister");
         var onProfileRegister = _onProfileRegister;
         if (onProfileRegister != null) {
             if (onProfileRegister.stillAlive()) {
                 (onProfileRegister.get() as DeviceManager).procProfileRegister(uuid, status);
             } else {
-                //debug ("procProfileRegister disrupted");
+                debug ("procProfileRegister disrupted");
             }
         }
     }

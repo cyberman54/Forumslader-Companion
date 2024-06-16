@@ -43,7 +43,7 @@ class ForumsladerApp extends Application.AppBase {
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
-        //debug("--- started ---");
+        debug("--- started ---");
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -58,7 +58,7 @@ class ForumsladerApp extends Application.AppBase {
         _deviceManager = null;
         _bleDelegate = null;
         _dataManager = null;
-        //debug("--- stopped ---");
+        debug("--- stopped ---");
     }
 
     //! Return the initial view for the app
@@ -88,7 +88,7 @@ class ForumsladerApp extends Application.AppBase {
         if ($.UserSettings[$.DeviceLock] == false) { 
             Storage.deleteValue("MyDevice");
         }
-        //debug("User Settings: " + $.UserSettings.toString());
+        debug("User Settings: " + $.UserSettings.toString());
     }
 
 }
