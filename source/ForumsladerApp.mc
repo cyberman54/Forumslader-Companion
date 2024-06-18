@@ -34,8 +34,8 @@ enum {
 
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
-    DisplayField1, DisplayField2, DisplayField3, DisplayField4,
-    BattCalcMethod, FitLogging, DeviceLock
+    DisplayField1, DisplayField2, DisplayField3, DisplayField4, // user selected display values
+    BattCalcMethod, FitLogging, DeviceLock                      // user configurable switches
     }
 
 // app states
@@ -52,10 +52,9 @@ enum {
 
 // global variables
 var 
-    isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH,
-    FLpayload as ByteArray = []b,
-    UserSettings as Array = [10, 3, 6, 7, false, false, false];
+    FLstate as Number = FL_SEARCH,  // state engine
+    FLpayload as ByteArray = []b,   // $FLx data buffer
+    UserSettings as Array = [0, 0, 0, 0, false, false, false];
 
 
 //! This data field app uses the BLE data interface of a forumslader.

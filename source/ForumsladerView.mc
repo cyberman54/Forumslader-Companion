@@ -114,7 +114,7 @@ class ForumsladerView extends SimpleDataField {
                         break;
 
                     case 5: // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
+                        var freq = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) as Float;
                         _unitString = "Hz";
                         _displayString += freq.toNumber();
                         break;
@@ -135,7 +135,7 @@ class ForumsladerView extends SimpleDataField {
                         break;
 
                     case 9: // speed
-                        var speed = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
+                        var speed = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
                         _unitString = _speedunit;
                         _displayString += (speed * _speedfactor).format("%u");
                         break;

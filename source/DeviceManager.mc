@@ -12,6 +12,9 @@ class DeviceManager {
         // command to request firmware version, currently unused
         //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
 
+    public var
+        isV6 as Boolean = false;
+
     private var 
         _data as DataManager,
         _device as Device?,
@@ -170,7 +173,7 @@ class DeviceManager {
 						_FL_CONFIG = FL5_RXTX_CHARACTERISTIC;
 						_FL_COMMAND = FL5_RXTX_CHARACTERISTIC;
                         rc = true;
-                        $.isV6 = false;
+                        isV6 = false;
                         debug("FLv5 detected");
 					}
 					else {
@@ -180,7 +183,7 @@ class DeviceManager {
 							_FL_CONFIG = FL6_RX_CHARACTERISTIC;
 							_FL_COMMAND = FL6_TX_CHARACTERISTIC;
                             rc = true;
-                            $.isV6 = true;
+                            isV6 = true;
                             debug("FLv6 detected");
 						}
 					}
