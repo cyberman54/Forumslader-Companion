@@ -28,7 +28,7 @@ enum {
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
 //! show up to 4 user selectable values every 1 second in a simpledatafield.
-class ForumsladerApp extends Application.AppBase {
+class ForumsladerApp extends AppBase {
 
     private var
     _bleDelegate as ForumsladerDelegate?,
@@ -48,13 +48,15 @@ class ForumsladerApp extends Application.AppBase {
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
         _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
-        BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
+        BluetoothLowEnergy.setDelegate(_bleDelegate as BleDelegate);
         (_deviceManager as DeviceManager).startScan();
     }
 
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+        BluetoothLowEnergy.setDelegate(null as BleDelegate);
         _deviceManager = null;
         _bleDelegate = null;
         _dataManager = null;

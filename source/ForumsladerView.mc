@@ -5,7 +5,7 @@ import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 
-class ForumsladerView extends WatchUi.SimpleDataField {
+class ForumsladerView extends SimpleDataField {
 
     private var 
         _unitString as String = "",
@@ -16,11 +16,10 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _connecting as String,
         _datastale as String,
         _initializing as String,
-        _fitRecording1 as FitContributor.Field,
-        _fitRecording2 as FitContributor.Field,
-        _fitRecording3 as FitContributor.Field,
-        _fitRecording4 as FitContributor.Field,
-        _metric as Number = System.UNIT_METRIC,
+        _fitRecording1 as Field,
+        _fitRecording2 as Field,
+        _fitRecording3 as Field,
+        _fitRecording4 as Field,
         _speedunit as String = "",
         _speedfactor as Float = 1.0;
 
@@ -36,12 +35,8 @@ class ForumsladerView extends WatchUi.SimpleDataField {
         _data = dataManager;
         _device = deviceManager;
 
-        // get device settings to determine whether metric or statue units
-        var sys = System.getDeviceSettings();
-        _metric = sys.paceUnits;
-
         // setup speed calculation
-        if (_metric == System.UNIT_METRIC) {
+        if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             _speedunit = "kmh";
             _speedfactor = 1.0;
         } else {
@@ -183,7 +178,7 @@ class ForumsladerView extends WatchUi.SimpleDataField {
 
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
-            if (_data.tick <= $.MAX_AGE_SEC) {
+            if (_data.tick <= _data.MAX_AGE_SEC) {
                 _displayString = computeDisplayString(); // display and log current values
                 _data.tick++; // increase data age seconds counter
             }

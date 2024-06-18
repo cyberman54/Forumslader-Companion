@@ -16,11 +16,7 @@ import Toybox.Application.Storage;
 
 var 
     isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH,
-    FLpayload as ByteArray = []b;
-
-const 
-    MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
+    FLstate as Number = FL_SEARCH;
 
 class DeviceManager {
 

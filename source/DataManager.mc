@@ -33,13 +33,16 @@ class DataManager {
         SENTENCE_FLP
     }
   
+    public const
+        MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
+
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
         _MAX_TERM_SIZE = 30,  // max size of a term in a $FLx sentence (assumption, not verified with FL)
         _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, not verified with FL)
 
     public var
-        tick as Number = $.MAX_AGE_SEC,
+        tick as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
 
     private var 

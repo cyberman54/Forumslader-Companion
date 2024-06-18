@@ -1,9 +1,11 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
-var isConnected as Boolean = false;
+var 
+    isConnected as Boolean = false,
+    FLpayload as ByteArray = []b;
 
-class ForumsladerDelegate extends BluetoothLowEnergy.BleDelegate {
+class ForumsladerDelegate extends BleDelegate {
 
     private var 
         _onScanResult as WeakReference?,
