@@ -64,7 +64,7 @@ var
 class ForumsladerApp extends AppBase {
 
     private var
-    _bleDelegate as BleDelegate?,
+    _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
     _dataManager as DataManager?;
 
@@ -81,7 +81,7 @@ class ForumsladerApp extends AppBase {
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
         _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
-        BluetoothLowEnergy.setDelegate(_bleDelegate as BleDelegate);
+        BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_deviceManager as DeviceManager).startScan();
     }
 
@@ -102,7 +102,7 @@ class ForumsladerApp extends AppBase {
         if (_dataManager != null && _deviceManager != null) {
             return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
-        System.error("View nitialization failure");
+        System.error("View initialization failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
@@ -113,13 +113,13 @@ class ForumsladerApp extends AppBase {
 
     //! read user settings from GCM properties in UserSettings array
     function getUserSettings() as Void {
-        $.UserSettings[$.DisplayField1] = Application.Properties.getValue("UserSetting1") as Number;
-        $.UserSettings[$.DisplayField2] = Application.Properties.getValue("UserSetting2") as Number;
-        $.UserSettings[$.DisplayField3] = Application.Properties.getValue("UserSetting3") as Number;
-        $.UserSettings[$.DisplayField4] = Application.Properties.getValue("UserSetting4") as Number;
-        $.UserSettings[$.BattCalcMethod] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
-        $.UserSettings[$.FitLogging] = Application.Properties.getValue("FitLogging") as Boolean;
-        $.UserSettings[$.DeviceLock] = Application.Properties.getValue("DeviceLock") as Boolean;
+        $.UserSettings[$.DisplayField1] = Properties.getValue("UserSetting1") as Number;
+        $.UserSettings[$.DisplayField2] = Properties.getValue("UserSetting2") as Number;
+        $.UserSettings[$.DisplayField3] = Properties.getValue("UserSetting3") as Number;
+        $.UserSettings[$.DisplayField4] = Properties.getValue("UserSetting4") as Number;
+        $.UserSettings[$.BattCalcMethod] = Properties.getValue("BatteryCalcMethod") as Boolean;
+        $.UserSettings[$.FitLogging] = Properties.getValue("FitLogging") as Boolean;
+        $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
         if ($.UserSettings[$.DeviceLock] == false) { 
             Storage.deleteValue("MyDevice");
         }

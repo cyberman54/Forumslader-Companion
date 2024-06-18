@@ -149,7 +149,7 @@ class ForumsladerView extends SimpleDataField {
                     _unitString = "";
                     break;
                 }
-                _displayString += _unitString + (i < 3 ? " " : "");
+                _displayString += _unitString + (i < $.DisplayField4 ? " " : "");
             }
 
             // write values to fit file, if FitLogging is enabled by user
