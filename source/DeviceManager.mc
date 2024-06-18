@@ -2,22 +2,6 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.Application.Storage;
 
-// datafield app states
-    enum {
-        FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
-        FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
-        FL_CONFIG1,     // 2 = configuration step 1
-        FL_CONFIG2,     // 3 = configuration step 2
-        FL_CONFIG3,     // 4 = configuration step 3
-        FL_DISCONNECT,  // 5 = forumslader has disconnected
-        FL_WARMSTART,   // 6 = start data stream, skip configuration
-        FL_READY = 9    // 9 = running state (all setup is done)
-    }
-
-var 
-    isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH;
-
 class DeviceManager {
 
     private const

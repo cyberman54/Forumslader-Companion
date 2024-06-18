@@ -12,18 +12,51 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-var UserSettings as Array = [10, 3, 6, 7, false, false, false];
+// forumslader data fields we use
+enum {
+    // FL5/6 sentence
+    FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
+    FL_battCurrent, FL_loadCurrent, FL_intTemp,
+    // FLB sentence
+    FL_temperature, FL_pressure, FL_sealevel, FL_incline,
+    // FLP sentence
+    FL_wheelsize, FL_poles, FL_acc2mah,
+    // FLC sentence
+    FL_tourElevation, FL_tourInclineMax, FL_tourTempMax, FL_tourAltitudeMax, FL_tourPulseMax,   // set 0
+    FL_tripElevation, FL_tripInclineMax, FL_tripTempMax, FL_tripAltitudeMax, FL_tripPulseMax,   // set 1
+    FL_Elevation, FL_tourInclineMin, FL_tourTempMin, FL_tripInclineMin, FL_tripTempMin,         // set 2
+    FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                         // set 3
+    FL_tripSpeedAvg, FL_tourSpeedAvg, FL_tripClimbAvg, FL_tourClimbAvg, FL_empty2,              // set 4
+    FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,            // set 5
+    // size of FLdata array
+    FL_tablesize
+}
 
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
-        DisplayField1,
-        DisplayField2,
-        DisplayField3,
-        DisplayField4,
-        BattCalcMethod, 
-        FitLogging,
-        DeviceLock
+    DisplayField1, DisplayField2, DisplayField3, DisplayField4,
+    BattCalcMethod, FitLogging, DeviceLock
     }
+
+// app states
+enum {
+    FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
+    FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
+    FL_CONFIG1,     // 2 = configuration step 1
+    FL_CONFIG2,     // 3 = configuration step 2
+    FL_CONFIG3,     // 4 = configuration step 3
+    FL_DISCONNECT,  // 5 = forumslader has disconnected
+    FL_WARMSTART,   // 6 = start data stream, skip configuration
+    FL_READY = 9    // 9 = running state (all setup is done)
+}
+
+// global variables
+var 
+    isV6 as Boolean = false,
+    FLstate as Number = FL_SEARCH,
+    FLpayload as ByteArray = []b,
+    UserSettings as Array = [10, 3, 6, 7, false, false, false];
+
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -31,7 +64,7 @@ enum {
 class ForumsladerApp extends AppBase {
 
     private var
-    _bleDelegate as ForumsladerDelegate?,
+    _bleDelegate as BleDelegate?,
     _deviceManager as DeviceManager?,
     _dataManager as DataManager?;
 

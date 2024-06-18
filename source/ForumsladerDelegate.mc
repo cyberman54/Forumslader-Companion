@@ -1,10 +1,6 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
-var 
-    isConnected as Boolean = false,
-    FLpayload as ByteArray = []b;
-
 class ForumsladerDelegate extends BleDelegate {
 
     private var 
