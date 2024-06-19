@@ -7,8 +7,8 @@
     -->
     <!-- PROD -->
     <iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d69" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0">
-    <!-- TEST -->
-    <!-- iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0"-->
+        <!-- TEST -->
+        <!-- iq:application id="f37ce83f-ad98-4708-9741-fa4fa15c0d60" type="datafield" name="@Strings.AppName" entry="ForumsladerApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0"-->
         <!--
             Use the following from the Visual Studio Code comand palette to edit
             the build targets:
@@ -68,6 +68,8 @@
             <iq:product id="venu2"/>
             <iq:product id="venu2plus"/>
             <iq:product id="venu2s"/>
+            <iq:product id="venu3"/>
+            <iq:product id="venu3s"/>
             <iq:product id="venud"/>
             <iq:product id="venusq"/>
             <iq:product id="venusq2"/>
