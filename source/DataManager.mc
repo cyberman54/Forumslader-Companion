@@ -1,26 +1,6 @@
 import Toybox.Lang;
 import Toybox.Activity;
 
-// forumslader data fields we use
-    enum {
-        // FL5/6 sentence
-        FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
-        FL_battCurrent, FL_loadCurrent, FL_intTemp,
-        // FLB sentence
-        FL_temperature, FL_pressure, FL_sealevel, FL_incline,
-        // FLP sentence
-        FL_wheelsize, FL_poles, FL_acc2mah,
-        // FLC sentence
-        FL_tourElevation, FL_tourInclineMax, FL_tourTempMax, FL_tourAltitudeMax, FL_tourPulseMax,   // set 0
-        FL_tripElevation, FL_tripInclineMax, FL_tripTempMax, FL_tripAltitudeMax, FL_tripPulseMax,   // set 1
-        FL_Elevation, FL_tourInclineMin, FL_tourTempMin, FL_tripInclineMin, FL_tripTempMin,         // set 2
-        FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                         // set 3
-        FL_tripSpeedAvg, FL_tourSpeedAvg, FL_tripClimbAvg, FL_tourClimbAvg, FL_empty2,              // set 4
-        FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,            // set 5
-        // size of FLdata array
-        FL_tablesize
-    }
-
 class DataManager {
 
     // types of forumslader data sentences
@@ -33,13 +13,16 @@ class DataManager {
         SENTENCE_FLP
     }
   
+    public const
+        MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
+
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
         _MAX_TERM_SIZE = 30,  // max size of a term in a $FLx sentence (assumption, not verified with FL)
         _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, not verified with FL)
 
     public var
-        tick as Number = $.MAX_AGE_SEC,
+        tick as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
 
     private var 

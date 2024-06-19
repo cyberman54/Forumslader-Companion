@@ -12,23 +12,55 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-var UserSettings as Array = [10, 3, 6, 7, false, false, false];
+// forumslader data fields we use
+enum {
+    // FL5/6 sentence
+    FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
+    FL_battCurrent, FL_loadCurrent, FL_intTemp,
+    // FLB sentence
+    FL_temperature, FL_pressure, FL_sealevel, FL_incline,
+    // FLP sentence
+    FL_wheelsize, FL_poles, FL_acc2mah,
+    // FLC sentence
+    FL_tourElevation, FL_tourInclineMax, FL_tourTempMax, FL_tourAltitudeMax, FL_tourPulseMax,   // set 0
+    FL_tripElevation, FL_tripInclineMax, FL_tripTempMax, FL_tripAltitudeMax, FL_tripPulseMax,   // set 1
+    FL_Elevation, FL_tourInclineMin, FL_tourTempMin, FL_tripInclineMin, FL_tripTempMin,         // set 2
+    FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                         // set 3
+    FL_tripSpeedAvg, FL_tourSpeedAvg, FL_tripClimbAvg, FL_tourClimbAvg, FL_empty2,              // set 4
+    FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,            // set 5
+    // size of FLdata array
+    FL_tablesize
+}
 
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
-        DisplayField1,
-        DisplayField2,
-        DisplayField3,
-        DisplayField4,
-        BattCalcMethod, 
-        FitLogging,
-        DeviceLock
+    DisplayField1, DisplayField2, DisplayField3, DisplayField4, // user selected display values
+    BattCalcMethod, FitLogging, DeviceLock                      // user configurable switches
     }
+
+// app states
+enum {
+    FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
+    FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
+    FL_CONFIG1,     // 2 = configuration step 1
+    FL_CONFIG2,     // 3 = configuration step 2
+    FL_CONFIG3,     // 4 = configuration step 3
+    FL_DISCONNECT,  // 5 = forumslader has disconnected
+    FL_WARMSTART,   // 6 = start data stream, skip configuration
+    FL_READY = 9    // 9 = running state (all setup is done)
+}
+
+// global variables
+var 
+    FLstate as Number = FL_SEARCH,  // state engine
+    FLpayload as ByteArray = []b,   // $FLx data buffer
+    UserSettings as Array = [0, 0, 0, 0, false, false, false];
+
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
 //! show up to 4 user selectable values every 1 second in a simpledatafield.
-class ForumsladerApp extends Application.AppBase {
+class ForumsladerApp extends AppBase {
 
     private var
     _bleDelegate as ForumsladerDelegate?,
@@ -55,6 +87,8 @@ class ForumsladerApp extends Application.AppBase {
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+        BluetoothLowEnergy.setDelegate(null as BleDelegate);
         _deviceManager = null;
         _bleDelegate = null;
         _dataManager = null;
@@ -67,7 +101,7 @@ class ForumsladerApp extends Application.AppBase {
         if (_dataManager != null && _deviceManager != null) {
             return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
-        System.error("View nitialization failure");
+        System.error("View initialization failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
@@ -78,13 +112,13 @@ class ForumsladerApp extends Application.AppBase {
 
     //! read user settings from GCM properties in UserSettings array
     function getUserSettings() as Void {
-        $.UserSettings[$.DisplayField1] = Application.Properties.getValue("UserSetting1") as Number;
-        $.UserSettings[$.DisplayField2] = Application.Properties.getValue("UserSetting2") as Number;
-        $.UserSettings[$.DisplayField3] = Application.Properties.getValue("UserSetting3") as Number;
-        $.UserSettings[$.DisplayField4] = Application.Properties.getValue("UserSetting4") as Number;
-        $.UserSettings[$.BattCalcMethod] = Application.Properties.getValue("BatteryCalcMethod") as Boolean;
-        $.UserSettings[$.FitLogging] = Application.Properties.getValue("FitLogging") as Boolean;
-        $.UserSettings[$.DeviceLock] = Application.Properties.getValue("DeviceLock") as Boolean;
+        $.UserSettings[$.DisplayField1] = Properties.getValue("UserSetting1") as Number;
+        $.UserSettings[$.DisplayField2] = Properties.getValue("UserSetting2") as Number;
+        $.UserSettings[$.DisplayField3] = Properties.getValue("UserSetting3") as Number;
+        $.UserSettings[$.DisplayField4] = Properties.getValue("UserSetting4") as Number;
+        $.UserSettings[$.BattCalcMethod] = Properties.getValue("BatteryCalcMethod") as Boolean;
+        $.UserSettings[$.FitLogging] = Properties.getValue("FitLogging") as Boolean;
+        $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
         if ($.UserSettings[$.DeviceLock] == false) { 
             Storage.deleteValue("MyDevice");
         }

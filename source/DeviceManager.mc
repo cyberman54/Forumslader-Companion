@@ -2,26 +2,6 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.Application.Storage;
 
-// datafield app states
-    enum {
-        FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
-        FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
-        FL_CONFIG1,     // 2 = configuration step 1
-        FL_CONFIG2,     // 3 = configuration step 2
-        FL_CONFIG3,     // 4 = configuration step 3
-        FL_DISCONNECT,  // 5 = forumslader has disconnected
-        FL_WARMSTART,   // 6 = start data stream, skip configuration
-        FL_READY = 9    // 9 = running state (all setup is done)
-    }
-
-var 
-    isV6 as Boolean = false,
-    FLstate as Number = FL_SEARCH,
-    FLpayload as ByteArray = []b;
-
-const 
-    MAX_AGE_SEC = 3; // timeout in seconds for $FLx data
-
 class DeviceManager {
 
     private const
@@ -31,6 +11,9 @@ class DeviceManager {
 	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
         // command to request firmware version, currently unused
         //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+
+    public var
+        isV6 as Boolean = false;
 
     private var 
         _data as DataManager,
@@ -190,7 +173,7 @@ class DeviceManager {
 						_FL_CONFIG = FL5_RXTX_CHARACTERISTIC;
 						_FL_COMMAND = FL5_RXTX_CHARACTERISTIC;
                         rc = true;
-                        $.isV6 = false;
+                        isV6 = false;
                         debug("FLv5 detected");
 					}
 					else {
@@ -200,7 +183,7 @@ class DeviceManager {
 							_FL_CONFIG = FL6_RX_CHARACTERISTIC;
 							_FL_COMMAND = FL6_TX_CHARACTERISTIC;
                             rc = true;
-                            $.isV6 = true;
+                            isV6 = true;
                             debug("FLv6 detected");
 						}
 					}
