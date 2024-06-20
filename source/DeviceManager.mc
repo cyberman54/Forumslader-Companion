@@ -144,12 +144,13 @@ class DeviceManager {
                 if (null != service) {
                     _command = service.getCharacteristic(_FL_COMMAND);
                     _config = service.getCharacteristic(_FL_CONFIG);
+                    return true;
                 }
-                return true;
+            }
+            debug("error: not a forumslader or unknown FL type");
+            Storage.deleteValue("MyDevice");
             }
         }
-        debug("error: not a forumslader or unknown type");
-        Storage.deleteValue("MyDevice");
         startScan();
         return false;
     }
