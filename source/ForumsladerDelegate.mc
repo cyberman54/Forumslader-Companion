@@ -44,33 +44,6 @@ class ForumsladerDelegate extends BleDelegate {
         }
     }
 
-    //! Broadcast a new scan result
-    //! @param scanResult The new scan result
-    private function broadcastScanResult(scanResult as ScanResult) as Void {
-        var onScanResult = _onScanResult;
-        if (onScanResult != null) {
-            if (onScanResult.stillAlive()) {
-                (onScanResult.get() as DeviceManager).procScanResult(scanResult);
-            } else {
-                debug ("procScanResult disrupted");
-            }
-        }
-    }
-
-    //! Get whether the iterator contains a specific uuid
-    //! @param iter Iterator of uuid objects
-    //! @param obj Uuid to search for
-    //! @return true if object found, false otherwise
-    private function contains(iter as Iterator, obj as Uuid) as Boolean {
-        for (var uuid = iter.next(); uuid != null; uuid = iter.next()) {
-            if (uuid.equals(obj)) {
-				debug("found="+uuid.toString());
-                return true;
-            }
-        }
-        return false;
-    }
-
     //! Handle pairing and connecting to a device
     //! @param device The device state that was changed
     //! @param state The state of the connection
@@ -144,6 +117,47 @@ class ForumsladerDelegate extends BleDelegate {
                 debug ("procProfileRegister disrupted");
             }
         }
+    }
+
+    // unused callbacks
+    public function onCharacteristicRead(characteristic as BluetoothLowEnergy.Characteristic, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void {
+         debug("onCharacteristicRead");
+    }
+    public function onDescriptorRead(descriptor as BluetoothLowEnergy.Descriptor, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void { 
+         debug("onDescriptorRead");
+    }
+    public function onEncryptionStatus(device as BluetoothLowEnergy.Device, status as BluetoothLowEnergy.Status) as Void {
+         debug("onEncryptionStatus");
+    }
+    public function onScanStateChange(scanState as BluetoothLowEnergy.ScanState, status as BluetoothLowEnergy.Status) as Void {
+         debug("onScanStateChange");
+    }
+
+    //! Broadcast a new scan result
+    //! @param scanResult The new scan result
+    private function broadcastScanResult(scanResult as ScanResult) as Void {
+        var onScanResult = _onScanResult;
+        if (onScanResult != null) {
+            if (onScanResult.stillAlive()) {
+                (onScanResult.get() as DeviceManager).procScanResult(scanResult);
+            } else {
+                debug ("procScanResult disrupted");
+            }
+        }
+    }
+
+    //! Get whether the iterator contains a specific uuid
+    //! @param iter Iterator of uuid objects
+    //! @param obj Uuid to search for
+    //! @return true if object found, false otherwise
+    private function contains(iter as Iterator, obj as Uuid) as Boolean {
+        for (var uuid = iter.next(); uuid != null; uuid = iter.next()) {
+            if (uuid.equals(obj)) {
+				debug("found="+uuid.toString());
+                return true;
+            }
+        }
+        return false;
     }
 
     //! Store a new manager to manage scan results

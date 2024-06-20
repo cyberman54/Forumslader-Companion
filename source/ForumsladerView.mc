@@ -174,7 +174,7 @@ class ForumsladerView extends SimpleDataField {
             _data.encode($.FLpayload[i]);
         }
         $.FLpayload = []b;
-        debug(" | age=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
+        debug("tick=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
         // if we have recent data, we display and log it
         if ($.FLstate == FL_READY) {
