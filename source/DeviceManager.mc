@@ -123,7 +123,7 @@ class DeviceManager {
 
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
-    public function sendCommandFL(cmd as ByteArray) as Void {
+    private function sendCommandFL(cmd as ByteArray) as Void {
         if ((null == _device) || _writeInProgress) {
             return;
         }
@@ -157,7 +157,7 @@ class DeviceManager {
     //! Identify the forumslader type and setup it's UUIDs
     //! @param Device to be validated as forumslader
     //! @return Boolean to indicate if the device was identified as a forumslader
-    public function isForumslader(device as Device) as Boolean {
+    private function isForumslader(device as Device) as Boolean {
         var rc = false;
         if (device != null) {
             // select FL type
@@ -167,21 +167,21 @@ class DeviceManager {
 				r = r as Service;
 				if (r != null)
 				{
-					if (r.getUuid().equals(FL5_SERVICE))
+					if (r.getUuid().equals($.FL5_SERVICE))
 					{
-						_FL_SERVICE = FL5_SERVICE;
-						_FL_CONFIG = FL5_RXTX_CHARACTERISTIC;
-						_FL_COMMAND = FL5_RXTX_CHARACTERISTIC;
+						_FL_SERVICE = $.FL5_SERVICE;
+						_FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
+						_FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
                         rc = true;
                         isV6 = false;
                         debug("FLv5 detected");
 					}
 					else {
-						if (r.getUuid().equals(FL6_SERVICE))
+						if (r.getUuid().equals($.FL6_SERVICE))
 						{
-							_FL_SERVICE = FL6_SERVICE;
-							_FL_CONFIG = FL6_RX_CHARACTERISTIC;
-							_FL_COMMAND = FL6_TX_CHARACTERISTIC;
+							_FL_SERVICE = $.FL6_SERVICE;
+							_FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
+							_FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
                             rc = true;
                             isV6 = true;
                             debug("FLv6 detected");

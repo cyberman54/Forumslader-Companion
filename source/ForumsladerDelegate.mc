@@ -25,7 +25,7 @@ class ForumsladerDelegate extends BleDelegate {
                 if (_deviceName != null) { 
                     if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
                         debug("found FL by Devicename: " + _deviceName);
-                        BluetoothLowEnergy.registerProfile(FL6_profile);
+                        BluetoothLowEnergy.registerProfile($.FL6_profile);
                         broadcastScanResult(result);
                         return;
                     }
@@ -35,7 +35,7 @@ class ForumsladerDelegate extends BleDelegate {
                 for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
                     if (dict.get(:companyId) == 0x4d48) {
                         debug("found FL by Company ID");
-                        BluetoothLowEnergy.registerProfile(FL5_profile);
+                        BluetoothLowEnergy.registerProfile($.FL5_profile);
                         broadcastScanResult(result);
                         return;
                     }

@@ -111,7 +111,7 @@ class ForumsladerApp extends AppBase {
 	}
 
     //! read user settings from GCM properties in UserSettings array
-    function getUserSettings() as Void {
+    private function getUserSettings() as Void {
         $.UserSettings[$.DisplayField1] = Properties.getValue("UserSetting1") as Number;
         $.UserSettings[$.DisplayField2] = Properties.getValue("UserSetting2") as Number;
         $.UserSettings[$.DisplayField3] = Properties.getValue("UserSetting3") as Number;
