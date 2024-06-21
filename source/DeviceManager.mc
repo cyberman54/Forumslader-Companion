@@ -7,10 +7,10 @@ class DeviceManager {
     private const
         // threshold rssi for detecting forumslader devices
         _RSSI_threshold = -85,
-	    // command to request pole and wheelsize
-	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b; // $FLT,5*47<lf>
-        // command to request firmware version, currently unused
-        //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b; // $FLT,4*46<lf>
+	    // command to request pole and wheelsize: $FLT,5*47<lf>
+	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b;
+        // command to request firmware version (currently unused): $FLT,4*46<lf>
+        //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b;
 
     public var
         isV6 as Boolean = false;
@@ -89,7 +89,7 @@ class DeviceManager {
         if (device != null && device.isConnected()) {
             _device = device;
             if ($.UserSettings[$.DeviceLock] == true) {
-                    Storage.setValue("MyDevice", _scanResult);     
+                Storage.setValue("MyDevice", _scanResult);     
             }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
@@ -149,9 +149,8 @@ class DeviceManager {
             }
             debug("error: not a forumslader or unknown FL type");
             Storage.deleteValue("MyDevice");
-            }
-        }
-        startScan();
+            }   
+            startScan();
         return false;
     }
 
