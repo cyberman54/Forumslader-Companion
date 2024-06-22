@@ -195,21 +195,24 @@ class DeviceManager {
 
     //! Write notification to descriptor to start data stream on forumslader device
     private function startDatastreamFL() as Void {
-                debug("start datastream");
-                var char = _config;
-                if (null != char) {
-                    var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
-                    if (null != cccd) {
-                        _writeInProgress = true;
-                        cccd.requestWrite([1,0]b);
-                    }
-                }
+        if (!isV6) { 
+            return; // FLv6 does not need notification activation
+        }
+        debug("start datastream");
+        var char = _config;
+        if (null != char) {
+            var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
+            if (null != cccd) {
+                _writeInProgress = true;
+                cccd.requestWrite([0x01,0x00]b); // set notification bit
+            }
+        }
     }
 
     //! finite state machine
     public function updateState() as Number {
 
-        // watchdog
+        // timeout as watchdog
         if (_data.tick >= 10) {
             debug("data timeout");
             startScan();
