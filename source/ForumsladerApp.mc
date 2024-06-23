@@ -87,7 +87,7 @@ class ForumsladerApp extends AppBase {
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
-        (_deviceManager as DeviceManager).unpair();
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
         BluetoothLowEnergy.setDelegate(null as BleDelegate);
         _deviceManager = null;
         _bleDelegate = null;

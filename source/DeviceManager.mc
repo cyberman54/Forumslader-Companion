@@ -54,18 +54,12 @@ class DeviceManager {
         }
         // otherwhise start scanning
         debug("start scanning");
-        unpair();
-        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-        $.FLstate = FL_SEARCH;
-        _configDone = false;
-    }
-
-    //! unpair device
-    //! @param none
-    public function unpair() as Void {
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        $.FLstate = FL_SEARCH;
+        _configDone = false;
     }
 
     //! Process scan result of incoming BLE advertises
