@@ -43,7 +43,7 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        // try to connect to a definite forumloader without scanning
+        // try to connect to a definite device
         if ($.UserSettings[$.DeviceLock] == true) {
             debug("trying to connect definite device");
             _scanResult = Storage.getValue("MyDevice");
@@ -52,14 +52,20 @@ class DeviceManager {
                 return;
             }
         }
-        // otherwhise start scanning to search for a forumloader
+        // otherwhise start scanning
         debug("start scanning");
-        if (_device != null) { 
-            BluetoothLowEnergy.unpairDevice(_device);
-        }
+        unpair();
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
         $.FLstate = FL_SEARCH;
         _configDone = false;
+    }
+
+    //! unpair device
+    //! @param none
+    public function unpair() as Void {
+        if (_device != null) { 
+            BluetoothLowEnergy.unpairDevice(_device);
+        }
     }
 
     //! Process scan result of incoming BLE advertises
