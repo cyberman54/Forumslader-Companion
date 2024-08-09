@@ -150,7 +150,7 @@ class DataManager {
         }
 
         // split up sentence in terms and store them in string array
-        if (_currSentenceType != SENTENCE_OTHER) {
+        if (_currSentenceType != SENTENCE_OTHER && _currTermNumber < _MAX_TERM_COUNT) {
             _FLterm[_currTermNumber] = term;
             return;
         }
