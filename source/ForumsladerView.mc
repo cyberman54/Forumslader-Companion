@@ -83,7 +83,9 @@ class ForumsladerView extends SimpleDataField {
             if ($.UserSettings[$.BattCalcMethod] == true) { // use coloumb calculation method
                 var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
-                capacity = (x1 / x2).toNumber();
+                if (x2 > 0) {
+                    capacity = (x1 / x2).toNumber();
+                }
             } else { // use voltage calculation method
                 capacity = _data.FLdata[FL_socState]; 
             }
