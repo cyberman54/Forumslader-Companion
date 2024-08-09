@@ -21,7 +21,7 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
-        _scanResult as ScanResult?,
+        _myDevice as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
         _FL_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
@@ -46,9 +46,9 @@ class DeviceManager {
         // try to connect to a definite device
         if ($.UserSettings[$.DeviceLock] == true) {
             debug("trying to connect definite device");
-            _scanResult = Storage.getValue("MyDevice");
-            if (_scanResult != null) {
-                procScanResult(_scanResult);
+            _myDevice = Storage.getValue("MyDevice");
+            if (_myDevice != null) {
+                procScanResult(_myDevice);
                 return;
             }
         }
@@ -69,7 +69,7 @@ class DeviceManager {
         if (scanResult.getRssi() > _RSSI_threshold) {
             debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
-            _scanResult = scanResult;
+            _myDevice = scanResult;
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
@@ -88,7 +88,7 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
             _device = device;
-            if ($.UserSettings[$.DeviceLock] == true) {
+            if ($.UserSettings[$.DeviceLock] == true && _myDevice == null) {
                 Storage.setValue("MyDevice", _scanResult);     
             }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
