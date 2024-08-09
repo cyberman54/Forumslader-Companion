@@ -1,5 +1,5 @@
 <properties>
-    <property id="appVersion" type="string">1.5.9</property>            <!-- used to display app version -->
+    <property id="appVersion" type="string">1.6.0</property>            <!-- used to display app version -->
     <property id="BatteryCalcMethod" type="Boolean">false</property>    <!-- default use voltage method -->
     <property id="FitLogging" type="Boolean">false</property>           <!-- default don't log data -->
     <property id="DeviceLock" type="Boolean">false</property>           <!-- default no lock -->
