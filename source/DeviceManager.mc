@@ -89,7 +89,7 @@ class DeviceManager {
         if (device != null && device.isConnected()) {
             _device = device;
             if ($.UserSettings[$.DeviceLock] == true && _myDevice == null) {
-                Storage.setValue("MyDevice", _scanResult);     
+                Storage.setValue("MyDevice", _myDevice);     
             }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
