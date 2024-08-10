@@ -7,7 +7,6 @@ to do:
  */
 
 import Toybox.Application;
-import Toybox.Application.Storage;
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
@@ -35,7 +34,7 @@ enum {
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
     DisplayField1, DisplayField2, DisplayField3, DisplayField4, // user selected display values
-    BattCalcMethod, FitLogging, DeviceLock                      // user configurable switches
+    BattCalcMethod, FitLogging                                  // user configurable switches
     }
 
 // app states
@@ -118,10 +117,6 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.DisplayField4] = Properties.getValue("UserSetting4") as Number;
         $.UserSettings[$.BattCalcMethod] = Properties.getValue("BatteryCalcMethod") as Boolean;
         $.UserSettings[$.FitLogging] = Properties.getValue("FitLogging") as Boolean;
-        $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
-        if ($.UserSettings[$.DeviceLock] == false) { 
-            Storage.deleteValue("MyDevice");
-        }
         debug("User Settings: " + $.UserSettings.toString());
     }
 

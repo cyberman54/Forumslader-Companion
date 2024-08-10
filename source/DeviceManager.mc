@@ -1,6 +1,5 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
-import Toybox.Application.Storage;
 
 class DeviceManager {
 
@@ -21,7 +20,6 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
-        _myDevice as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
         _FL_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
@@ -43,16 +41,6 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        // try to connect to a definite device
-        if ($.UserSettings[$.DeviceLock] == true) {
-            debug("trying to connect definite device");
-            _myDevice = Storage.getValue("MyDevice");
-            if (_myDevice != null) {
-                procScanResult(_myDevice);
-                return;
-            }
-        }
-        // otherwhise start scanning
         debug("start scanning");
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
@@ -69,7 +57,6 @@ class DeviceManager {
         if (scanResult.getRssi() > _RSSI_threshold) {
             debug("trying to pair device, rssi " + scanResult.getRssi());
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
-            _myDevice = scanResult;
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
             }
@@ -88,9 +75,6 @@ class DeviceManager {
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
             _device = device;
-            if ($.UserSettings[$.DeviceLock] == true && _myDevice == null) {
-                Storage.setValue("MyDevice", _myDevice);     
-            }
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
             debug ("connection failed, restarting scan");
@@ -148,7 +132,6 @@ class DeviceManager {
                 }
             }
             debug("error: not a forumslader or unknown FL type");
-            Storage.deleteValue("MyDevice");
             }   
             startScan();
         return false;
