@@ -2,5 +2,5 @@
     <string id="searching">suchen</string>
     <string id="initializing">initialisieren</string>
     <string id="connecting">verbinden</string>
-    <string id="datastale">Daten laden</string>
+    <string id="datastale">warten</string>
 </resources>
