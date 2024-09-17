@@ -194,63 +194,55 @@ class DeviceManager {
 
     //! finite state machine
     public function updateState() as Number {
-
-        // timeout as watchdog
-        if (_data.tick >= 10) {
-            debug("data timeout");
-            startScan();
-        }
-        else {
-            switch($.FLstate)
-                {
-                // waiting for delegate event, nothing to do meanwhile
-                case FL_READY:
-                case FL_SEARCH:
-                case FL_DISCONNECT:
-                    break;
-                // cold start (used after pairing)
-                case FL_COLDSTART:
-                    if (setupProfile()) {
-                        $.FLstate ++;
-                        startDatastreamFL();
-                    } else {
-                        $.FLstate --;
-                    }
-                    break;
-                // warm start (used after reconnecting)
-                case FL_WARMSTART:
-                    $.FLstate = FL_READY;
+        switch($.FLstate)
+            {
+            // waiting for delegate event, nothing to do meanwhile
+            case FL_READY:
+            case FL_SEARCH:
+            case FL_DISCONNECT:
+                break;
+            // cold start (used after pairing)
+            case FL_COLDSTART:
+                if (setupProfile()) {
+                    $.FLstate ++;
                     startDatastreamFL();
-                    break;
-                // 3-steps configuration sequence during startup
-                // step1: request parameters
-                case FL_CONFIG1:
-                    if (_data.tick == 0) {  // wait until data stream was turned on
-                        sendCommandFL(FLP); // request wheelsize and poles data
-                        $.FLstate ++;
-                    }
-                    break;
-                // step2: check parameters, first try
-                case FL_CONFIG2:
-                    if (_data.FLdata[FL_poles] > 0) {
-                        _configDone = true;
-                        $.FLstate = FL_READY;
-                    } else {
-                        $.FLstate ++;
-                    }
-                    break;
-                // step3: check parameters, second try (for FLV5)
-                case FL_CONFIG3:
-                    if (_data.FLdata[FL_poles] > 0) {
-                        _configDone = true;
-                        $.FLstate = FL_READY;
-                    } else {
-                        $.FLstate = FL_CONFIG1;
-                    }
-                    break;
+                } else {
+                    $.FLstate --;
                 }
-            }   
-        return $.FLstate;
+                break;
+            // warm start (used after reconnecting)
+            case FL_WARMSTART:
+                $.FLstate = FL_READY;
+                startDatastreamFL();
+                break;
+            // 3-steps configuration sequence during startup
+            // step1: request parameters
+            case FL_CONFIG1:
+                if (_data.tick == 0) {  // wait until data stream was turned on
+                    sendCommandFL(FLP); // request wheelsize and poles data
+                    $.FLstate ++;
+                }
+                break;
+            // step2: check parameters, first try
+            case FL_CONFIG2:
+                if (_data.FLdata[FL_poles] > 0) {
+                    _configDone = true;
+                    $.FLstate = FL_READY;
+                } else {
+                    $.FLstate ++;
+                }
+                break;
+            // step3: check parameters, second try (for FLV5)
+            case FL_CONFIG3:
+                if (_data.FLdata[FL_poles] > 0) {
+                    _configDone = true;
+                    $.FLstate = FL_READY;
+                } else {
+                    $.FLstate = FL_CONFIG1;
+                }
+                break;
+            }
+       return $.FLstate;
     }
 
 }

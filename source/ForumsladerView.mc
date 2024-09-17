@@ -14,7 +14,6 @@ class ForumsladerView extends SimpleDataField {
         _device as DeviceManager,
         _searching as String,
         _connecting as String,
-        _datastale as String,
         _initializing as String,
         _fitRecording1 as Field,
         _fitRecording2 as Field,
@@ -30,7 +29,6 @@ class ForumsladerView extends SimpleDataField {
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _searching = WatchUi.loadResource($.Rez.Strings.searching) as String;
         _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
-        _datastale = WatchUi.loadResource($.Rez.Strings.datastale) as String;
         _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _data = dataManager;
         _device = deviceManager;
@@ -178,36 +176,31 @@ class ForumsladerView extends SimpleDataField {
         $.FLpayload = []b;
         debug("tick=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
+        // toggle device state machine and set displaystring to device's state
+        switch (_device.updateState()) 
+        {
+            case FL_SEARCH:
+                _displayString = _searching;
+                break;
+            case FL_DISCONNECT:
+            case FL_COLDSTART:
+            case FL_WARMSTART:
+            case FL_READY:
+                _displayString = _connecting;
+                break;
+            case FL_CONFIG1:
+            case FL_CONFIG2:
+            case FL_CONFIG3:
+                _displayString = _initializing;
+                break;
+            }
+        
         // if we have recent data, we display and log it
-        if ($.FLstate == FL_READY) {
-            if (_data.tick <= _data.MAX_AGE_SEC) {
-                _displayString = computeDisplayString(); // display and log current values
-                _data.tick++; // increase data age seconds counter
-            }
-            else {      
-                debug("data stale");
-                _displayString = _datastale; // display data stale message
-            }
-        // otherwise toggle state machine for setup / reconnect
-        } else {
-            switch (_device.updateState()) 
-            {
-                case FL_SEARCH:
-                    _displayString = _searching;
-                    break;
-                case FL_DISCONNECT:
-                case FL_COLDSTART:
-                case FL_WARMSTART:
-                case FL_READY:
-                    _displayString = _connecting;
-                    break;
-                case FL_CONFIG1:
-                case FL_CONFIG2:
-                case FL_CONFIG3:
-                    _displayString = _initializing;
-                    break;
-                }
+        if (_data.tick <= _data.MAX_AGE_SEC) {
+            _displayString = computeDisplayString(); // display and log current values
+            _data.tick++; // increase data age seconds counter
         }
+       
         return _displayString;
     }
 
