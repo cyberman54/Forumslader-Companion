@@ -8,8 +8,6 @@ import Toybox.FitContributor;
 class ForumsladerView extends SimpleDataField {
 
     private var 
-        _unitString as String = "",
-        _displayString as String = "",
         _data as DataManager,
         _device as DeviceManager,
         _searching as String,
@@ -73,11 +71,12 @@ class ForumsladerView extends SimpleDataField {
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
 
-            _displayString = "";
-            _unitString = "";
+            var 
+                _unitString = "",
+                _displayString = "",
+                battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float,
+                capacity = 0;
 
-            var battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
-            var capacity = 0;
             if ($.UserSettings[$.BattCalcMethod] == true) { // use coloumb calculation method
                 var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
@@ -168,6 +167,8 @@ class ForumsladerView extends SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
+        var _deviceState = _searching;
+
         // decode input data from buffer, then clear buffer
 		var _size = $.FLpayload.size();        
         for (var i = 0; i < _size; i++) {
@@ -176,32 +177,32 @@ class ForumsladerView extends SimpleDataField {
         $.FLpayload = []b;
         debug("tick=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
-        // toggle device state machine and set displaystring to device's state
+        // toggle device state machine and set displaystring to device state
         switch (_device.updateState()) 
         {
             case FL_SEARCH:
-                _displayString = _searching;
+                _deviceState = _searching;
                 break;
             case FL_DISCONNECT:
             case FL_COLDSTART:
             case FL_WARMSTART:
             case FL_READY:
-                _displayString = _connecting;
+                _deviceState = _connecting;
                 break;
             case FL_CONFIG1:
             case FL_CONFIG2:
             case FL_CONFIG3:
-                _displayString = _initializing;
+                _deviceState = _initializing;
                 break;
             }
         
-        // if we have recent data, we display and log it
+        // if we have recent data, we display and log it, else we display device state
         if (_data.tick <= _data.MAX_AGE_SEC) {
-            _displayString = computeDisplayString(); // display and log current values
             _data.tick++; // increase data age seconds counter
+            return computeDisplayString(); // display data
+        } else {
+            return _deviceState; // display state
         }
-       
-        return _displayString;
     }
 
 }
