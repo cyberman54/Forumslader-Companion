@@ -10,6 +10,7 @@ class ForumsladerView extends SimpleDataField {
     private var 
         _data as DataManager,
         _device as DeviceManager,
+        _deviceState as String,
         _searching as String,
         _connecting as String,
         _initializing as String,
@@ -30,8 +31,9 @@ class ForumsladerView extends SimpleDataField {
         _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         _data = dataManager;
         _device = deviceManager;
+        _deviceState = _searching;
 
-        // setup speed calculation
+        // setup speed calculation according to garmin device presets
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             _speedunit = "kmh";
             _speedfactor = 1.0;
@@ -39,7 +41,7 @@ class ForumsladerView extends SimpleDataField {
             _speedunit = "mph";
             _speedfactor = 0.621371;
         }
-        
+
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
         _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
@@ -72,7 +74,6 @@ class ForumsladerView extends SimpleDataField {
     private function computeDisplayString() as String {
 
             var 
-                _unitString = "",
                 _displayString = "",
                 battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float,
                 capacity = 0;
@@ -93,62 +94,51 @@ class ForumsladerView extends SimpleDataField {
                 switch ($.UserSettings[i] as Number)
                 {
                     case 1: // trip energy
-                        _unitString = "Wh";
-                        _displayString += _data.FLdata[FL_tripEnergy];
+                        _displayString += _data.FLdata[FL_tripEnergy] + "Wh";
                         break;
 
                     case 2: // temperature
-                        _unitString = "°C";
-                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f");
+                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
                         break;
 
                     case 3: // dynamo power
-                        _unitString = "W";
-                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber();
+                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
                         break;
 
                     case 4: // generator gear
-                        _unitString = "";
                         _displayString += _data.FLdata[FL_gear];
                         break;
 
                     case 5: // dynamo impulse frequency
                         var freq = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) as Float;
-                        _unitString = "Hz";
-                        _displayString += freq.toNumber();
+                        _displayString += freq.toNumber() + "Hz";
                         break;
 
                     case 6: // battery voltage
-                        _unitString = "V";
-                        _displayString += battVoltage.format("%.1f");
+                        _displayString += battVoltage.format("%.1f") + "V";
                         break;
 
                     case 7: // battery current
-                        _unitString = "A";
-                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f");
+                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                         break;
 
                     case 8: // load current
-                        _unitString = "A";
-                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f");
+                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
                         break;
 
                     case 9: // speed
                         var speed = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
-                        _unitString = _speedunit;
-                        _displayString += (speed * _speedfactor).format("%u");
+                        _displayString += (speed * _speedfactor).format("%u") + _speedunit;
                         break;
 
                     case 10: // remaining battery capacity
-                        _unitString = "%";
-                        _displayString += capacity;
+                        _displayString += capacity + "%";
                         break;
 
                     default: // off
-                    _unitString = "";
-                    break;
+                        break;
                 }
-                _displayString += _unitString + (i < $.DisplayField4 ? " " : "");
+                _displayString += i < $.DisplayField4 ? " " : "";
             }
 
             // write values to fit file, if FitLogging is enabled by user
@@ -166,8 +156,6 @@ class ForumsladerView extends SimpleDataField {
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-
-        var _deviceState = _searching;
 
         // decode input data from buffer, then clear buffer
 		var _size = $.FLpayload.size();        
