@@ -146,12 +146,12 @@ class ForumsladerView extends SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
-        // decode input data from buffer, then clear buffer
-		var _size = $.FLpayload.size();        
+        // decode input data
+		var _size = $.FLpayload.slice(0, 300).size(); // slicing buffer to 300 is for timeout protection
         for (var i = 0; i < _size; i++) {
             _data.encode($.FLpayload[i]);
         }
-        $.FLpayload = []b;
+        $.FLpayload = []b; // clear buffer
         debug("tick=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
         // toggle device state machine and set displaystring to device state
