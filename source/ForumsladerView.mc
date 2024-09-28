@@ -17,9 +17,7 @@ class ForumsladerView extends SimpleDataField {
         _fitRecording1 as Field,
         _fitRecording2 as Field,
         _fitRecording3 as Field,
-        _fitRecording4 as Field,
-        _speedunit as String = "",
-        _speedfactor as Float = 1.0;
+        _fitRecording4 as Field;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -32,15 +30,6 @@ class ForumsladerView extends SimpleDataField {
         _data = dataManager;
         _device = deviceManager;
         _deviceState = _searching;
-
-        // setup speed calculation according to garmin device presets
-        if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
-            _speedunit = "kmh";
-            _speedfactor = 1.0;
-        } else {
-            _speedunit = "mph";
-            _speedfactor = 0.621371;
-        }
 
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
@@ -110,7 +99,7 @@ class ForumsladerView extends SimpleDataField {
                         break;
 
                     case 5: // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) as Float;
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
                         _displayString += freq.toNumber() + "Hz";
                         break;
 
@@ -127,8 +116,8 @@ class ForumsladerView extends SimpleDataField {
                         break;
 
                     case 9: // speed
-                        var speed = _data.FLdata[FL_frequency] / (_device.isV6 ? 10.0 : 1.0) / _data.FLdata[FL_poles] * _data.FLdata[FL_wheelsize] / 277.777 as Float;
-                        _displayString += (speed * _speedfactor).format("%u") + _speedunit;
+                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
+                        _displayString += speed.format("%.1f") + $.speedunit;
                         break;
 
                     case 10: // remaining battery capacity
@@ -184,8 +173,8 @@ class ForumsladerView extends SimpleDataField {
                 break;
             }
         
-        // if we have recent data, we display and log it, else we display device state
-        if (_data.tick <= _data.MAX_AGE_SEC) {
+        // if we have recent data, and are fully initialized we display data, else we display device state
+        if (_data.tick <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
             _data.tick++; // increase data age seconds counter
             return computeDisplayString(); // display data
         } else {

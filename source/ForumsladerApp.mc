@@ -51,10 +51,12 @@ enum {
 
 // global variables
 var 
-    FLstate as Number = FL_SEARCH,  // state engine
+    FLstate as Number = FL_SEARCH,  // current state of state engine
+    isV6 as Boolean = false,        // forumslader type V5/V6 identifier
+    speedunitFactor as Float = 1.0, // changed according to FL type
+    speedunit as String = "kmh",    // changed according to garmin device settings
     FLpayload as ByteArray = []b,   // $FLx data buffer
     UserSettings as Array = [0, 0, 0, 0, false, false, false];
-
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -109,15 +111,24 @@ class ForumsladerApp extends AppBase {
         WatchUi.requestUpdate();
 	}
 
-    //! read user settings from GCM properties in UserSettings array
+    //! get user settings and store them in UserSettings array
     private function getUserSettings() as Void {
+        // get user settings from application properties
         $.UserSettings[$.DisplayField1] = Properties.getValue("UserSetting1") as Number;
         $.UserSettings[$.DisplayField2] = Properties.getValue("UserSetting2") as Number;
         $.UserSettings[$.DisplayField3] = Properties.getValue("UserSetting3") as Number;
         $.UserSettings[$.DisplayField4] = Properties.getValue("UserSetting4") as Number;
         $.UserSettings[$.BattCalcMethod] = Properties.getValue("BatteryCalcMethod") as Boolean;
         $.UserSettings[$.FitLogging] = Properties.getValue("FitLogging") as Boolean;
-        debug("User Settings: " + $.UserSettings.toString());
+        // get speedunit from garmin device settings
+        if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
+            speedunitFactor = 1.0;
+            speedunit = "kmh";
+        } else {
+            speedunitFactor = 1.609344;
+            speedunit = "mph";
+        }
+        debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
     }
 
 }
