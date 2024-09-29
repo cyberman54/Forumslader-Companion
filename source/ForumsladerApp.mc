@@ -129,6 +129,8 @@ class ForumsladerApp extends AppBase {
             speedunit = "mph";
         }
         debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
+        // get app version from resources.xml file and write it to properties for display in settings menu
+        Properties.setValue("appVersion", Application.loadResource($.Rez.Strings.AppVersion) as String);
     }
 
 }

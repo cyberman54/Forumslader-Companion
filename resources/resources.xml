@@ -1,4 +1,5 @@
 <resources>
+    <string id="AppVersion" translatable="false">1.6.5</string>
     <string id="initializing">initializing</string>
     <string id="searching">searching</string>
     <string id="connecting">connecting</string>

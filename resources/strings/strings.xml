@@ -1,13 +1,15 @@
 <strings>
-    <string id="AppVersionTitle">Softwareversion</string>
+    <!-- settings menu strings -->
+    <string scope="settings" id="AppVersionTitle">Softwareversion</string>
+    <string scope="settings" id="ShowTitle1">Displayvalue 1</string>
+    <string scope="settings" id="ShowTitle2">Displayvalue 2</string>
+    <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
+    <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
+    <string scope="settings" id="Off">-- hide --</string>
+    <string scope="settings" id="SelectCapacityMethod">Use Coloumb counter for battery capacity</string>
+    <string scope="settings" id="SelectFitLogging">Log data</string>
+    <!-- runtime strings -->
     <string id="AppName">Forumloader</string>
-    <string id="ShowTitle1">Displayvalue 1</string>
-    <string id="ShowTitle2">Displayvalue 2</string>
-    <string id="ShowTitle3">Displayvalue 3</string>
-    <string id="ShowTitle4">Displayvalue 4</string>
-    <string id="Off">-- hide --</string>
-    <string id="SelectCapacityMethod">Use Coloumb counter for battery capacity</string>
-    <string id="SelectFitLogging">Log data</string>
     <string id="TripEnergy">Trip Energy</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperature</string>
