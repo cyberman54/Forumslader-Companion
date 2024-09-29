@@ -10,6 +10,9 @@
     <string scope="settings" id="SelectFitLogging">Daten protokollieren</string>
     <!-- runtime strings -->
     <string id="AppName">Forumslader</string>
+    <string id="searching">suchen</string>
+    <string id="initializing">initialisieren</string>
+    <string id="connecting">verbinden</string>
     <string id="TripEnergy">Tagesleistung</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperatur</string>
