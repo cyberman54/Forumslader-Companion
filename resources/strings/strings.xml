@@ -1,14 +1,18 @@
 <strings>
-    <!-- settings menu strings -->
+    <!-- GCM settings menu strings -->
     <string scope="settings" id="AppVersionTitle">Softwareversion</string>
     <string scope="settings" id="ShowTitle1">Displayvalue 1</string>
     <string scope="settings" id="ShowTitle2">Displayvalue 2</string>
     <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
     <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
-    <string scope="settings" id="Off">-- hide --</string>
-    <string scope="settings" id="SelectCapacityMethod">Use Coloumb counter for battery capacity</string>
-    <string scope="settings" id="SelectFitLogging">Log data</string>
     <!-- runtime strings -->
+    <string id="SelectCapacityMethod">Coloumbcount</string>
+    <string id="SelectFitLogging">Log data</string>
+    <string id="MenuSettings">Settings</string>
+    <string id="MenuDatafields">Datafields</string>
+    <string id="HomeTitle">Setup</string>
+    <string id="Prompt">Press the menu\nbutton to start</string>
+    <string id="Off">-- hide --</string>
     <string id="AppName">Forumloader</string>
     <string id="initializing">initializing</string>
     <string id="searching">searching</string>

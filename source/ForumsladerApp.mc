@@ -56,7 +56,7 @@ var
     speedunitFactor as Float = 1.0, // changed according to FL type
     speedunit as String = "kmh",    // changed according to garmin device settings
     FLpayload as ByteArray = []b,   // $FLx data buffer
-    UserSettings as Array = [0, 0, 0, 0, false, false, false];
+    UserSettings as Array = [0, 0, 0, 0, false, false];
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -103,6 +103,12 @@ class ForumsladerApp extends AppBase {
             return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
         System.error("View initialization failure");
+    }
+
+    //! Return the settings view and delegate for the app
+    //! @return Array Pair [View, Delegate]
+    public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
+        return [new $.SetupView(), new $.SetupDelegate()];
     }
 
     //! Handle change of settings by user in GCM while App is running

@@ -1,14 +1,18 @@
 <strings>
-    <!-- settings menu strings -->
+    <!-- GCM settings menu strings -->
     <string scope="settings" id="AppVersionTitle">Softwareversion</string>
     <string scope="settings" id="ShowTitle1">Anzeigewert 1</string>
     <string scope="settings" id="ShowTitle2">Anzeigewert 2</string>
     <string scope="settings" id="ShowTitle3">Anzeigewert 3</string>
     <string scope="settings" id="ShowTitle4">Anzeigewert 4</string>
-    <string scope="settings" id="Off">-- Aus --</string>
-    <string scope="settings" id="SelectCapacityMethod">Coloumb Zähler für Akkufüllstand nutzen</string>
-    <string scope="settings" id="SelectFitLogging">Daten protokollieren</string>
     <!-- runtime strings -->
+    <string id="SelectCapacityMethod">Coloumbzähler</string>
+    <string id="SelectFitLogging">Daten loggen</string>
+    <string id="MenuSettings">Einstellungen</string>
+    <string id="MenuDatafields">Datenfelder</string>
+    <string id="HomeTitle">Setup</string>
+    <string id="Prompt">Drücke Menü Knopf\nzum starten</string>
+    <string id="Off">-- Aus --</string>
     <string id="AppName">Forumslader</string>
     <string id="searching">suchen</string>
     <string id="initializing">initialisieren</string>
