@@ -105,13 +105,6 @@ class ForumsladerApp extends AppBase {
         System.error("View initialization failure");
     }
 
-    //! Return the settings view and delegate for the app
-    //! @return Array Pair [View, Delegate]
-    (:SettingsMenu) 
-    public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
-        return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
-    }
-
     //! Handle change of settings by user in GCM while App is running
 	public function onSettingsChanged() {
     	getUserSettings();
@@ -138,6 +131,13 @@ class ForumsladerApp extends AppBase {
         debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
         // get app version from resources.xml file and write it to properties for display in settings menu
         Properties.setValue("appVersion", Application.loadResource($.Rez.Strings.AppVersion) as String);
+    }
+
+    //! Return the settings view and delegate for the app
+    //! @return Array Pair [View, Delegate]
+    (:SettingsMenu) 
+    public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
+        return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
     }
 
 }
