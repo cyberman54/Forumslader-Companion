@@ -2,6 +2,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
 
+(:SettingsMenu)
 //! This is the settings main menu called by getSettingsView of the application
 class SettingsMenu extends WatchUi.Menu2 {
 
@@ -15,6 +16,7 @@ class SettingsMenu extends WatchUi.Menu2 {
     }    
 }
 
+(:SettingsMenu)
 //! This is the menu input delegate for the settings main menu of the application
 class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
@@ -58,6 +60,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 }
 
+(:SettingsMenu)
 //! This is the menu input delegate shared by all the basic sub-menus in the application
 class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
@@ -101,6 +104,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
 }
 
+(:SettingsMenu)
 //! This is the custom Icon drawable, forming a picklist. It changes label each time the next state is
 //! triggered, which is done when the item is selected in this application.
 class CustomIcon extends WatchUi.Drawable {

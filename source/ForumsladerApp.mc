@@ -107,6 +107,7 @@ class ForumsladerApp extends AppBase {
 
     //! Return the settings view and delegate for the app
     //! @return Array Pair [View, Delegate]
+    (:SettingsMenu) 
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
         return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
     }
