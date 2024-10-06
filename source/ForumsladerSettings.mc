@@ -1,6 +1,7 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
+//import Toybox.Graphics;
 
 (:SettingsMenu)
 //! This is the settings main menu called by getSettingsView of the application
@@ -140,7 +141,7 @@ class PickList extends WatchUi.Drawable {
         if (_index >= _settingsStrings.size()) {
             _index = 0;
         }
-        return _settingsStrings[_index] as String;
+        return self.getString();
     }
 
     //! Return the fieldvalue string for the menu to use as its label
@@ -160,4 +161,18 @@ class PickList extends WatchUi.Drawable {
     public function getField() as Number {
         return _field;
     }
+
+    /*
+    public function draw(dc as Dc) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            dc.getWidth() / 2,                      // gets the width of the device and divides by 2
+            dc.getHeight() / 2,                     // gets the height of the device and divides by 2
+            Graphics.FONT_MEDIUM,                   // sets the font size
+            (_field + 1).toString(),                // the String to display
+            Graphics.TEXT_JUSTIFY_CENTER |          // sets the justification for the text
+            Graphics.TEXT_JUSTIFY_VCENTER
+        );
+    }
+    */
 }
