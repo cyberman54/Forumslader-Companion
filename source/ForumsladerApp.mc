@@ -108,7 +108,7 @@ class ForumsladerApp extends AppBase {
     //! Return the settings view and delegate for the app
     //! @return Array Pair [View, Delegate]
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
-        return [new $.SetupView(), new $.SetupDelegate()];
+        return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
     }
 
     //! Handle change of settings by user in GCM while App is running

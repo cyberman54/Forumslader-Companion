@@ -10,8 +10,6 @@
     <string id="SelectFitLogging">Log data</string>
     <string id="MenuSettings">Settings</string>
     <string id="MenuDatafields">Datafields</string>
-    <string id="HomeTitle">Setup</string>
-    <string id="Prompt">Press the menu\nbutton to start</string>
     <string id="Off">-- hide --</string>
     <string id="AppName">Forumloader</string>
     <string id="initializing">initializing</string>
