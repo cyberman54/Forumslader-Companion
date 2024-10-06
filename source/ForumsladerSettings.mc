@@ -2,7 +2,20 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
 
-//! This is the menu input delegate for the main menu of the application
+//! This is the settings main menu called by getSettingsView of the application
+class SettingsMenu extends WatchUi.Menu2 {
+
+    function initialize() {
+        // Generate main menu
+        Menu2.initialize(null);
+        Menu2.setTitle(WatchUi.loadResource($.Rez.Strings.AppName) as String);
+        // Add setup menu items
+        Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuSettings) as String, null, :options, null));
+        Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuDatafields) as String, null, :fields, null));
+    }    
+}
+
+//! This is the menu input delegate for the settings main menu of the application
 class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     //! Constructor
