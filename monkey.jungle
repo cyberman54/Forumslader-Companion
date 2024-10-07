@@ -4,11 +4,15 @@ project.optimization = 2pz
 # Exclude settings menu from devices with low (32KB or less) memory
 approachs60.excludeAnnotations = SettingsMenu
 d2air.excludeAnnotations = SettingsMenu
+d2bravo.excludeAnnotations = SettingsMenu
+d2bravo_titanium.excludeAnnotations = SettingsMenu
 descentg1.excludeAnnotations = SettingsMenu
 edge130.excludeAnnotations = SettingsMenu
 edge130plus.excludeAnnotations = SettingsMenu
 edge_520.excludeAnnotations = SettingsMenu
 enduro.excludeAnnotations = SettingsMenu
+fenix3.excludeAnnotations = SettingsMenu
+fenix3_hr.excludeAnnotations = SettingsMenu
 fenix5.excludeAnnotations = SettingsMenu
 fenix5s.excludeAnnotations = SettingsMenu
 fenix6.excludeAnnotations = SettingsMenu
