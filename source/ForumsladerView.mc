@@ -82,37 +82,11 @@ class ForumsladerView extends SimpleDataField {
             {  
                 switch ($.UserSettings[i] as Number)
                 {
-                    case 1: // trip energy
-                        _displayString += _data.FLdata[FL_tripEnergy] + "Wh";
+                    case 0: // off
                         break;
 
-                    case 2: // temperature
-                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
-                        break;
-
-                    case 3: // dynamo power
-                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
-                        break;
-
-                    case 4: // generator gear
-                        _displayString += _data.FLdata[FL_gear];
-                        break;
-
-                    case 5: // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
-                        _displayString += freq.toNumber() + "Hz";
-                        break;
-
-                    case 6: // battery voltage
-                        _displayString += battVoltage.format("%.1f") + "V";
-                        break;
-
-                    case 7: // battery current
-                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
-                        break;
-
-                    case 8: // load current
-                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
+                    case 10: // remaining battery capacity
+                        _displayString += capacity + "%";
                         break;
 
                     case 9: // speed
@@ -120,11 +94,37 @@ class ForumsladerView extends SimpleDataField {
                         _displayString += speed.format("%.1f") + $.speedunit;
                         break;
 
-                    case 10: // remaining battery capacity
-                        _displayString += capacity + "%";
+                    case 8: // load current
+                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
                         break;
 
-                    default: // off
+                    case 7: // battery current
+                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
+                        break;
+
+                    case 6: // battery voltage
+                        _displayString += battVoltage.format("%.1f") + "V";
+                        break;
+
+                    case 5: // dynamo impulse frequency
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
+                        _displayString += freq.toNumber() + "Hz";
+                        break;
+
+                    case 4: // generator gear
+                        _displayString += _data.FLdata[FL_gear];
+                        break;
+
+                    case 3: // dynamo power
+                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
+                        break;
+
+                    case 2: // temperature
+                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
+                        break;
+
+                    case 1: // trip energy
+                        _displayString += _data.FLdata[FL_tripEnergy] + "Wh";
                         break;
                 }
                 _displayString += i < $.DisplayField4 ? " " : "";
