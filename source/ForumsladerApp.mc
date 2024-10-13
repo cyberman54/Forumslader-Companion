@@ -77,6 +77,9 @@ class ForumsladerApp extends AppBase {
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
         debug("--- started ---");
+        if (state != null) {
+            debug("state: " + state.toString());
+        }
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -94,6 +97,9 @@ class ForumsladerApp extends AppBase {
         _bleDelegate = null;
         _dataManager = null;
         debug("--- stopped ---");
+        if (state != null) {
+            debug("state: " + state.toString());
+        }
     }
 
     //! Return the initial view for the app
@@ -114,12 +120,12 @@ class ForumsladerApp extends AppBase {
     //! get user settings and store them in UserSettings array
     private function getUserSettings() as Void {
         // get user settings from application properties
-        $.UserSettings[$.DisplayField1] = Properties.getValue("UserSetting1") as Number;
-        $.UserSettings[$.DisplayField2] = Properties.getValue("UserSetting2") as Number;
-        $.UserSettings[$.DisplayField3] = Properties.getValue("UserSetting3") as Number;
-        $.UserSettings[$.DisplayField4] = Properties.getValue("UserSetting4") as Number;
-        $.UserSettings[$.BattCalcMethod] = Properties.getValue("BatteryCalcMethod") as Boolean;
-        $.UserSettings[$.FitLogging] = Properties.getValue("FitLogging") as Boolean;
+        $.UserSettings[$.DisplayField1] = readKey("UserSetting1", 0);
+        $.UserSettings[$.DisplayField2] = readKey("UserSetting2", 0);
+        $.UserSettings[$.DisplayField3] = readKey("UserSetting3", 0);
+        $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
+        $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
+        $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;
@@ -133,11 +139,47 @@ class ForumsladerApp extends AppBase {
         Properties.setValue("appVersion", Application.loadResource($.Rez.Strings.AppVersion) as String);
     }
 
+    //! helper to safely convert a property's value with maybe unexpected type to a Nunmber or a Boolean
+    //! @param property key, default value
+    //! @return value as Number
+    private function readKey(key as PropertyKeyType, thisDefault as Number or Boolean) as Number or Boolean {
+    var value = Properties.getValue(key) as PropertyValueType;
+    if(value instanceof Boolean) {
+        return value;
+    }
+    if(value == null || !(value instanceof Number)) {
+        if(value != null) {
+            value = value as Number;
+        } else {
+            value = thisDefault;
+        }
+    }
+    return value;
+    }
+
     //! Return the settings view and delegate for the app
     //! @return Array Pair [View, Delegate]
     (:SettingsMenu) 
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
         return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
     }
+
+    // debug functions
+    (:debug)
+    public function onActive(state as Dictionary?) as Void {
+        debug("App is active");
+        if (state != null) {
+            debug("state: " + state.toString());
+        }
+    }
+    (:debug)
+    public function onInactive(state as Dictionary?) as Void {
+        debug("App is inactive");
+        if (state != null) {
+            debug("state: " + state.toString());
+        }
+    }
+
+
 
 }
