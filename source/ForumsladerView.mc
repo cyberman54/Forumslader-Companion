@@ -14,6 +14,9 @@ class ForumsladerView extends SimpleDataField {
         _searching as String,
         _connecting as String,
         _initializing as String,
+        _battVoltage as Float,
+        _capacity as Number,
+        _index as Number,
         _fitRecording1 as Field,
         _fitRecording2 as Field,
         _fitRecording3 as Field,
@@ -30,6 +33,9 @@ class ForumsladerView extends SimpleDataField {
         _data = dataManager;
         _device = deviceManager;
         _deviceState = _searching;
+        _battVoltage = 0f;
+        _capacity = 0;
+        _index = 0;
 
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
@@ -61,84 +67,87 @@ class ForumsladerView extends SimpleDataField {
     //! generate, display and log forumslader values
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
+            
+            var displayString = "";
 
-            var 
-                _displayString = "",
-                battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float,
-                capacity = 0;
+            // early exit if no show fields are configured
+            if ($.UserSettings.slice(0,4).toString().equals("[0, 0, 0, 0]")) {
+                return "N/A";
+            }
 
+            // calculate battery voltage and capacity
+            _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
             if ($.UserSettings[$.BattCalcMethod] == true) { // use coloumb calculation method
                 var x1 = _data.FLdata[FL_ccadcValue].toLong() * _data.FLdata[FL_acc2mah].toLong() / 167772.16 as Float;
                 var x2 = _data.FLdata[FL_fullChargeCapacity];
                 if (x2 > 0) {
-                    capacity = (x1 / x2).toNumber();
+                    _capacity = (x1 / x2).toNumber();
                 }
             } else { // use voltage calculation method
-                capacity = _data.FLdata[FL_socState]; 
+                _capacity = _data.FLdata[FL_socState]; 
             }
    
-            // display user selected values
-            for (var i = 0; i <= $.DisplayField4; i++)
-            {  
-                switch ($.UserSettings[i] as Number)
-                {
-                    case 0: // off
-                        break;
-
-                    case 10: // remaining battery capacity
-                        _displayString += capacity + "%";
-                        break;
-
-                    case 9: // speed
-                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
-                        _displayString += speed.format("%.1f") + $.speedunit;
-                        break;
-
-                    case 8: // load current
-                        _displayString += (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
-                        break;
-
-                    case 7: // battery current
-                        _displayString += (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
-                        break;
-
-                    case 6: // battery voltage
-                        _displayString += battVoltage.format("%.1f") + "V";
-                        break;
-
-                    case 5: // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
-                        _displayString += freq.toNumber() + "Hz";
-                        break;
-
-                    case 4: // generator gear
-                        _displayString += _data.FLdata[FL_gear];
-                        break;
-
-                    case 3: // dynamo power
-                        _displayString += (battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
-                        break;
-
-                    case 2: // temperature
-                        _displayString += (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
-                        break;
-
-                    case 1: // trip energy
-                        _displayString += _data.FLdata[FL_tripEnergy] + "Wh";
-                        break;
+            // display up to 4 show fields, either as concatenated string or selective with rotation
+            if ($.UserSettings[$.FieldRolling] == false) { 
+                for (var i = 0; i < 4; i++)
+                {  
+                    if ($.UserSettings[i] > 0) { 
+                        displayString += computeFieldValue($.UserSettings[i] as Number);
+                        displayString += i == 3 ? "" : " "; // no blank after last show field
+                    }
                 }
-                _displayString += i < $.DisplayField4 ? " " : "";
+            } else {
+                    do {
+                        _index = (_index + 1) % 4; // rotating index 0..3
+                        if ($.UserSettings[_index] > 0) {
+                            displayString = computeFieldValue($.UserSettings[_index] as Number);
+                            break;
+                        }
+                    } while (_index < 4);
             }
 
             // write values to fit file, if FitLogging is enabled by user
             if ($.UserSettings[$.FitLogging] == true) { 
-                _fitRecording1.setData(battVoltage);
-                _fitRecording2.setData(capacity);
-                _fitRecording3.setData(battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                _fitRecording1.setData(_battVoltage);
+                _fitRecording2.setData(_capacity);
+                _fitRecording3.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
                 _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
             }
 
-            return _displayString;
+            return displayString;
+    }
+
+    //! generate a single field value
+    //! @param Number of selected field value
+    //! @return String value for the selected field
+    private function computeFieldValue(fieldvalue as Number) as String {
+        switch (fieldvalue)
+                {
+                    case 10: // remaining battery capacity
+                        return _capacity + "%";
+                    case 9: // speed
+                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
+                        return speed.format("%.1f") + $.speedunit;
+                    case 8: // load current
+                        return (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
+                    case 7: // battery current
+                        return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
+                    case 6: // battery voltage
+                        return _battVoltage.format("%.1f") + "V";
+                    case 5: // dynamo impulse frequency
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
+                        return freq.toNumber() + "Hz";
+                    case 4: // generator gear
+                        return _data.FLdata[FL_gear] + "";
+                    case 3: // dynamo power
+                        return (_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
+                    case 2: // temperature
+                        return (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
+                    case 1: // trip energy
+                        return _data.FLdata[FL_tripEnergy] + "Wh";
+                    default:
+                        return "";
+                }
     }
 
     //! switch device state, process the $FLx data, calculate and show values every one second
@@ -184,6 +193,7 @@ class ForumsladerView extends SimpleDataField {
 
 }
 
+/*
 //! The data field alert
 class DataFieldAlertView extends WatchUi.DataFieldAlert {
 
@@ -203,54 +213,4 @@ class DataFieldAlertView extends WatchUi.DataFieldAlert {
     }
 }
 
-//! Data field that shows HR, distance, and time
-class DataField extends WatchUi.SimpleDataField {
-    private const METERS_TO_MILES = 0.000621371;
-    private const MILLISECONDS_TO_SECONDS = 0.001;
-
-    private var _counter as Number;
-    private var _alertDisplayed as Boolean;
-
-    //! Constructor
-    public function initialize() {
-        SimpleDataField.initialize();
-        label = "HR, Dist, Timer";
-        _counter = 0;
-        _alertDisplayed = false;
-    }
-
-    //! Get the information to show in the data field
-    //! @param info The updated Activity.Info object
-    //! @return The data to show
-    public function compute(info as Info) as Numeric or Duration or String or Null {
-        var value_picked = "--";
-
-        // Cycle between heart rate (int), distance (float), and stopwatch time (Duration)
-        if ((_counter == 0) && (info.currentHeartRate != null)) {
-            value_picked = info.currentHeartRate;
-        } else if (_counter == 1) {
-            var elapsedDistance = info.elapsedDistance;
-            if (elapsedDistance != null) {
-                value_picked = elapsedDistance * METERS_TO_MILES;
-            }
-        } else if (_counter == 2) {
-            var timerTime = info.timerTime;
-            if (timerTime != null) {
-                var options = {:seconds => (timerTime *  MILLISECONDS_TO_SECONDS).toNumber()};
-                value_picked = Time.Gregorian.duration(options);
-
-                if ((WatchUi.DataField has :showAlert) && ((timerTime * MILLISECONDS_TO_SECONDS) > 10.000f)
-                    && !_alertDisplayed) {
-                    _alertDisplayed = true;
-                }
-            }
-        }
-
-        _counter++;
-        if (_counter > 2) {
-            _counter = 0;
-        }
-
-        return value_picked;
-    }
-}
+*/

@@ -12,6 +12,10 @@
         <settingConfig type="boolean" />
     </setting>
 
+    <setting propertyKey="@Properties.FieldRolling" title="@Strings.SelectFieldRolling">
+        <settingConfig type="boolean" />
+    </setting>
+
     <setting propertyKey="@Properties.UserSetting1" title="@Strings.ShowTitle1">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>

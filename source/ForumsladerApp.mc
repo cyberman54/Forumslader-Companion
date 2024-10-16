@@ -34,7 +34,7 @@ enum {
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
     DisplayField1, DisplayField2, DisplayField3, DisplayField4, // user selected display values
-    BattCalcMethod, FitLogging                                  // user configurable switches
+    BattCalcMethod, FitLogging, FieldRolling                    // user configurable switches
     }
 
 // app states
@@ -56,7 +56,7 @@ var
     speedunitFactor as Float = 1.0, // changed according to FL type
     speedunit as String = "kmh",    // changed according to garmin device settings
     FLpayload as ByteArray = []b,   // $FLx data buffer
-    UserSettings as Array = [0, 0, 0, 0, false, false];
+    UserSettings as Array = [0, 0, 0, 0, false, false, false];
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -126,6 +126,8 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
+        $.UserSettings[$.FieldRolling] = readKey("FieldRolling", false);       
+        
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;

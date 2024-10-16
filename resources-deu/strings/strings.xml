@@ -8,6 +8,7 @@
     <!-- runtime strings -->
     <string id="SelectCapacityMethod">Coloumbzähler</string>
     <string id="SelectFitLogging">Daten loggen</string>
+    <string id="SelectFieldRolling">Felder rotieren</string>
     <string id="MenuSettings">Einstellungen</string>
     <string id="MenuDatafields">Datenfelder</string>
     <string id="Off">-- Aus --</string>
