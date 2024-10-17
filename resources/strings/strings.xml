@@ -8,7 +8,7 @@
     <!-- runtime strings -->
     <string id="SelectCapacityMethod">Coloumbcount</string>
     <string id="SelectFitLogging">Log data</string>
-    <string id="SelectFieldRolling">Rotate fields</string>
+    <string id="SelectRotateFields">Rotate fields</string>
     <string id="MenuSettings">Settings</string>
     <string id="MenuDatafields">Datafields</string>
     <string id="Off">-- hide --</string>

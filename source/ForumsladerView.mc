@@ -72,7 +72,7 @@ class ForumsladerView extends SimpleDataField {
 
             // early exit if no show fields are configured
             if ($.UserSettings.slice(0,4).toString().equals("[0, 0, 0, 0]")) {
-                return "N/A";
+                return "--";
             }
 
             // calculate battery voltage and capacity
@@ -86,9 +86,9 @@ class ForumsladerView extends SimpleDataField {
             } else { // use voltage calculation method
                 _capacity = _data.FLdata[FL_socState]; 
             }
-   
+
             // display up to 4 show fields, either as concatenated string or selective with rotation
-            if ($.UserSettings[$.FieldRolling] == false) { 
+            if ($.UserSettings[$.RotateFields] == false) { 
                 for (var i = 0; i < 4; i++)
                 {  
                     if ($.UserSettings[i] > 0) { 
@@ -192,25 +192,3 @@ class ForumsladerView extends SimpleDataField {
     }
 
 }
-
-/*
-//! The data field alert
-class DataFieldAlertView extends WatchUi.DataFieldAlert {
-
-    //! Constructor
-    public function initialize() {
-        DataFieldAlert.initialize();
-    }
-
-    //! Update the view
-    //! @param dc Device context
-    public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_SMALL, "Alert: 10 sec elapsed", Graphics.TEXT_JUSTIFY_CENTER);
-    }
-}
-
-*/

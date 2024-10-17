@@ -12,7 +12,7 @@
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.FieldRolling" title="@Strings.SelectFieldRolling">
+    <setting propertyKey="@Properties.RotateFields" title="@Strings.SelectRotateFields">
         <settingConfig type="boolean" />
     </setting>
 

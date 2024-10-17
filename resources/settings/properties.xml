@@ -2,7 +2,7 @@
     <property id="appVersion" type="string"></property>                 <!-- used to display app version -->
     <property id="BatteryCalcMethod" type="Boolean">false</property>    <!-- default use voltage method -->
     <property id="FitLogging" type="Boolean">false</property>           <!-- default don't log data -->
-    <property id="FieldRolling" type="Boolean">false</property>         <!-- default don't roll fields -->
+    <property id="RotateFields" type="Boolean">false</property>         <!-- default don't rotate fields -->
     <property id="UserSetting1" type="Number">10</property>			    <!-- default show batt remaining -->
     <property id="UserSetting2" type="Number">3</property>				<!-- default show dynamo power -->
     <property id="UserSetting3" type="Number">6</property>				<!-- default show battery voltage -->

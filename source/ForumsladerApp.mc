@@ -34,7 +34,7 @@ enum {
 // settings adjustable by user in garmin mobile app / garmin express
 enum {
     DisplayField1, DisplayField2, DisplayField3, DisplayField4, // user selected display values
-    BattCalcMethod, FitLogging, FieldRolling                    // user configurable switches
+    BattCalcMethod, FitLogging, RotateFields                    // user configurable switches
     }
 
 // app states
@@ -126,7 +126,7 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
-        $.UserSettings[$.FieldRolling] = readKey("FieldRolling", false);       
+        $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
         
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
