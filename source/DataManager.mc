@@ -125,12 +125,13 @@ class DataManager {
                         FLdata[FL_incline]          = commitValue(_FLterm[4], 0, 0);
                         break;
 
-                    case SENTENCE_FLC:
+                    case SENTENCE_FLC: {
                         var _FLCsetnr = commitValue(_FLterm[1], 0, 5);
                         for (var i = 0; i < 5; i++) {
                             FLdata[FL_tourElevation + _FLCsetnr * 5 + i] = commitValue(_FLterm[i + 2], 0, 0);
                         }
                         break;
+                    }
 
                     case SENTENCE_FLP:
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);

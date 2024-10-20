@@ -181,7 +181,4 @@ class ForumsladerApp extends AppBase {
             debug("state: " + state.toString());
         }
     }
-
-
-
 }

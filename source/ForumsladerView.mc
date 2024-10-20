@@ -123,27 +123,27 @@ class ForumsladerView extends SimpleDataField {
     private function computeFieldValue(fieldvalue as Number) as String {
         switch (fieldvalue)
                 {
-                    case 10: // remaining battery capacity
+                    case 10:    // remaining battery capacity
                         return _capacity + "%";
-                    case 9: // speed
+                    case 9: {   // speed
                         var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
-                        return speed.format("%.1f") + $.speedunit;
-                    case 8: // load current
+                        return speed.format("%.1f") + $.speedunit; }
+                    case 8:     // load current
                         return (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
-                    case 7: // battery current
+                    case 7:     // battery current
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
-                    case 6: // battery voltage
+                    case 6:     // battery voltage
                         return _battVoltage.format("%.1f") + "V";
-                    case 5: // dynamo impulse frequency
+                    case 5: {   // dynamo impulse frequency
                         var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
-                        return freq.toNumber() + "Hz";
-                    case 4: // generator gear
+                        return freq.toNumber() + "Hz"; }
+                    case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
-                    case 3: // dynamo power
+                    case 3:     // dynamo power
                         return (_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000).toNumber() + "W";
-                    case 2: // temperature
-                        return (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°C";
-                    case 1: // trip energy
+                    case 2:     // temperature
+                        return (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°";
+                    case 1:     // trip energy
                         return _data.FLdata[FL_tripEnergy] + "Wh";
                     default:
                         return "";
@@ -156,8 +156,8 @@ class ForumsladerView extends SimpleDataField {
     public function compute(info as Info) as Numeric or Duration or String or Null {
 
         // decode input data
-		var _size = $.FLpayload.slice(0, 300).size(); // slicing buffer to 300 is for timeout protection
-        for (var i = 0; i < _size; i++) {
+		var size = $.FLpayload.slice(0, 300).size(); // slicing buffer to 300 is for timeout protection
+        for (var i = 0; i < size; i++) {
             _data.encode($.FLpayload[i]);
         }
         $.FLpayload = []b; // clear buffer

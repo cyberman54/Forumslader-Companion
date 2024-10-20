@@ -133,6 +133,7 @@ class ForumsladerDelegate extends BleDelegate {
         }
     }
 
+    /*
     // unused callbacks
     public function onCharacteristicRead(characteristic as BluetoothLowEnergy.Characteristic, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void {
          debug("onCharacteristicRead");
@@ -146,6 +147,7 @@ class ForumsladerDelegate extends BleDelegate {
     public function onScanStateChange(scanState as BluetoothLowEnergy.ScanState, status as BluetoothLowEnergy.Status) as Void {
          debug("onScanStateChange");
     }
+    */
 
     //! Broadcast a new scan result
     //! @param scanResult The new scan result
