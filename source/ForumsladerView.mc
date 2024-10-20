@@ -67,13 +67,6 @@ class ForumsladerView extends SimpleDataField {
     //! generate, display and log forumslader values
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
-            
-            var displayString = "";
-
-            // early exit if no show fields are configured
-            if ($.UserSettings.slice(0,4).toString().equals("[0, 0, 0, 0]")) {
-                return "--";
-            }
 
             // calculate battery voltage and capacity
             _battVoltage = (_data.FLdata[FL_battVoltage1] + _data.FLdata[FL_battVoltage2] + _data.FLdata[FL_battVoltage3]) / 1000.0 as Float;
@@ -87,7 +80,21 @@ class ForumsladerView extends SimpleDataField {
                 _capacity = _data.FLdata[FL_socState]; 
             }
 
+            // write values to fit file, if FitLogging is enabled by user
+            if ($.UserSettings[$.FitLogging] == true) { 
+                _fitRecording1.setData(_battVoltage);
+                _fitRecording2.setData(_capacity);
+                _fitRecording3.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
+            }
+            
+            // early exit if no show fields are configured
+            if ($.UserSettings.slice(0,4).toString().equals("[0, 0, 0, 0]")) {
+                return "--";
+            }
+
             // display up to 4 show fields, either as concatenated string or selective with rotation
+            var displayString = "";
             if ($.UserSettings[$.RotateFields] == false) { 
                 for (var i = 0; i < 4; i++)
                 {  
@@ -104,14 +111,6 @@ class ForumsladerView extends SimpleDataField {
                             break;
                         }
                     } while (_index < 4);
-            }
-
-            // write values to fit file, if FitLogging is enabled by user
-            if ($.UserSettings[$.FitLogging] == true) { 
-                _fitRecording1.setData(_battVoltage);
-                _fitRecording2.setData(_capacity);
-                _fitRecording3.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
-                _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
             }
 
             return displayString;
