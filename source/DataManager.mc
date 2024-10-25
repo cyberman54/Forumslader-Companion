@@ -1,6 +1,30 @@
 import Toybox.Lang;
 import Toybox.Activity;
 
+// forumslader data fields
+enum {
+    // FL5/6 sentence
+    FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
+    FL_battCurrent, FL_loadCurrent, // FL_intTemp,
+
+    // FLB sentence
+    FL_temperature, //FL_pressure, FL_sealevel, FL_incline,
+
+    // FLP sentence
+    FL_wheelsize, FL_poles, FL_acc2mah,
+
+    // FLC sentence
+    //FL_tourElevation, FL_tourInclineMax, FL_tourTempMax, FL_tourAltitudeMax, FL_tourPulseMax,   // set 0
+    //FL_tripElevation, FL_tripInclineMax, FL_tripTempMax, FL_tripAltitudeMax, FL_tripPulseMax,   // set 1
+    //FL_Elevation, FL_tourInclineMin, FL_tourTempMin, FL_tripInclineMin, FL_tripTempMin,         // set 2
+    FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                           // set 3
+    //FL_tripSpeedAvg, FL_tourSpeedAvg, FL_tripClimbAvg, FL_tourClimbAvg, FL_empty2,              // set 4
+    FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,              // set 5
+    
+    // size of FLdata array
+    FL_tablesize
+}
+
 class DataManager {
 
     // types of forumslader data sentences
@@ -108,6 +132,7 @@ class DataManager {
                 {
                     case SENTENCE_FL5:
                     case SENTENCE_FL6:
+                        FLdata[FL_status]           = _FLterm[1].toNumberWithBase(0x10);
                         FLdata[FL_gear]             = commitValue(_FLterm[2], 0, 10);
                         FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 5000);
                         FLdata[FL_battVoltage1]     = commitValue(_FLterm[4], 0, 5000);
@@ -115,20 +140,30 @@ class DataManager {
                         FLdata[FL_battVoltage3]     = commitValue(_FLterm[6], 0, 5000);
                         FLdata[FL_battCurrent]      = commitValue(_FLterm[7], 0, 0);
                         FLdata[FL_loadCurrent]      = commitValue(_FLterm[8], 0, 0);
-                        FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);
+                        //FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);
                         break;
 
                     case SENTENCE_FLB:
                         FLdata[FL_temperature]      = commitValue(_FLterm[1], -300, 800);
-                        FLdata[FL_pressure]         = commitValue(_FLterm[2], 0, 1200000);
-                        FLdata[FL_sealevel]         = commitValue(_FLterm[3], -100, 10000);
-                        FLdata[FL_incline]          = commitValue(_FLterm[4], 0, 0);
+                        //FLdata[FL_pressure]         = commitValue(_FLterm[2], 0, 1200000);
+                        //FLdata[FL_sealevel]         = commitValue(_FLterm[3], -100, 10000);
+                        //FLdata[FL_incline]          = commitValue(_FLterm[4], 0, 0);
                         break;
 
                     case SENTENCE_FLC: {
-                        var _FLCsetnr = commitValue(_FLterm[1], 0, 5);
+                        var _FLCsetnr = commitValue(_FLterm[1], 0, 5);  
+                        //var _offset = FL_tourElevation + _FLCsetnr * 5;
+                        
+                        // currently we use only data from sets 3 and 5
+                        var _offset = 0;
+                        if (_FLCsetnr == 3) { _offset = FL_Energy; }
+                            else {
+                                if (_FLCsetnr == 5) { _offset = FL_startCount; }
+                                    else { break; }
+                            }
+
                         for (var i = 0; i < 5; i++) {
-                            FLdata[FL_tourElevation + _FLCsetnr * 5 + i] = commitValue(_FLterm[i + 2], 0, 0);
+                            FLdata[_offset + i] = commitValue(_FLterm[i + 2], 0, 0);
                         }
                         break;
                     }

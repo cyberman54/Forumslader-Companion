@@ -16,6 +16,10 @@
         <settingConfig type="boolean" />
     </setting>
 
+    <setting propertyKey="@Properties.Alerts" title="@Strings.SelectAlerts">
+        <settingConfig type="boolean" />
+    </setting>
+
     <setting propertyKey="@Properties.UserSetting1" title="@Strings.ShowTitle1">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Off</listEntry>
@@ -29,6 +33,7 @@
             <listEntry value="8">@Strings.LoadCurrent</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+            <listEntry value="11">@Strings.ChargingState</listEntry>
         </settingConfig>
     </setting>
 
@@ -45,6 +50,7 @@
             <listEntry value="8">@Strings.LoadCurrent</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+            <listEntry value="11">@Strings.ChargingState</listEntry>
             </settingConfig>
         </setting>
 
@@ -61,6 +67,7 @@
             <listEntry value="8">@Strings.LoadCurrent</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+            <listEntry value="11">@Strings.ChargingState</listEntry>
         </settingConfig>
     </setting>
 
@@ -77,6 +84,7 @@
             <listEntry value="8">@Strings.LoadCurrent</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+            <listEntry value="11">@Strings.ChargingState</listEntry>
         </settingConfig>
     </setting>
 

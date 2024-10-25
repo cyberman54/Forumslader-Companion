@@ -9,6 +9,7 @@
     <string id="SelectCapacityMethod">Coloumbcount</string>
     <string id="SelectFitLogging">Log data</string>
     <string id="SelectRotateFields">Rotate fields</string>
+    <string id="SelectAlerts">Alerts</string>
     <string id="MenuSettings">Settings</string>
     <string id="MenuDatafields">Datafields</string>
     <string id="Off">-- hide --</string>
@@ -36,4 +37,9 @@
     <string id="SpeedLabel">km/h</string>
     <string id="BatteryCapacity">Battery Remaining</string>
     <string id="BatteryCapacityLabel">%</string>
+    <string id="ChargingState">Chargerstate +/-</string>
+    <string id="ShortCircuit">Short circuit!</string>
+    <string id="Overload">Overload!</string>
+    <string id="SystemInterrupt">System interrupt!</string>
+    <string id="BatteryLow">Battery below 20%!</string>
 </strings>

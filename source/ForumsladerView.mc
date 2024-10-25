@@ -4,6 +4,8 @@ import Toybox.Time;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
+import Toybox.Graphics;
+import Toybox.Attention;
 
 class ForumsladerView extends SimpleDataField {
 
@@ -17,6 +19,8 @@ class ForumsladerView extends SimpleDataField {
         _battVoltage as Float,
         _capacity as Number,
         _index as Number,
+        _alertMute as Number,
+        _alertLock as Boolean,
         _fitRecording1 as Field,
         _fitRecording2 as Field,
         _fitRecording3 as Field,
@@ -36,6 +40,8 @@ class ForumsladerView extends SimpleDataField {
         _battVoltage = 0f;
         _capacity = 0;
         _index = 0;
+        _alertMute = 0;
+        _alertLock = false;
 
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
@@ -87,13 +93,16 @@ class ForumsladerView extends SimpleDataField {
                 _fitRecording3.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
                 _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
             }
+
+            // display forumslader alarms
+            if ($.UserSettings[$.Alerts] == true && ForumsladerView has :showAlert && ! alertPending) {
+                checkAlarms(_data.FLdata[FL_status]);
+            }            
             
-            // early exit if no show fields are configured
+            // display up to 4 show fields, either as concatenated string or selective with rotation
             if ($.UserSettings.slice(0,4).toString().equals("[0, 0, 0, 0]")) {
                 return "--";
             }
-
-            // display up to 4 show fields, either as concatenated string or selective with rotation
             var displayString = "";
             if ($.UserSettings[$.RotateFields] == false) { 
                 for (var i = 0; i < 4; i++)
@@ -122,6 +131,8 @@ class ForumsladerView extends SimpleDataField {
     private function computeFieldValue(fieldvalue as Number) as String {
         switch (fieldvalue)
                 {
+                    case 11:    // charger state (as indicated by bit 15 of forumslader status)
+                        return _data.FLdata[FL_status] & 0x8000 ? "-" : "+";
                     case 10:    // remaining battery capacity
                         return _capacity + "%";
                     case 9: {   // speed
@@ -147,6 +158,24 @@ class ForumsladerView extends SimpleDataField {
                     default:
                         return "";
                 }
+    }
+
+    //! Check forumslader status for alarms
+    //! @param forumslader status bitmap
+    private function checkAlarms(flstatus as Number) as Void {
+        if (flstatus & 0x8) { // short circuit  
+            WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String));
+        }
+        else if (flstatus & 0x200) { // overload
+            WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.Overload) as String));
+        }
+        else if (flstatus & 0x800000) { // system interrupt
+            WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String));
+        }
+        else if (_capacity > 0 && _capacity < 20 && ! _alertLock) { // battery low
+            WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.BatteryLow) as String));
+            _alertLock = true;
+        }
     }
 
     //! switch device state, process the $FLx data, calculate and show values every one second
@@ -180,8 +209,12 @@ class ForumsladerView extends SimpleDataField {
                 _deviceState = _initializing;
                 break;
             }
+
+        // update alert counter
+        _alertMute = (_alertMute + 1) % 100;
+        if (_alertMute == 0) { alertPending = false; }
         
-        // if we have recent data, and are fully initialized we display data, else we display device state
+        // if we have recent data, and are fully initialized, display data, else display device state
         if (_data.tick <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
             _data.tick++; // increase data age seconds counter
             return computeDisplayString(); // display data
@@ -189,5 +222,32 @@ class ForumsladerView extends SimpleDataField {
             return _deviceState; // display state
         }
     }
+}
 
+(:showalert)
+//! The data field alert
+class DataFieldAlertView extends WatchUi.DataFieldAlert {
+
+private var _alerttext as String;
+
+    //! Constructor
+    public function initialize(message as String) {
+        DataFieldAlert.initialize();
+        _alerttext = message;
+        alertPending = true;
+        debug("alarm: " + _alerttext);
+    }
+
+    //! Update the view
+    //! @param dc Device context
+    public function onUpdate(dc as Dc) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, 
+        WatchUi.loadResource($.Rez.Strings.AppName) + "\n" + _alerttext, Graphics.TEXT_JUSTIFY_CENTER);
+        if (Attention has :ToneProfile) {
+            Attention.playTone(Attention.TONE_ALARM);
+        }
+    }
 }

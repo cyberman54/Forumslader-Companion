@@ -122,6 +122,7 @@
         -->
         <iq:permissions>
             <iq:uses-permission id="BluetoothLowEnergy"/>
+            <iq:uses-permission id="DataFieldAlert"/>
             <iq:uses-permission id="FitContributor"/>
         </iq:permissions>
         <!--
