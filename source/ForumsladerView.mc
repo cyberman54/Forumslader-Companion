@@ -9,6 +9,11 @@ import Toybox.Attention;
 
 class ForumsladerView extends SimpleDataField {
 
+    private const 
+        _alertLockTime as Number = 100,     // when an alarm occurs, no consecutive alarms for 100 seconds
+        _capacityAlarmMin as Number = 20,   // battery low alarm threshold
+        _capacityAlarmMax as Number = 30;   // battery low alarm clear threshold
+
     private var 
         _data as DataManager,
         _device as DeviceManager,
@@ -172,9 +177,12 @@ class ForumsladerView extends SimpleDataField {
         else if (flstatus & 0x800000) { // system interrupt
             WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String));
         }
-        else if (_capacity > 0 && _capacity < 20 && ! _alertLock) { // battery low
+        else if (_capacity > 0 && _capacity < _capacityAlarmMin && ! _alertLock) { // battery low
             WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.BatteryLow) as String));
             _alertLock = true;
+        }
+        else if (_capacity > _capacityAlarmMax && _alertLock) { 
+            _alertLock = false; 
         }
     }
 
@@ -211,7 +219,7 @@ class ForumsladerView extends SimpleDataField {
             }
 
         // update alert counter
-        _alertMute = (_alertMute + 1) % 100;
+        _alertMute = (_alertMute + 1) % _alertLockTime;
         if (_alertMute == 0) { alertPending = false; }
         
         // if we have recent data, and are fully initialized, display data, else display device state
