@@ -4,8 +4,6 @@ import Toybox.Time;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
-import Toybox.Graphics;
-import Toybox.Attention;
 
 class ForumsladerView extends SimpleDataField {
 
@@ -228,34 +226,6 @@ class ForumsladerView extends SimpleDataField {
             return computeDisplayString(); // display data
         } else {
             return _deviceState; // display state
-        }
-    }
-}
-
-(:showalert)
-//! The data field alert
-class DataFieldAlertView extends WatchUi.DataFieldAlert {
-
-private var _alerttext as String;
-
-    //! Constructor
-    public function initialize(message as String) {
-        DataFieldAlert.initialize();
-        _alerttext = message;
-        alertPending = true;
-        debug("alarm: " + _alerttext);
-    }
-
-    //! Update the view
-    //! @param dc Device context
-    public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2 - 30, Graphics.FONT_LARGE, 
-        WatchUi.loadResource($.Rez.Strings.AppName) + "\n" + _alerttext, Graphics.TEXT_JUSTIFY_CENTER);
-        if (Attention has :ToneProfile) {
-            Attention.playTone(Attention.TONE_ALARM);
         }
     }
 }
