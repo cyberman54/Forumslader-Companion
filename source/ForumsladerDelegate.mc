@@ -162,20 +162,6 @@ class ForumsladerDelegate extends BleDelegate {
         }
     }
 
-    //! Get whether the iterator contains a specific uuid
-    //! @param iter Iterator of uuid objects
-    //! @param obj Uuid to search for
-    //! @return true if object found, false otherwise
-    private function contains(iter as Iterator, obj as Uuid) as Boolean {
-        for (var uuid = iter.next(); uuid != null; uuid = iter.next()) {
-            if (uuid.equals(obj)) {
-				debug("found="+uuid.toString());
-                return true;
-            }
-        }
-        return false;
-    }
-
     //! Store a new manager to manage scan results
     //! @param manager The manager of the scan results
     public function notifyScanResult(manager as DeviceManager) as Void {
