@@ -93,7 +93,7 @@ class ForumsladerView extends SimpleDataField {
             if ($.UserSettings[$.FitLogging] == true) { 
                 _fitRecording1.setData(_battVoltage);
                 _fitRecording2.setData(_capacity);
-                _fitRecording3.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                _fitRecording3.setData(_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000);
                 _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
             }
 
@@ -157,7 +157,7 @@ class ForumsladerView extends SimpleDataField {
                     case 2:     // temperature
                         return (_data.FLdata[FL_temperature] / 10.0).format("%.1f") + "°";
                     case 1:     // trip energy
-                        return _data.FLdata[FL_tripEnergy] + "Wh";
+                        return (_data.FLdata[FL_tripEnergy] / 10.0).format("%.1f") + "Wh";
                     default:
                         return "";
                 }
