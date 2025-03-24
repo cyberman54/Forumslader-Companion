@@ -6,6 +6,7 @@
     <string scope="settings" id="ShowTitle3">Anzeigewert 3</string>
     <string scope="settings" id="ShowTitle4">Anzeigewert 4</string>
     <!-- runtime strings -->
+    <string id="SelectDeviceLock">Gerätesperre</string>
     <string id="SelectCapacityMethod">Coloumbzähler</string>
     <string id="SelectFitLogging">Daten loggen</string>
     <string id="SelectRotateFields">Felder rotieren</string>

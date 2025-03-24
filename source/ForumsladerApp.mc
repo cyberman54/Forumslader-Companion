@@ -10,6 +10,7 @@ import Toybox.Application;
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
+import Toybox.Application.Storage;
 
 // global variables
 var 
@@ -19,7 +20,7 @@ var
     speedunitFactor as Float = 1.0,     // changed according to FL type
     speedunit as String = "kmh",        // changed according to garmin device settings
     FLpayload as ByteArray = []b,       // $FLx data buffer
-    UserSettings as Array = [0, 0, 0, 0, false, false, false, false];
+    UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false];
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -91,7 +92,14 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
-        
+        $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
+        if ($.UserSettings[$.DeviceLock] == false) { 
+            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+                Storage.deleteValue("MyDevice");
+                debug("DeviceLock: device cleared");
+            }
+        }
+
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;

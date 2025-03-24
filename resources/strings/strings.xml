@@ -6,6 +6,7 @@
     <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
     <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
     <!-- runtime strings -->
+    <string id="SelectDeviceLock">Devicelock</string>
     <string id="SelectCapacityMethod">Coloumbcount</string>
     <string id="SelectFitLogging">Log data</string>
     <string id="SelectRotateFields">Rotate fields</string>

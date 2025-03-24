@@ -20,42 +20,52 @@ class ForumsladerDelegate extends BleDelegate {
     public function onScanResults(scanResults as Iterator) as Void {
         for (var result = scanResults.next(); result != null; result = scanResults.next()) {
             if (result instanceof ScanResult) {
-                // identify a forumslader device by it's advertised local name
-                var _deviceName = result.getDeviceName() as String;
-                if (_deviceName != null) { 
-                    if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
-                        debug("found FL by Devicename: " + _deviceName);
-                        try { 
-                            BluetoothLowEnergy.registerProfile($.FL6_profile);
-                        }
-                        catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                            debug("cannot register profile: " + ex.getErrorMessage());
-                        }
-                        finally {
-                            broadcastScanResult(result);
-                        }       
-                        return;
-                    }
-                } 
-                // identify a FLV5 forumslader device by it's advertised manufacturer ID
-                var iter = result.getManufacturerSpecificDataIterator();
-                for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
-                    if (dict.get(:companyId) == 0x4d48) {
-                        debug("found FL by Company ID");
-                        try {
-                            BluetoothLowEnergy.registerProfile($.FL5_profile);
-                        }
-                        catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                            debug("cannot register profile: " + ex.getErrorMessage());
-                        }
-                        finally {
-                            broadcastScanResult(result);
-                        }
-                        return;
-                    }
+                if (ProcessScanRecord(result as ScanResult)) {
+                    return;
                 }
             }
         }
+    }
+
+    //! Process a scan record
+    //! @param scanRecord scan result object
+    //! @return true if forumslader was found with scan record, false otherwise
+    public function ProcessScanRecord(result as ScanResult) as Boolean {
+    // identify a forumslader device by it's advertised local name
+        var _deviceName = result.getDeviceName() as String;
+        if (_deviceName != null) { 
+            if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
+                debug("register V6 profile");
+                try { 
+                    BluetoothLowEnergy.registerProfile($.FL6_profile);
+                }
+                catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+                    debug("cannot register V6 profile: " + ex.getErrorMessage());
+                }
+                finally {
+                    broadcastScanResult(result);
+                }       
+                return true;
+            }
+        } 
+        // identify a FLV5 forumslader device by it's manufacturer ID in advertisement data
+        var iter = result.getManufacturerSpecificDataIterator();
+        for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
+            if (dict.get(:companyId) == 0x4d48) {
+                debug("register V5 profile");
+                try {
+                    BluetoothLowEnergy.registerProfile($.FL5_profile);
+                }
+                catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+                    debug("cannot register V5 profile: " + ex.getErrorMessage());
+                }
+                finally {
+                    broadcastScanResult(result);
+                }
+                return true;
+            }
+        }
+        return false; // not a forumslader device
     }
 
     //! Handle pairing and connecting to a device
@@ -92,7 +102,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param characteristic The characteristic that was written
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
-        debug("onCharWrite");
+        //debug("onCharWrite");
         var onCharWrite = _onCharWrite;
         if (onCharWrite != null) {
             if (onCharWrite.stillAlive()) {
@@ -107,7 +117,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param descriptor The descriptor that was written
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onDescriptorWrite(descriptor as Descriptor, status as Status) as Void {
-        debug("onDescrWrite");
+        //debug("onDescrWrite");
         var onDescWrite = _onDescWrite;
         if (onDescWrite != null) {
             if (onDescWrite.stillAlive()) {
@@ -122,7 +132,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onProfileRegister(uuid as Uuid, status as Status) as Void {
-        debug("onProfileRegister");
+        //debug("onProfileRegister");
         var onProfileRegister = _onProfileRegister;
         if (onProfileRegister != null) {
             if (onProfileRegister.stillAlive()) {
@@ -141,11 +151,11 @@ class ForumsladerDelegate extends BleDelegate {
     public function onDescriptorRead(descriptor as BluetoothLowEnergy.Descriptor, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void { 
          debug("onDescriptorRead");
     }
-    public function onEncryptionStatus(device as BluetoothLowEnergy.Device, status as BluetoothLowEnergy.Status) as Void {
-         debug("onEncryptionStatus");
-    }
     public function onScanStateChange(scanState as BluetoothLowEnergy.ScanState, status as BluetoothLowEnergy.Status) as Void {
          debug("onScanStateChange");
+    }
+    public function onEncryptionStatus(device as BluetoothLowEnergy.Device, status as BluetoothLowEnergy.Status) as Void {
+         debug("onEncryptionStatus = " + status);
     }
     */
 

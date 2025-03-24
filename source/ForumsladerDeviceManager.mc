@@ -1,5 +1,6 @@
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
+import Toybox.Application.Storage;
 
 // app states
 enum {
@@ -25,10 +26,12 @@ class DeviceManager {
 
     private var 
         _data as DataManager,
+        _bleDelegate as ForumsladerDelegate,
         _device as Device?,
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
+        _myDevice as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
         _FL_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
@@ -41,6 +44,7 @@ class DeviceManager {
     public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
         _device = null;
         _data = dataManager;
+        _bleDelegate = bleDelegate;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
@@ -50,7 +54,16 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        debug("start scanning");
+        // try to connect to a locked device
+        if ($.UserSettings[$.DeviceLock] == true) {
+            _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
+            if (_myDevice != null) {
+                _bleDelegate.ProcessScanRecord(_myDevice);
+                return;
+            }
+        }
+        // otherwhise start scanning
+        debug("scanning");
         if (_device != null) { 
             BluetoothLowEnergy.unpairDevice(_device);
         }
@@ -64,25 +77,32 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            debug("trying to pair device, rssi " + scanResult.getRssi());
+            if (scanResult.getRssi() == 0) { // is a previously stored device
+                debug("DeviceLock: trying to pair");
+            } else {
+                debug("trying to pair device, rssi " + scanResult.getRssi()); 
+            }
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
-            }
+                _myDevice = scanResult;
+                }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                 debug("cannot pair device " + scanResult.getDeviceName());
                 debug("error: " + ex.getErrorMessage());
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-            }
-        } else {
+                _myDevice = null;
+                }
+            } else {
             debug("signal too weak, rssi " + scanResult.getRssi());
-        }
+        }   
     }
 
     //! Process a new device connection
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
+            //device.requestBond();
             _device = device;
             $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
         } else {
@@ -95,7 +115,7 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        debug("Write Char: " + char.getUuid() + " -> " + status);
+        //debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -103,7 +123,7 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        debug("Write Desc: " + desc.getUuid() + " -> " + status);
+        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -111,7 +131,7 @@ class DeviceManager {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function procProfileRegister(uuid as Uuid, status as Status) as Void {
-        debug("Profile register: " + uuid.toString() + " -> " + status);
+        //debug("Profile register: " + uuid.toString() + " -> " + status);
     }
 
     //! Send command to forumslader device
@@ -137,10 +157,18 @@ class DeviceManager {
                 if (null != service) {
                     _command = service.getCharacteristic(_FL_COMMAND);
                     _config = service.getCharacteristic(_FL_CONFIG);
+                    if ($.UserSettings[$.DeviceLock] == true) {
+                        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
+                        if (storedDevice == null || !storedDevice.equals(_myDevice)) {
+                            Storage.setValue("MyDevice", _myDevice);
+                            debug("DeviceLock: device stored");
+                        }
+                    }
                     return true;
                 }
             }
             debug("error: not a forumslader or unknown FL type");
+            Storage.deleteValue("MyDevice");
             }   
             startScan();
         return false;
@@ -166,7 +194,7 @@ class DeviceManager {
 						_FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
                         rc = true;
                         $.isV6 = false;
-                        debug("FLv5 detected");
+                        debug("FLV5 detected");
 					}
 					else {
 						if (r.getUuid().equals($.FL6_SERVICE))
@@ -176,7 +204,7 @@ class DeviceManager {
 							_FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
                             rc = true;
                             $.isV6 = true;
-                            debug("FLv6 detected");
+                            debug("FLV6 detected");
 						}
 					}
 				}
