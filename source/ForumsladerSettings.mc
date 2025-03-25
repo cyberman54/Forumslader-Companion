@@ -1,6 +1,8 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
+import Toybox.BluetoothLowEnergy;
+import Toybox.Application.Storage;
 
 // settings adjustable by user
 enum {
@@ -120,6 +122,12 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("RotateFields", $.UserSettings[$.RotateFields] as Boolean);
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
+        if ($.UserSettings[$.DeviceLock] == false) { 
+            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+                Storage.deleteValue("MyDevice");
+                debug("DeviceLock: device cleared");
+            }
+        }
         // go back
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }

@@ -45,6 +45,7 @@ class DeviceManager {
         _device = null;
         _data = dataManager;
         _bleDelegate = bleDelegate;
+        _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
@@ -54,22 +55,17 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        // try to connect to a locked device
-        if ($.UserSettings[$.DeviceLock] == true) {
-            _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
-            if (_myDevice != null) {
-                _bleDelegate.ProcessScanRecord(_myDevice);
-                return;
+        if (_myDevice != null) {    // try to connect to a locked device
+            _bleDelegate.ProcessScanRecord(_myDevice);
+        } else {                    // otherwhise search for a device
+            debug("scanning");
+            if (_device != null) { 
+                BluetoothLowEnergy.unpairDevice(_device);
             }
+            BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+            $.FLstate = FL_SEARCH;
+            _configDone = false;
         }
-        // otherwhise start scanning
-        debug("scanning");
-        if (_device != null) { 
-            BluetoothLowEnergy.unpairDevice(_device);
-        }
-        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-        $.FLstate = FL_SEARCH;
-        _configDone = false;
     }
 
     //! Process scan result of incoming BLE advertises
@@ -77,11 +73,6 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
-            if (scanResult.getRssi() == 0) { // is a previously stored device
-                debug("DeviceLock: trying to pair");
-            } else {
-                debug("trying to pair device, rssi " + scanResult.getRssi()); 
-            }
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
@@ -140,7 +131,7 @@ class DeviceManager {
         if ((null == _device) || _writeInProgress) {
             return;
         }
-        debug("Send Command: " + cmd.toString());
+        debug("Send FL Command: " + cmd.toString());
         var command = _command;
         if (null != command) {
             _writeInProgress = true;
@@ -167,7 +158,7 @@ class DeviceManager {
                     return true;
                 }
             }
-            debug("error: not a forumslader or unknown FL type");
+            debug("error: detected device is not a forumslader V5/V6");
             Storage.deleteValue("MyDevice");
             }   
             startScan();
@@ -218,7 +209,7 @@ class DeviceManager {
         if (!$.isV6) { 
             return; // FLv5 does not need notification activation
         }
-        debug("start datastream");
+        //debug("start datastream");
         var char = _config;
         if (null != char) {
             var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
