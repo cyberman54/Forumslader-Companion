@@ -159,9 +159,12 @@ class DeviceManager {
                 }
             }
             debug("error: detected device is not a forumslader V5/V6");
-            Storage.deleteValue("MyDevice");
-            }   
-            startScan();
+            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+                Storage.deleteValue("MyDevice");
+                debug("DeviceLock: device cleared");
+            }
+        }   
+        startScan();
         return false;
     }
 
