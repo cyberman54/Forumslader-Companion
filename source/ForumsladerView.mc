@@ -11,14 +11,10 @@ class ForumsladerView extends SimpleDataField {
         _alertLockTime as Number = 100,     // when an alarm occurs, no consecutive alarms for 100 seconds
         _capacityAlarmMin as Number = 20,   // battery low alarm threshold
         _capacityAlarmMax as Number = 30;   // battery low alarm clear threshold
-
+ 
     private var 
         _data as DataManager,
         _device as DeviceManager,
-        _deviceState as String,
-        _searching as String,
-        _connecting as String,
-        _initializing as String,
         _battVoltage as Float,
         _capacity as Number,
         _index as Number,
@@ -27,19 +23,25 @@ class ForumsladerView extends SimpleDataField {
         _fitRecording1 as Field,
         _fitRecording2 as Field,
         _fitRecording3 as Field,
-        _fitRecording4 as Field;
+        _fitRecording4 as Field,
+        _stateDisplayString as Array<String>;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
-        _searching = WatchUi.loadResource($.Rez.Strings.searching) as String;
-        _connecting = WatchUi.loadResource($.Rez.Strings.connecting) as String;
-        _initializing = WatchUi.loadResource($.Rez.Strings.initializing) as String;
+        _stateDisplayString = [
+            WatchUi.loadResource($.Rez.Strings.searching) as String,
+            WatchUi.loadResource($.Rez.Strings.connecting) as String,
+            WatchUi.loadResource($.Rez.Strings.initializing) as String,
+            WatchUi.loadResource($.Rez.Strings.initializing) as String,
+            WatchUi.loadResource($.Rez.Strings.initializing) as String,
+            WatchUi.loadResource($.Rez.Strings.connecting) as String,
+            WatchUi.loadResource($.Rez.Strings.connecting) as String,
+            WatchUi.loadResource($.Rez.Strings.connecting) as String] as Array<String>;
         _data = dataManager;
         _device = deviceManager;
-        _deviceState = _searching;
         _battVoltage = 0f;
         _capacity = 0;
         _index = 0;
@@ -197,24 +199,8 @@ class ForumsladerView extends SimpleDataField {
         $.FLpayload = []b; // clear buffer
         //debug("data.age=" + _data.age.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
-        // toggle device state machine and set displaystring to device state
-        switch (_device.updateState()) 
-        {
-            case FL_SEARCH:
-                _deviceState = _searching;
-                break;
-            case FL_DISCONNECT:
-            case FL_COLDSTART:
-            case FL_WARMSTART:
-            case FL_READY:
-                _deviceState = _connecting;
-                break;
-            case FL_CONFIG1:
-            case FL_CONFIG2:
-            case FL_CONFIG3:
-                _deviceState = _initializing;
-                break;
-            }
+        // toggle device state machine and store current device state
+        var deviceState = _device.updateState();
 
         // update alert counter
         _alertMute = (_alertMute + 1) % _alertLockTime;
@@ -225,7 +211,7 @@ class ForumsladerView extends SimpleDataField {
             _data.age++; // increase data age seconds counter
             return computeDisplayString(); // display data
         } else {
-            return _deviceState; // display state
+            return _stateDisplayString[deviceState]; // display state
         }
     }
 }

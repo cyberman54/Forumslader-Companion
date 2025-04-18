@@ -11,7 +11,7 @@ enum {
     FL_CONFIG3,     // 4 = configuration step 3
     FL_DISCONNECT,  // 5 = forumslader has disconnected
     FL_WARMSTART,   // 6 = start data stream, skip configuration
-    FL_READY = 9    // 9 = running state (all setup is done)
+    FL_READY        // 7 = running state (all setup is done)
 }
 
 class DeviceManager {
@@ -243,7 +243,7 @@ class DeviceManager {
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
-                $.FLstate = FL_READY;
+                $.FLstate ++;
                 startDatastreamFL();
                 break;
             // 3-steps configuration sequence during startup
