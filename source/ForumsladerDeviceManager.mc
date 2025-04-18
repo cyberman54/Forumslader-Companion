@@ -249,7 +249,7 @@ class DeviceManager {
             // 3-steps configuration sequence during startup
             // step1: request parameters
             case FL_CONFIG1:
-                if (_data.tick == 0) {  // wait until data stream was turned on
+                if (_data.age == 0) {  // wait until data stream was turned on
                     sendCommandFL(FLP); // request wheelsize and poles data
                     $.FLstate ++;
                 }

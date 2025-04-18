@@ -46,7 +46,7 @@ class DataManager {
         _MAX_TERM_COUNT = 20; // max number of terms in a $FLx sentence (assumption, not verified with FL)
 
     public var
-        tick as Number = MAX_AGE_SEC,
+        age as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
         freq2speed as Float = 0.0;
 
@@ -125,7 +125,7 @@ class DataManager {
             if (term.toNumberWithBase(16) == _parity)
             {
                 // we've got fresh and valid data, thus reset data age counter
-                tick = 0;
+                age = 0;
 
                 // parse and commit values according to sentence type
                 switch(_currSentenceType)

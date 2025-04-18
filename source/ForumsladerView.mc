@@ -195,7 +195,7 @@ class ForumsladerView extends SimpleDataField {
             _data.encode($.FLpayload[i]);
         }
         $.FLpayload = []b; // clear buffer
-        //debug("tick=" + _data.tick.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
+        //debug("data.age=" + _data.age.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
         // toggle device state machine and set displaystring to device state
         switch (_device.updateState()) 
@@ -221,8 +221,8 @@ class ForumsladerView extends SimpleDataField {
         if (_alertMute == 0) { alertPending = false; }
         
         // if we have recent data, and are fully initialized, display data, else display device state
-        if (_data.tick <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
-            _data.tick++; // increase data age seconds counter
+        if (_data.age <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
+            _data.age++; // increase data age seconds counter
             return computeDisplayString(); // display data
         } else {
             return _deviceState; // display state
