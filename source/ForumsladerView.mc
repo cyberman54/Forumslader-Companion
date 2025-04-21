@@ -171,9 +171,9 @@ class ForumsladerView extends SimpleDataField {
         if (flstatus & 0x8) { // short circuit  
             WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String));
         }
-        else if (flstatus & 0x200) { // overload
-            WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.Overload) as String));
-        }
+        //else if (flstatus & 0x200) { // overload
+        //    WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.Overload) as String));
+        //}
         else if (flstatus & 0x800000) { // system interrupt
             WatchUi.DataField.showAlert(new $.DataFieldAlertView(WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String));
         }
