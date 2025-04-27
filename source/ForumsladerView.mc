@@ -67,11 +67,11 @@ class ForumsladerView extends SimpleDataField {
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
             as FitContributor.Field;
-        // Battery Current
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String, 
+        // Electrical Load
+        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
             4, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCurrentLabel) as String}) 
+            :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) 
             as FitContributor.Field;
     }
 
@@ -149,8 +149,10 @@ class ForumsladerView extends SimpleDataField {
                     case 9: {   // speed
                         var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
                         return speed.format("%.1f") + $.speedunit; }
-                    case 8:     // load current
-                        return (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
+                    //case 8:     // load current
+                    //    return (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
+                    case 8:     // load
+                        return (_battVoltage * (_data.FLdata[FL_loadCurrent]) / 1000).toNumber() + "W";
                     case 7:     // battery current
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                     case 6:     // battery voltage

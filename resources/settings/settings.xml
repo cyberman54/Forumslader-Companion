@@ -34,7 +34,7 @@
             <listEntry value="5">@Strings.DynamoFrequency</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
-            <listEntry value="8">@Strings.LoadCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
@@ -51,7 +51,7 @@
             <listEntry value="5">@Strings.DynamoFrequency</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
-            <listEntry value="8">@Strings.LoadCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
@@ -68,7 +68,7 @@
             <listEntry value="5">@Strings.DynamoFrequency</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
-            <listEntry value="8">@Strings.LoadCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
@@ -85,7 +85,7 @@
             <listEntry value="5">@Strings.DynamoFrequency</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
-            <listEntry value="8">@Strings.LoadCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>

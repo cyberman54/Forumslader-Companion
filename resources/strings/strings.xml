@@ -32,8 +32,8 @@
     <string id="BatteryVoltageLabel">V</string>
     <string id="BatteryCurrent">Battery Current</string>
     <string id="BatteryCurrentLabel">A</string>
-    <string id="LoadCurrent">Load Current</string>
-    <string id="LoadCurrentLabel">A</string>
+    <string id="Load">Electrical Load</string>
+    <string id="LoadLabel">W</string>
     <string id="Speed">Speed</string>
     <string id="SpeedLabel">km/h</string>
     <string id="BatteryCapacity">Battery Remaining</string>
