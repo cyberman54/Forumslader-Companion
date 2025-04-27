@@ -38,9 +38,8 @@
     <string id="SpeedLabel">km/h</string>
     <string id="BatteryCapacity">Akkufüllstand</string>
     <string id="BatteryCapacityLabel">%</string>
-    <string id="ChargingState">Ladestatus +/-</string>
+    <string id="ChargingState">Ladestatus +/-/o/O</string>
     <string id="ShortCircuit">Kurzschluss!</string>
-    <string id="Overload">Überlast!</string>
     <string id="SystemInterrupt">Systemunterbrechung!</string>
     <string id="BatteryLow">Akku unter 20%!</string>
 </strings>
