@@ -137,20 +137,17 @@ class ForumsladerView extends SimpleDataField {
         switch (fieldvalue)
                 {
                     case 11:    // charger state
-                                // bit 15: discharge -> "-" / "+"
-                                // bit 8: overload -> "O"
-                                // bit 9: overload powerreduce -> "o"
-                        var char = _data.FLdata[FL_status] & 0x8000 ? "-" : "+";
-                        char = _data.FLdata[FL_status] & 0x200 ? "o" : char;
-                        char = _data.FLdata[FL_status] & 0x100 ? "O" : char;
+                        var char = _data.FLdata[FL_status] & 0x8000 ? "-" : "+"; // bit 15: discharge -> "-" / "+"
+                        char = _data.FLdata[FL_status] & 0x200 ? "o" : char;  // bit 9: overload powerreduce -> "o"
+                        char = _data.FLdata[FL_status] & 0x100 ? "O" : char; // bit 8: overload -> "O"
                         return char;
                     case 10:    // remaining battery capacity
                         return _capacity + "%";
                     case 9: {   // speed
                         var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
                         return speed.format("%.1f") + $.speedunit; }
-                    case 8:     // load
-                        return (_battVoltage * (_data.FLdata[FL_loadCurrent]) / 1000).format("%.1f") + "W";
+                    case 8:     // electrical load
+                        return (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).format("%.1f") + "W";
                     case 7:     // battery current
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                     case 6:     // battery voltage
