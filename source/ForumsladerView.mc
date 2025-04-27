@@ -96,7 +96,7 @@ class ForumsladerView extends SimpleDataField {
                 _fitRecording1.setData(_battVoltage);
                 _fitRecording2.setData(_capacity);
                 _fitRecording3.setData(_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000);
-                _fitRecording4.setData(_data.FLdata[FL_battCurrent] / 1000.0);
+                _fitRecording4.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
             }
 
             // display forumslader alarms
