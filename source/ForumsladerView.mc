@@ -136,8 +136,14 @@ class ForumsladerView extends SimpleDataField {
     private function computeFieldValue(fieldvalue as Number) as String {
         switch (fieldvalue)
                 {
-                    case 11:    // charger state (off / discharge / charge)
-                        return _data.FLdata[FL_status] & 0x200 ? "o" : _data.FLdata[FL_status] & 0x8000 ? "-" : "+";
+                    case 11:    // charger state
+                                // bit 15: discharge -> "-" / "+"
+                                // bit 8: overload -> "O"
+                                // bit 9: overload powerreduce -> "o"
+                        var char = _data.FLdata[FL_status] & 0x8000 ? "-" : "+";
+                        char = _data.FLdata[FL_status] & 0x200 ? "o" : char;
+                        char = _data.FLdata[FL_status] & 0x100 ? "O" : char;
+                        return char;
                     case 10:    // remaining battery capacity
                         return _capacity + "%";
                     case 9: {   // speed
@@ -168,14 +174,13 @@ class ForumsladerView extends SimpleDataField {
     //! Check forumslader status for alarms
     //! @param forumslader status bitmap
     private function checkAlarms() as Void {
-        debug("_alertMute = " + _alertMute.format("%d"));
         // no alarms if alertMute is active
         if (_alertMute > 0) { 
             _alertMute--;
             return; 
         } 
         // check for forumslader alarms
-        if (_data.FLdata[FL_status] & 0x8) { // short circuit
+        if (_data.FLdata[FL_status] & 0x8) { // bit3: short circuit
             _alertMute = _alertLockTime;
             ForumsladerView.showAlert(new $.ForumsladerAlertView(WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String));
             return;
