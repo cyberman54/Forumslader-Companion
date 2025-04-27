@@ -149,10 +149,8 @@ class ForumsladerView extends SimpleDataField {
                     case 9: {   // speed
                         var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
                         return speed.format("%.1f") + $.speedunit; }
-                    //case 8:     // load current
-                    //    return (_data.FLdata[FL_loadCurrent] / 1000.0).format("%.1f") + "A";
                     case 8:     // load
-                        return (_battVoltage * (_data.FLdata[FL_loadCurrent]) / 1000).toNumber() + "W";
+                        return (_battVoltage * (_data.FLdata[FL_loadCurrent]) / 1000).format("%.1f") + "W";
                     case 7:     // battery current
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                     case 6:     // battery voltage
