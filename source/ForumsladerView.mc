@@ -138,8 +138,8 @@ class ForumsladerView extends SimpleDataField {
                 {
                     case 11:    // charger state
                         var char = _data.FLdata[FL_status] & 0x8000 ? "-" : "+"; // bit 15: discharge -> "-" / "+"
-                        char = _data.FLdata[FL_status] & 0x200 ? "o" : char;  // bit 9: overload powerreduce -> "o"
-                        char = _data.FLdata[FL_status] & 0x100 ? "O" : char; // bit 8: overload -> "O"
+                        char = _data.FLdata[FL_status] & 0x100 ? "*" : char; // bit 9: overload powerreduce
+                        char = _data.FLdata[FL_status] & 0x200 ? "o" : char; // bit 8: overload (dynamo input off for max. 3 mins)
                         return char;
                     case 10:    // remaining battery capacity
                         return _capacity + "%";
