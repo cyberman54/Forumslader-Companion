@@ -38,7 +38,7 @@
     <string id="SpeedLabel">km/h</string>
     <string id="BatteryCapacity">Battery Remaining</string>
     <string id="BatteryCapacityLabel">%</string>
-    <string id="ChargingState">Chargerstate +/-/o/O</string>
+    <string id="ChargingState">Chargerstate +/-/*/o</string>
     <string id="ShortCircuit">Short circuit!</string>
     <string id="SystemInterrupt">System interrupt!</string>
     <string id="BatteryLow">Battery below 20%!</string>
