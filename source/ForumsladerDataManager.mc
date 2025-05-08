@@ -132,22 +132,22 @@ class DataManager {
                 {
                     case SENTENCE_FL5:
                     case SENTENCE_FL6:
-                        FLdata[FL_status]           = _FLterm[1].toNumberWithBase(0x10);
-                        FLdata[FL_gear]             = commitValue(_FLterm[2], 0, 10);
-                        FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 5000);
-                        FLdata[FL_battVoltage1]     = commitValue(_FLterm[4], 0, 5000);
-                        FLdata[FL_battVoltage2]     = commitValue(_FLterm[5], 0, 5000);
-                        FLdata[FL_battVoltage3]     = commitValue(_FLterm[6], 0, 5000);
-                        FLdata[FL_battCurrent]      = commitValue(_FLterm[7], 0, 0);
-                        FLdata[FL_loadCurrent]      = commitValue(_FLterm[8], 0, 0);
-                        //FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);
+                        FLdata[FL_status]           = _FLterm[1].toNumberWithBase(0x10);    // Status- und Errorbits
+                        FLdata[FL_gear]             = commitValue(_FLterm[2], 0, 10);       // Schaltstufe
+                        FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 5000);     // Dynamofrequenz [Hz * 10]
+                        FLdata[FL_battVoltage1]     = commitValue(_FLterm[4], 0, 5000);     // Spannung Zelle 1 [mV]
+                        FLdata[FL_battVoltage2]     = commitValue(_FLterm[5], 0, 5000);     // Spannung Zelle 2 [mV]
+                        FLdata[FL_battVoltage3]     = commitValue(_FLterm[6], 0, 5000);     // Spannung Zelle 3 [mV]
+                        FLdata[FL_battCurrent]      = commitValue(_FLterm[7], -10000, 10000);  // Akkustrom [mA +/-]
+                        FLdata[FL_loadCurrent]      = commitValue(_FLterm[8], 0, 10000);    // Verbraucherstrom [mA]
+                        //FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);  // Lader-Temperatur [°C]
                         break;
 
                     case SENTENCE_FLB:
-                        FLdata[FL_temperature]      = commitValue(_FLterm[1], -300, 800);
-                        //FLdata[FL_pressure]         = commitValue(_FLterm[2], 0, 1200000);
-                        //FLdata[FL_sealevel]         = commitValue(_FLterm[3], -100, 10000);
-                        //FLdata[FL_incline]          = commitValue(_FLterm[4], 0, 0);
+                        FLdata[FL_temperature]      = commitValue(_FLterm[1], -300, 800);   // Temperatur [°C / 10]
+                        //FLdata[FL_pressure]         = commitValue(_FLterm[2], 0, 1200000);    // [Pascal]
+                        //FLdata[FL_sealevel]         = commitValue(_FLterm[3], -100, 10000);   // [Meter /10]
+                        //FLdata[FL_incline]          = commitValue(_FLterm[4], 0, 0);          // [% / 10]
                         break;
 
                     case SENTENCE_FLC: {
