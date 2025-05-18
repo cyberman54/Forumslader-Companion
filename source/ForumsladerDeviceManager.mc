@@ -151,8 +151,7 @@ class DeviceManager {
                     if ($.UserSettings[$.DeviceLock] == true) {
                         var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
                         if (storedDevice == null || !storedDevice.equals(_myDevice)) {
-                            Storage.setValue("MyDevice", _myDevice);
-                            debug("DeviceLock: device stored");
+                            saveDevice(storedDevice);
                         }
                     }
                     return true;
@@ -166,6 +165,14 @@ class DeviceManager {
         }   
         startScan();
         return false;
+    }
+
+    //! save a scanned ble device
+    //! @param The ScanResult record of the  Device device
+    (:typecheck(false))
+    private function saveDevice(device as ScanResult) as Void {
+        Storage.setValue("MyDevice", device); // needs typecheck false due to iq compiler bug
+        debug("DeviceLock: device stored");
     }
 
     //! Identify the forumslader type and setup it's UUIDs
