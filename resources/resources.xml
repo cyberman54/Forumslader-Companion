@@ -1,9 +1,9 @@
 <resources>
-    <string id="AppVersion" translatable="false">1.7.4</string>
+    <string id="AppVersion" translatable="false">1.7.5</string>
     <fitContributions>
         <fitField id="1" displayInChart="true" sortOrder="0" precision="1" chartTitle="@Strings.BatteryVoltage" dataLabel="@Strings.BatteryVoltage" unitLabel="@Strings.BatteryVoltageLabel" fillColor="#FF0000"/>
         <fitField id="2" displayInChart="true" sortOrder="1" precision="0" chartTitle="@Strings.BatteryCapacity" dataLabel="@Strings.BatteryCapacity" unitLabel="@Strings.BatteryCapacityLabel" fillColor="#FF0000"/>
         <fitField id="3" displayInChart="true" sortOrder="2" precision="1" chartTitle="@Strings.DynamoPower" dataLabel="@Strings.DynamoPower" unitLabel="@Strings.DynamoPowerLabel" fillColor="#FF0000"/>
-        <fitField id="4" displayInChart="true" sortOrder="3" precision="1" chartTitle="@Strings.BatteryCurrent" dataLabel="@Strings.BatteryCurrent" unitLabel="@Strings.BatteryCurrentLabel" fillColor="#FF0000"/>
+        <fitField id="4" displayInChart="true" sortOrder="3" precision="1" chartTitle="@Strings.Load" dataLabel="@Strings.Load" unitLabel="@Strings.LoadLabel" fillColor="#FF0000"/>
     </fitContributions>
 </resources>
