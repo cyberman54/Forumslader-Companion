@@ -32,15 +32,14 @@
     <string id="BatteryVoltageLabel">V</string>
     <string id="BatteryCurrent">Akkustrom</string>
     <string id="BatteryCurrentLabel">A</string>
-    <string id="LoadCurrent">Verbraucherstrom</string>
-    <string id="LoadCurrentLabel">A</string>
+    <string id="Load">Verbraucherlast</string>
+    <string id="LoadLabel">W</string>
     <string id="Speed">Geschwindigkeit</string>
     <string id="SpeedLabel">km/h</string>
     <string id="BatteryCapacity">Akkufüllstand</string>
     <string id="BatteryCapacityLabel">%</string>
-    <string id="ChargingState">Ladestatus +/-</string>
+    <string id="ChargingState">Ladestatus +/-/*/o</string>
     <string id="ShortCircuit">Kurzschluss!</string>
-    <string id="Overload">Überlast!</string>
     <string id="SystemInterrupt">Systemunterbrechung!</string>
     <string id="BatteryLow">Akku unter 20%!</string>
 </strings>

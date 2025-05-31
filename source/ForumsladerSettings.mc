@@ -148,7 +148,7 @@ class PickList extends WatchUi.Drawable {
         WatchUi.loadResource($.Rez.Strings.DynamoFrequency),
         WatchUi.loadResource($.Rez.Strings.BatteryVoltage),
         WatchUi.loadResource($.Rez.Strings.BatteryCurrent),
-        WatchUi.loadResource($.Rez.Strings.LoadCurrent),
+        WatchUi.loadResource($.Rez.Strings.Load),
         WatchUi.loadResource($.Rez.Strings.Speed),
         WatchUi.loadResource($.Rez.Strings.BatteryCapacity),
         WatchUi.loadResource($.Rez.Strings.ChargingState)

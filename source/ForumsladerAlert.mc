@@ -6,7 +6,7 @@ import Toybox.Attention;
 
 (:showalert)
 //! The data field alert
-class DataFieldAlertView extends WatchUi.DataFieldAlert {
+class ForumsladerAlertView extends WatchUi.DataFieldAlert {
 
 private var _alerttext as String;
 
@@ -14,7 +14,6 @@ private var _alerttext as String;
     public function initialize(message as String) {
         DataFieldAlert.initialize();
         _alerttext = message;
-        alertPending = true;
         debug("alert: " + _alerttext);
     }
 

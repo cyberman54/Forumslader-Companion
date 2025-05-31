@@ -16,7 +16,6 @@ import Toybox.Application.Storage;
 var 
     FLstate as Number = FL_SEARCH,      // current state of state engine
     isV6 as Boolean = false,            // forumslader type V5/V6 identifier
-    alertPending as Boolean = false,    // lock to prevent recurrent alarms
     speedunitFactor as Float = 1.0,     // changed according to FL type
     speedunit as String = "kmh",        // changed according to garmin device settings
     FLpayload as ByteArray = []b,       // $FLx data buffer

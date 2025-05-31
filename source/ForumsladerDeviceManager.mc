@@ -11,7 +11,7 @@ enum {
     FL_CONFIG3,     // 4 = configuration step 3
     FL_DISCONNECT,  // 5 = forumslader has disconnected
     FL_WARMSTART,   // 6 = start data stream, skip configuration
-    FL_READY = 9    // 9 = running state (all setup is done)
+    FL_READY        // 7 = running state (all setup is done)
 }
 
 class DeviceManager {
@@ -151,18 +151,28 @@ class DeviceManager {
                     if ($.UserSettings[$.DeviceLock] == true) {
                         var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
                         if (storedDevice == null || !storedDevice.equals(_myDevice)) {
-                            Storage.setValue("MyDevice", _myDevice);
-                            debug("DeviceLock: device stored");
+                            saveDevice(storedDevice);
                         }
                     }
                     return true;
                 }
             }
             debug("error: detected device is not a forumslader V5/V6");
-            Storage.deleteValue("MyDevice");
-            }   
-            startScan();
+            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+                Storage.deleteValue("MyDevice");
+                debug("DeviceLock: device cleared");
+            }
+        }   
+        startScan();
         return false;
+    }
+
+    //! save a scanned ble device
+    //! @param The ScanResult record of the  Device device
+    (:typecheck(false))
+    private function saveDevice(device as ScanResult) as Void {
+        Storage.setValue("MyDevice", device); // needs typecheck false due to iq compiler bug
+        debug("DeviceLock: device stored");
     }
 
     //! Identify the forumslader type and setup it's UUIDs
@@ -240,13 +250,13 @@ class DeviceManager {
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
-                $.FLstate = FL_READY;
+                $.FLstate ++;
                 startDatastreamFL();
                 break;
             // 3-steps configuration sequence during startup
             // step1: request parameters
             case FL_CONFIG1:
-                if (_data.tick == 0) {  // wait until data stream was turned on
+                if (_data.age == 0) {  // wait until data stream was turned on
                     sendCommandFL(FLP); // request wheelsize and poles data
                     $.FLstate ++;
                 }
