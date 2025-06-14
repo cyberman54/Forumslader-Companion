@@ -123,7 +123,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
         if ($.UserSettings[$.DeviceLock] == false) { 
-            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+            if (Storage.getValue("MyDevice") != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }

@@ -45,7 +45,7 @@ class DeviceManager {
         _device = null;
         _data = dataManager;
         _bleDelegate = bleDelegate;
-        _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
+        _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
@@ -149,16 +149,16 @@ class DeviceManager {
                     _command = service.getCharacteristic(_FL_COMMAND);
                     _config = service.getCharacteristic(_FL_CONFIG);
                     if ($.UserSettings[$.DeviceLock] == true) {
-                        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
+                        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
                         if (storedDevice == null || !storedDevice.equals(_myDevice)) {
-                            saveDevice(storedDevice);
+                            saveDevice(storedDevice as BluetoothLowEnergy.ScanResult);
                         }
                     }
                     return true;
                 }
             }
             debug("error: detected device is not a forumslader V5/V6");
-            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+            if (Storage.getValue("MyDevice") != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
