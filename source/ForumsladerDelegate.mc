@@ -75,7 +75,7 @@ class ForumsladerDelegate extends BleDelegate {
         var onConnection = _onConnection;
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
             debug ("connected");
-            if (onConnection != null) {
+            if (null != onConnection) {
                 if (onConnection.stillAlive()) {
                     (onConnection.get() as DeviceManager).procConnection(device);
                 } else {
@@ -104,7 +104,7 @@ class ForumsladerDelegate extends BleDelegate {
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
         //debug("onCharWrite");
         var onCharWrite = _onCharWrite;
-        if (onCharWrite != null) {
+        if (null != onCharWrite) {
             if (onCharWrite.stillAlive()) {
                 (onCharWrite.get() as DeviceManager).procCharWrite(characteristic, status);
             } else {
@@ -119,7 +119,7 @@ class ForumsladerDelegate extends BleDelegate {
     public function onDescriptorWrite(descriptor as Descriptor, status as Status) as Void {
         //debug("onDescrWrite");
         var onDescWrite = _onDescWrite;
-        if (onDescWrite != null) {
+        if (null != onDescWrite) {
             if (onDescWrite.stillAlive()) {
                 (onDescWrite.get() as DeviceManager).procDescWrite(descriptor, status);
             } else {
@@ -134,7 +134,7 @@ class ForumsladerDelegate extends BleDelegate {
     public function onProfileRegister(uuid as Uuid, status as Status) as Void {
         //debug("onProfileRegister");
         var onProfileRegister = _onProfileRegister;
-        if (onProfileRegister != null) {
+        if (null != onProfileRegister) {
             if (onProfileRegister.stillAlive()) {
                 (onProfileRegister.get() as DeviceManager).procProfileRegister(uuid, status);
             } else {
@@ -163,7 +163,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param scanResult The new scan result
     private function broadcastScanResult(scanResult as ScanResult) as Void {
         var onScanResult = _onScanResult;
-        if (onScanResult != null) {
+        if (null != onScanResult) {
             if (onScanResult.stillAlive()) {
                 (onScanResult.get() as DeviceManager).procScanResult(scanResult);
             } else {

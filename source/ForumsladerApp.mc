@@ -93,7 +93,7 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
         if ($.UserSettings[$.DeviceLock] == false) { 
-            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+            if (Storage.getValue("MyDevice") != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
