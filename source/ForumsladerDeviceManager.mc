@@ -150,8 +150,8 @@ class DeviceManager {
                     _config = service.getCharacteristic(_FL_CONFIG);
                     if ($.UserSettings[$.DeviceLock] == true) {
                         var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
-                        if (storedDevice == null || !storedDevice.equals(_myDevice)) {
-                            saveDevice(storedDevice as BluetoothLowEnergy.ScanResult);
+                        if (!(storedDevice instanceof ScanResult)) {
+                            saveDevice(_myDevice as BluetoothLowEnergy.ScanResult);
                         }
                     }
                     return true;
