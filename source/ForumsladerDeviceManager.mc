@@ -4,7 +4,7 @@ import Toybox.Application.Storage;
 
 // app states
 enum {
-    FL_SEARCH,      // 0 = entry state (waiting for pairing & connect)
+    FL_SEARCH = 0,  // 0 = entry state (waiting for pairing & connect)
     FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
     FL_CONFIG1,     // 2 = configuration step 1
     FL_CONFIG2,     // 3 = configuration step 2
@@ -242,15 +242,15 @@ class DeviceManager {
             // cold start (used after pairing)
             case FL_COLDSTART:
                 if (setupProfile()) {
-                    $.FLstate ++;
+                    $.FLstate = FL_CONFIG1;
                     startDatastreamFL();
                 } else {
-                    $.FLstate --;
+                    $.FLstate = FL_SEARCH;
                 }
                 break;
             // warm start (used after reconnecting)
             case FL_WARMSTART:
-                $.FLstate ++;
+                $.FLstate = FL_READY;
                 startDatastreamFL();
                 break;
             // 3-steps configuration sequence during startup
@@ -258,7 +258,7 @@ class DeviceManager {
             case FL_CONFIG1:
                 if (_data.age == 0) {  // wait until data stream was turned on
                     sendCommandFL(FLP); // request wheelsize and poles data
-                    $.FLstate ++;
+                    $.FLstate = FL_CONFIG2;
                 }
                 break;
             // step2: check parameters, first try
@@ -267,7 +267,7 @@ class DeviceManager {
                     _configDone = true;
                     $.FLstate = FL_READY;
                 } else {
-                    $.FLstate ++;
+                    $.FLstate = FL_CONFIG3;
                 }
                 break;
             // step3: check parameters, second try (for FLV5)
@@ -279,6 +279,10 @@ class DeviceManager {
                     $.FLstate = FL_CONFIG1;
                 }
                 break;
+            // life saver, should never be reached
+            default:
+            $.FLstate = FL_SEARCH;
+            debug("state engine error");
             }
        return $.FLstate;
     }
