@@ -172,7 +172,11 @@ class DataManager {
                         FLdata[FL_wheelsize]        = commitValue(_FLterm[1], 1000, 2500);
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
-                        freq2speed =  ($.isV6 ? 10.0 : 1.0) / (FLdata[FL_poles] * FLdata[FL_wheelsize] * 0.0036 * $.speedunitFactor);
+                        if (FLdata[FL_wheelsize] > 0 && FLdata[FL_poles] > 0) {
+                                freq2speed =  ($.isV6 ? 10.0 : 1.0) / (FLdata[FL_poles] * FLdata[FL_wheelsize] * 0.0036 * $.speedunitFactor);
+                                } else {
+                                freq2speed = 0.0;    
+                        }
                         debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;
                 } 
