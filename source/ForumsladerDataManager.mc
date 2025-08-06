@@ -173,7 +173,7 @@ class DataManager {
                         FLdata[FL_poles]            = commitValue(_FLterm[2], 10, 20);
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
                         if (FLdata[FL_wheelsize] > 0 && FLdata[FL_poles] > 0) {
-                                freq2speed =  ($.isV6 ? 10.0 : 1.0) / (FLdata[FL_poles] * FLdata[FL_wheelsize] * 0.0036 * $.speedunitFactor);
+                                freq2speed = FLdata[FL_wheelsize] / FLdata[FL_poles] * 0.0036 / ($.isV6 ? 10.0 : 1.0) * $.speedunitFactor;
                                 } else {
                                 freq2speed = 0.0;    
                         }

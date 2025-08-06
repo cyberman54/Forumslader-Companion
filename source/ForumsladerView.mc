@@ -144,7 +144,7 @@ class ForumsladerView extends SimpleDataField {
                     case 10:    // remaining battery capacity
                         return _capacity + "%";
                     case 9: {   // speed
-                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed as Float;
+                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed;
                         return speed.format("%.1f") + $.speedunit; }
                     case 8:     // electrical load
                         return (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).format("%.1f") + "W";
@@ -153,7 +153,7 @@ class ForumsladerView extends SimpleDataField {
                     case 6:     // battery voltage
                         return _battVoltage.format("%.1f") + "V";
                     case 5: {   // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0) as Float;
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0);
                         return freq.toNumber() + "Hz"; }
                     case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
