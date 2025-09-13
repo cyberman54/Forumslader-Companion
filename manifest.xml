@@ -40,8 +40,10 @@
             <iq:product id="edge1050"/>
             <iq:product id="edge530"/>
             <iq:product id="edge540"/>
+            <iq:product id="edge550"/>
             <iq:product id="edge830"/>
             <iq:product id="edge840"/>
+            <iq:product id="edge850"/>
             <iq:product id="edgeexplore2"/>
             <iq:product id="edgemtb"/>
             <iq:product id="enduro"/>
@@ -68,6 +70,7 @@
             <iq:product id="fenix7xpronowifi"/>
             <iq:product id="fenix843mm"/>
             <iq:product id="fenix847mm"/>
+            <iq:product id="fenix8pro47mm"/>
             <iq:product id="fenix8solar47mm"/>
             <iq:product id="fenix8solar51mm"/>
             <iq:product id="fenixe"/>
@@ -92,6 +95,7 @@
             <iq:product id="fr965"/>
             <iq:product id="fr970"/>
             <iq:product id="gpsmap67"/>
+            <iq:product id="gpsmaph1"/>
             <iq:product id="instinct2"/>
             <iq:product id="instinct2s"/>
             <iq:product id="instinct2x"/>
