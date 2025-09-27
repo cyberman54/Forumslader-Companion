@@ -29,11 +29,20 @@ class ForumsladerApp extends AppBase {
     private var
     _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
-    _dataManager as DataManager?;
+    _dataManager as DataManager?,
+    _myView as ForumsladerView;
+
+    public var fitContributor as ForumsladerFitContributor;
 
     //! Constructor
     public function initialize() {
         AppBase.initialize();
+        getUserSettings();
+        _dataManager = new $.DataManager();
+        _bleDelegate = new $.ForumsladerDelegate();
+        _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
+        _myView = new $.ForumsladerView(_dataManager, _deviceManager);
+        self.fitContributor = new ForumsladerFitContributor(_myView);
     }
 
     //! Handle app startup
@@ -43,10 +52,6 @@ class ForumsladerApp extends AppBase {
         if (state != null) {
             debug("state: " + state.toString());
         }
-        getUserSettings();
-        _dataManager = new $.DataManager();
-        _bleDelegate = new $.ForumsladerDelegate();
-        _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_deviceManager as DeviceManager).startScan();
     }
@@ -69,14 +74,15 @@ class ForumsladerApp extends AppBase {
     //! @return Array [View]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         if (_dataManager != null && _deviceManager != null) {
-            return [new $.ForumsladerView(_dataManager, _deviceManager)];
+            return [ _myView ] as [Views];
         }
         System.error("View initialization failure");
     }
 
     //! Handle change of settings by user in GCM while App is running
-	public function onSettingsChanged() {
+	public function onSettingsChanged() as Void {
     	getUserSettings();
+        self.fitContributor.onSettingsChanged(_myView);
         WatchUi.requestUpdate();
 	}
 
