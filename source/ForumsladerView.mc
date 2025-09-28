@@ -3,7 +3,6 @@ import Toybox.Lang;
 import Toybox.Time;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
-import Toybox.FitContributor;
 
 class ForumsladerView extends SimpleDataField {
 
@@ -15,20 +14,17 @@ class ForumsladerView extends SimpleDataField {
     private var 
         _data as DataManager,
         _device as DeviceManager,
+        _fitContributor as ForumsladerFitContributor,
         _battVoltage as Float,
         _capacity as Number,
         _index as Number,
         _alertMute as Number,
         _capacityAlertLock as Boolean,
-        _fitRecording1 as Field,
-        _fitRecording2 as Field,
-        _fitRecording3 as Field,
-        _fitRecording4 as Field,
         _stateDisplayString as Array<String>;
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
-    public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
+    public function initialize(dataManager as DataManager, deviceManager as DeviceManager, fitContributor as ForumsladerFitContributor) {
         SimpleDataField.initialize();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _stateDisplayString = [
@@ -42,37 +38,12 @@ class ForumsladerView extends SimpleDataField {
             WatchUi.loadResource($.Rez.Strings.connecting) as String] as Array<String>;
         _data = dataManager;
         _device = deviceManager;
+        _fitContributor = fitContributor;
         _battVoltage = 0f;
         _capacity = 0;
         _index = 0;
         _alertMute = 0;
         _capacityAlertLock = false;
-
-        // Create custom FIT data fields for recording of 4 forumslader values
-        // Battery Voltage
-        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
-            1, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
-            as FitContributor.Field;
-        // Battery Capacity
-        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
-            2, FitContributor.DATA_TYPE_UINT8,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
-            as FitContributor.Field;
-        // Dynamo Power
-        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
-            3, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
-            as FitContributor.Field;
-        // Electrical Load
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
-            4, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) 
-            as FitContributor.Field;
     }
 
     //! generate, display and log forumslader values
@@ -93,10 +64,11 @@ class ForumsladerView extends SimpleDataField {
 
             // write values to fit file, if FitLogging is enabled by user
             if ($.UserSettings[$.FitLogging] == true) { 
-                _fitRecording1.setData(_battVoltage);
-                _fitRecording2.setData(_capacity);
-                _fitRecording3.setData(_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000);
-                _fitRecording4.setData(_battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                _fitContributor.setData(
+                _battVoltage, 
+                _capacity,
+                _battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000,
+                _battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
             }
 
             // display forumslader alarms

@@ -30,9 +30,8 @@ class ForumsladerApp extends AppBase {
     _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
     _dataManager as DataManager?,
+    _fitContributor as ForumsladerFitContributor?,
     _myView as ForumsladerView;
-
-    public var fitContributor as ForumsladerFitContributor;
 
     //! Constructor
     public function initialize() {
@@ -41,8 +40,8 @@ class ForumsladerApp extends AppBase {
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
         _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
-        _myView = new $.ForumsladerView(_dataManager, _deviceManager);
-        self.fitContributor = new ForumsladerFitContributor(_myView);
+        _fitContributor = new $.ForumsladerFitContributor();
+        _myView = new $.ForumsladerView(_dataManager, _deviceManager, _fitContributor);
     }
 
     //! Handle app startup
@@ -82,7 +81,7 @@ class ForumsladerApp extends AppBase {
     //! Handle change of settings by user in GCM while App is running
 	public function onSettingsChanged() as Void {
     	getUserSettings();
-        self.fitContributor.onSettingsChanged(_myView);
+        _fitContributor.onSettingsChanged();
         WatchUi.requestUpdate();
 	}
 
