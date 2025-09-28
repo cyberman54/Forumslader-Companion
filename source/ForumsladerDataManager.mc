@@ -132,7 +132,12 @@ class DataManager {
                 {
                     case SENTENCE_FL5:
                     case SENTENCE_FL6:
-                        FLdata[FL_status]           = _FLterm[1].toNumberWithBase(0x10);    // Status- und Errorbits
+                        var state = _FLterm[1].toNumberWithBase(0x10);
+                        if (state != null) {
+                            FLdata[FL_status] = state;    // Status- und Errorbits
+                        } else {
+                            FLdata[FL_status] = 0;
+                        }
                         FLdata[FL_gear]             = commitValue(_FLterm[2], 0, 10);       // Schaltstufe
                         FLdata[FL_frequency]        = commitValue(_FLterm[3], 0, 5000);     // Dynamofrequenz [Hz * 10]
                         FLdata[FL_battVoltage1]     = commitValue(_FLterm[4], 0, 5000);     // Spannung Zelle 1 [mV]

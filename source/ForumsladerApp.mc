@@ -46,6 +46,9 @@ class ForumsladerApp extends AppBase {
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
+        if (_bleDelegate == null || _dataManager == null) {
+            System.error("Initialization failure");
+        }
         _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
         BluetoothLowEnergy.setDelegate(_bleDelegate as ForumsladerDelegate);
         (_deviceManager as DeviceManager).startScan();
