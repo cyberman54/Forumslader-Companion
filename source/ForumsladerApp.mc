@@ -29,9 +29,7 @@ class ForumsladerApp extends AppBase {
     private var
     _bleDelegate as ForumsladerDelegate?,
     _deviceManager as DeviceManager?,
-    _dataManager as DataManager?,
-    _fitContributor as ForumsladerFitContributor?,
-    _myView as ForumsladerView;
+    _dataManager as DataManager?;
 
     //! Constructor
     public function initialize() {
@@ -39,9 +37,10 @@ class ForumsladerApp extends AppBase {
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
+        if (_bleDelegate == null || _dataManager == null) {
+            System.error("Initialization failure");
+        }
         _deviceManager = new $.DeviceManager(_bleDelegate, _dataManager);
-        _fitContributor = new $.ForumsladerFitContributor();
-        _myView = new $.ForumsladerView(_dataManager, _deviceManager, _fitContributor);
     }
 
     //! Handle app startup
@@ -73,7 +72,7 @@ class ForumsladerApp extends AppBase {
     //! @return Array [View]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         if (_dataManager != null && _deviceManager != null) {
-            return [ _myView ] as [Views];
+            return [new $.ForumsladerView(_dataManager, _deviceManager)];
         }
         System.error("View initialization failure");
     }
@@ -81,7 +80,6 @@ class ForumsladerApp extends AppBase {
     //! Handle change of settings by user in GCM while App is running
 	public function onSettingsChanged() as Void {
     	getUserSettings();
-        _fitContributor.onSettingsChanged();
         WatchUi.requestUpdate();
 	}
 

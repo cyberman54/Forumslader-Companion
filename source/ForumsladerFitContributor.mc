@@ -30,28 +30,28 @@ class ForumsladerFitContributor {
         _fitRecording3 as Field,
         _fitRecording4 as Field;
 
-    public function initialize() {
+    public function initialize(dataField as DataField) {
         // Create custom FIT data fields for recording of 4 forumslader values
         // Battery Voltage
-        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
+        _fitRecording1 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
             1, Fit.DATA_TYPE_FLOAT,
             {:mesgType=>Fit.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
             as Fit.Field;
         // Battery Capacity
-        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
+        _fitRecording2 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
             2, Fit.DATA_TYPE_UINT8,
             {:mesgType=>Fit.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
             as Fit.Field;
         // Dynamo Power
-        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
+        _fitRecording3 = dataField.createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
             3, Fit.DATA_TYPE_FLOAT,
             {:mesgType=>Fit.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
             as Fit.Field;
         // Electrical Load
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
+        _fitRecording4 = dataField.createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
             4, Fit.DATA_TYPE_FLOAT,
             {:mesgType=>Fit.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) 

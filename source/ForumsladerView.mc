@@ -24,9 +24,10 @@ class ForumsladerView extends SimpleDataField {
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
-    public function initialize(dataManager as DataManager, deviceManager as DeviceManager, fitContributor as ForumsladerFitContributor) {
+    public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
+        _fitContributor = new $.ForumsladerFitContributor(self);
         _stateDisplayString = [
             WatchUi.loadResource($.Rez.Strings.searching) as String,
             WatchUi.loadResource($.Rez.Strings.connecting) as String,
@@ -38,7 +39,6 @@ class ForumsladerView extends SimpleDataField {
             WatchUi.loadResource($.Rez.Strings.connecting) as String] as Array<String>;
         _data = dataManager;
         _device = deviceManager;
-        _fitContributor = fitContributor;
         _battVoltage = 0f;
         _capacity = 0;
         _index = 0;
