@@ -25,48 +25,50 @@ class ForumsladerFitContributor {
     */
 
     private var
-        _fitRecording1 as Field,
-        _fitRecording2 as Field,
-        _fitRecording3 as Field,
-        _fitRecording4 as Field;
+        _fitRecording1 as Field or Null,
+        _fitRecording2 as Field or Null,
+        _fitRecording3 as Field or Null,
+        _fitRecording4 as Field or Null;
 
     public function initialize(dataField as DataField) {
         // Create custom FIT data fields for recording of 4 forumslader values
-        // Battery Voltage
-        _fitRecording1 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
-            1, Fit.DATA_TYPE_FLOAT,
-            {:mesgType=>Fit.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
-            as Fit.Field;
-        // Battery Capacity
-        _fitRecording2 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
-            2, Fit.DATA_TYPE_UINT8,
-            {:mesgType=>Fit.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
-            as Fit.Field;
-        // Dynamo Power
-        _fitRecording3 = dataField.createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
-            3, Fit.DATA_TYPE_FLOAT,
-            {:mesgType=>Fit.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
-            as Fit.Field;
-        // Electrical Load
-        _fitRecording4 = dataField.createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
-            4, Fit.DATA_TYPE_FLOAT,
-            {:mesgType=>Fit.MESG_TYPE_RECORD, 
-            :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) 
-            as Fit.Field;
+        if ($.UserSettings[$.FitLogging] == true) { 
+            // Battery Voltage
+            _fitRecording1 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
+                1, Fit.DATA_TYPE_FLOAT,
+                {:mesgType=>Fit.MESG_TYPE_RECORD, 
+                :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) 
+                as Fit.Field;
+            // Battery Capacity
+            _fitRecording2 = dataField.createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
+                2, Fit.DATA_TYPE_UINT8,
+                {:mesgType=>Fit.MESG_TYPE_RECORD, 
+                :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) 
+                as Fit.Field;
+            // Dynamo Power
+            _fitRecording3 = dataField.createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
+                3, Fit.DATA_TYPE_FLOAT,
+                {:mesgType=>Fit.MESG_TYPE_RECORD, 
+                :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) 
+                as Fit.Field;
+            // Electrical Load
+            _fitRecording4 = dataField.createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
+                4, Fit.DATA_TYPE_FLOAT,
+                {:mesgType=>Fit.MESG_TYPE_RECORD, 
+                :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) 
+                as Fit.Field;
+        }
     }
 
     // write values to fit file
     public function setData(field1 as Float, field2 as Number, field3 as Float, field4 as Float) as Void {
-        _fitRecording1.setData(field1);
-        _fitRecording2.setData(field2);
-        _fitRecording3.setData(field3);
-        _fitRecording4.setData(field4);
+        if (_fitRecording1 != null && _fitRecording2 != null && _fitRecording3 != null && _fitRecording4 != null) {
+            _fitRecording1.setData(field1);
+            _fitRecording2.setData(field2);
+            _fitRecording3.setData(field3);
+            _fitRecording4.setData(field4);
+        }
     }
-
-    public function onSettingsChanged() as Void { }
 
 /*
     public function initialize(dataField as DataField) {

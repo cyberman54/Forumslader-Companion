@@ -5,6 +5,10 @@
     <string scope="settings" id="ShowTitle2">Displayvalue 2</string>
     <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
     <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
+    <string scope="settings" id="ShowTitle5">Loggingvalue 1</string>
+    <string scope="settings" id="ShowTitle6">Loggingvalue 2</string>
+    <string scope="settings" id="ShowTitle7">Loggingvalue 3</string>
+    <string scope="settings" id="ShowTitle8">Loggingvalue 4</string>
     <!-- runtime strings -->
     <string id="SelectDeviceLock">Devicelock</string>
     <string id="SelectCapacityMethod">Coloumbcount</string>
@@ -12,8 +16,9 @@
     <string id="SelectRotateFields">Rotate fields</string>
     <string id="SelectAlerts">Alerts</string>
     <string id="MenuSettings">Settings</string>
-    <string id="MenuDatafields">Datafields</string>
-    <string id="Off">-- hide --</string>
+    <string id="MenuDisplayfields">Displayvalues</string>
+    <string id="MenuLoggingfields">Loggingvalues</string>
+    <string id="Off">-- Off --</string>
     <string id="AppName">Forumloader</string>
     <string id="initializing">initializing</string>
     <string id="searching">searching</string>

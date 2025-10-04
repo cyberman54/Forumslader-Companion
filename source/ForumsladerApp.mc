@@ -19,7 +19,7 @@ var
     speedunitFactor as Float = 1.0,     // changed according to FL type
     speedunit as String = "kmh",        // changed according to garmin device settings
     FLpayload as ByteArray = []b,       // $FLx data buffer
-    UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false];
+    UserSettings as Array = [0, 0, 0, 0, 0, 0, 0, 0, false, false, false, false, false];
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -85,11 +85,17 @@ class ForumsladerApp extends AppBase {
 
     //! get user settings and store them in UserSettings array
     private function getUserSettings() as Void {
-        // get user settings from application properties
+        // display fields
         $.UserSettings[$.DisplayField1] = readKey("UserSetting1", 0);
         $.UserSettings[$.DisplayField2] = readKey("UserSetting2", 0);
         $.UserSettings[$.DisplayField3] = readKey("UserSetting3", 0);
         $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
+        // logging fields
+        $.UserSettings[$.LoggingField1] = readKey("UserSetting5", 0);
+        $.UserSettings[$.LoggingField2] = readKey("UserSetting6", 0);
+        $.UserSettings[$.LoggingField3] = readKey("UserSetting7", 0);
+        $.UserSettings[$.LoggingField4] = readKey("UserSetting8", 0);
+        // other settings
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
