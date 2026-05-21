@@ -63,12 +63,13 @@ class ForumsladerView extends SimpleDataField {
             }
 
             // write values to fit file, if FitLogging is enabled by user
-            if ($.UserSettings[$.FitLogging] == true) { 
+            if ($.UserSettings[$.FitLogging] == true && !($.UserSettings.slice(4,8).toString().equals("[0, 0, 0, 0]"))) {
                 _fitContributor.setData(
-                _battVoltage, 
-                _capacity,
-                _battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000,
-                _battVoltage * _data.FLdata[FL_loadCurrent] / 1000);
+                    computeLoggingValue($.UserSettings[$.LoggingField1] as Number),
+                    computeLoggingValue($.UserSettings[$.LoggingField2] as Number),
+                    computeLoggingValue($.UserSettings[$.LoggingField3] as Number),
+                    computeLoggingValue($.UserSettings[$.LoggingField4] as Number)
+                );
             }
 
             // display forumslader alarms
@@ -85,7 +86,7 @@ class ForumsladerView extends SimpleDataField {
                 for (var i = 0; i < 4; i++)
                 {  
                     if ($.UserSettings[i] > 0) { 
-                        displayString += computeFieldValue($.UserSettings[i] as Number);
+                        displayString += computeDisplayValue($.UserSettings[i] as Number);
                         displayString += i == 3 ? "" : " "; // no blank after last show field
                     }
                 }
@@ -93,7 +94,7 @@ class ForumsladerView extends SimpleDataField {
                     do {
                         _index = (_index + 1) % 4; // rotating index 0..3
                         if ($.UserSettings[_index] > 0) {
-                            displayString = computeFieldValue($.UserSettings[_index] as Number);
+                            displayString = computeDisplayValue($.UserSettings[_index] as Number);
                             break;
                         }
                     } while (_index < 4);
@@ -102,10 +103,10 @@ class ForumsladerView extends SimpleDataField {
             return displayString;
     }
 
-    //! generate a single field value
+    //! generate a single field value for display
     //! @param Number of selected field value
     //! @return String value for the selected field
-    private function computeFieldValue(fieldvalue as Number) as String {
+    private function computeDisplayValue(fieldvalue as Number) as String {
         switch (fieldvalue)
                 {
                     case 11:    // charger state
@@ -140,6 +141,44 @@ class ForumsladerView extends SimpleDataField {
                 }
     }
 
+    //! generate a single field value for logging
+    //! @param Number of selected field value
+    //! @return Float or Number value for the selected field
+    private function computeLoggingValue(fieldvalue as Number) as Float or Number {
+        switch (fieldvalue)
+                {
+                    case 11:    // charger state
+                        var char = _data.FLdata[FL_status] & 0x8000 ? 0 : 1; // bit 15: charge / discharge
+                        char += _data.FLdata[FL_status] & 0x100 ? 0 : 1; // bit 9: powerreduce
+                        char += _data.FLdata[FL_status] & 0x200 ? 0 : 1; // bit 8: off
+                        return char as Number;
+                    case 10:    // remaining battery capacity
+                        return _capacity as Number;
+                    case 9: {   // speed
+                        var speed = _data.FLdata[FL_frequency] * _data.freq2speed;
+                        return speed.format("%.1f") as Float; }
+                    case 8:     // electrical load
+                        return (_battVoltage * _data.FLdata[FL_loadCurrent] / 1000).format("%.1f") as Float;
+                    case 7:     // battery current
+                        return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") as Float;
+                    case 6:     // battery voltage
+                        return _battVoltage.format("%.1f") as Float;
+                    case 5: {   // dynamo impulse frequency
+                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0);
+                        return freq.toNumber() as Number; }
+                    case 4:     // generator gear
+                        return _data.FLdata[FL_gear] as Number;
+                    case 3:     // dynamo power
+                        return (_battVoltage * (_data.FLdata[FL_loadCurrent] + _data.FLdata[FL_battCurrent]) / 1000) as Float;
+                    case 2:     // temperature
+                        return (_data.FLdata[FL_temperature] / 10.0).format("%.1f") as Float;
+                    case 1:     // trip energy
+                        return (_data.FLdata[FL_tripEnergy] / 10.0).format("%.1f") as Float;
+                    default:
+                        return 0;
+                }
+    }
+    
     //! Check forumslader status for alarms
     //! @param forumslader status bitmap
     private function checkAlarms() as Void {

@@ -125,7 +125,7 @@ class ForumsladerApp extends AppBase {
     //! @param property key, default value
     //! @return value as Number
     private function readKey(key as PropertyKeyType, thisDefault as Number or Boolean) as Number or Boolean {
-    var value = Properties.getValue(key) as PropertyValueType;
+    var value = Properties.getValue(key as String) as PropertyValueType;
     if(value instanceof Boolean) {
         return value;
     }

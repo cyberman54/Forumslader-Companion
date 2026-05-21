@@ -61,7 +61,7 @@ class ForumsladerFitContributor {
     }
 
     // write values to fit file
-    public function setData(field1 as Float, field2 as Number, field3 as Float, field4 as Float) as Void {
+    public function setData(field1 as Float or Number, field2 as Float or Number, field3 as Float or Number, field4 as Float or Number) as Void {
         if (_fitRecording1 != null && _fitRecording2 != null && _fitRecording3 != null && _fitRecording4 != null) {
             _fitRecording1.setData(field1);
             _fitRecording2.setData(field2);
