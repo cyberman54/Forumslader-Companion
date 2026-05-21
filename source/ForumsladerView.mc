@@ -154,7 +154,7 @@ class ForumsladerView extends SimpleDataField {
                         return _battVoltage.format("%.1f") + "V";
                     case 5: {   // tour km
                         var tourkm = _data.FLdata[FL_impulseCounter] * _data.imp2km;
-                        return tourkm.format("%.1f") + "km"; }
+                        return tourkm.format("%.1f") + $.distanceunit; }
                     case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
                     case 3:     // dynamo power

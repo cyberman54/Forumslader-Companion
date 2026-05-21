@@ -18,6 +18,7 @@ var
     isV6 as Boolean = false,            // forumslader type V5/V6 identifier
     speedunitFactor as Float = 1.0,     // changed according to FL type
     speedunit as String = "kmh",        // changed according to garmin device settings
+    distanceunit as String = "km",      // changed according to garmin device settings
     FLpayload as ByteArray = []b,       // $FLx data buffer
     UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false];
 
@@ -106,9 +107,11 @@ class ForumsladerApp extends AppBase {
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;
             speedunit = "kmh";
+            distanceunit = "km";
         } else {
             speedunitFactor = 1.609344;
             speedunit = "mph";
+            distanceunit = "mi";
         }
         debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
         // get app version from resources.xml file and write it to properties for display in settings menu
