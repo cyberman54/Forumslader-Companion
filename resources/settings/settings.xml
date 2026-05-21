@@ -31,7 +31,7 @@
             <listEntry value="2">@Strings.Temperature</listEntry>
             <listEntry value="3">@Strings.DynamoPower</listEntry>
             <listEntry value="4">@Strings.DynamoGear</listEntry>
-            <listEntry value="5">@Strings.DynamoFrequency</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
             <listEntry value="8">@Strings.Load</listEntry>
@@ -48,7 +48,7 @@
             <listEntry value="2">@Strings.Temperature</listEntry>
             <listEntry value="3">@Strings.DynamoPower</listEntry>
             <listEntry value="4">@Strings.DynamoGear</listEntry>
-            <listEntry value="5">@Strings.DynamoFrequency</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
             <listEntry value="8">@Strings.Load</listEntry>
@@ -65,7 +65,7 @@
             <listEntry value="2">@Strings.Temperature</listEntry>
             <listEntry value="3">@Strings.DynamoPower</listEntry>
             <listEntry value="4">@Strings.DynamoGear</listEntry>
-            <listEntry value="5">@Strings.DynamoFrequency</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
             <listEntry value="8">@Strings.Load</listEntry>
@@ -82,7 +82,7 @@
             <listEntry value="2">@Strings.Temperature</listEntry>
             <listEntry value="3">@Strings.DynamoPower</listEntry>
             <listEntry value="4">@Strings.DynamoGear</listEntry>
-            <listEntry value="5">@Strings.DynamoFrequency</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
             <listEntry value="6">@Strings.BatteryVoltage</listEntry>
             <listEntry value="7">@Strings.BatteryCurrent</listEntry>
             <listEntry value="8">@Strings.Load</listEntry>

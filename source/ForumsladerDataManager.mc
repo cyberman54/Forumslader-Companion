@@ -5,7 +5,7 @@ import Toybox.Activity;
 enum {
     // FL5/6 sentence
     FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
-    FL_battCurrent, FL_loadCurrent, // FL_intTemp,
+    FL_battCurrent, FL_loadCurrent, FL_impulseCounter, //FL_intTemp,
 
     // FLB sentence
     FL_temperature, //FL_pressure, FL_sealevel, FL_incline,
@@ -48,7 +48,8 @@ class DataManager {
     public var
         age as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
-        freq2speed as Float = 0.0;
+        freq2speed as Float = 0.0, // conversion factor for dynamofrequency to speed, calculated from wheel size and pole count
+        imp2km as Float = 0.0;     // conversion factor for impulse counter to tour km, calculated from wheel size and pole count
 
     private var 
         _parity as Number = 0,
@@ -145,6 +146,7 @@ class DataManager {
                         FLdata[FL_battVoltage3]     = commitValue(_FLterm[6], 0, 5000);     // Spannung Zelle 3 [mV]
                         FLdata[FL_battCurrent]      = commitValue(_FLterm[7], -10000, 10000);  // Akkustrom [mA +/-]
                         FLdata[FL_loadCurrent]      = commitValue(_FLterm[8], 0, 10000);    // Verbraucherstrom [mA]
+                        FLdata[FL_impulseCounter]   = commitValue(_FLterm[13], 0, 0);       // Dynamoimpulse/4096
                         //FLdata[FL_intTemp]          = commitValue(_FLterm[9], -50, 100);  // Lader-Temperatur [°C]
                         break;
 
@@ -179,8 +181,10 @@ class DataManager {
                         FLdata[FL_acc2mah]          = commitValue(_FLterm[8], 1, 10000);
                         if (FLdata[FL_wheelsize] > 0 && FLdata[FL_poles] > 0) {
                                 freq2speed = FLdata[FL_wheelsize] / FLdata[FL_poles] * 0.0036 / ($.isV6 ? 10.0 : 1.0) * $.speedunitFactor;
+                                imp2km = FLdata[FL_wheelsize] / FLdata[FL_poles] * 0.004096;
                                 } else {
-                                freq2speed = 0.0;    
+                                freq2speed = 0.0;
+                                imp2km = 0.0;
                         }
                         debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;

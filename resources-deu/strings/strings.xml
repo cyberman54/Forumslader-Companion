@@ -26,8 +26,8 @@
     <string id="DynamoPowerLabel">W</string>
     <string id="DynamoGear">Dynamostufe</string>
     <string id="DynamoGearLabel">S</string>
-    <string id="DynamoFrequency">Dynamofrequenz</string>
-    <string id="DynamoFrequencyLabel">Hz</string>
+    <string id="Distance">Tourenstrecke</string>
+    <string id="DistanceLabel">km</string>
     <string id="BatteryVoltage">Akkuspannung</string>
     <string id="BatteryVoltageLabel">V</string>
     <string id="BatteryCurrent">Akkustrom</string>

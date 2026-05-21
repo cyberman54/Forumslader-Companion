@@ -152,9 +152,9 @@ class ForumsladerView extends SimpleDataField {
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                     case 6:     // battery voltage
                         return _battVoltage.format("%.1f") + "V";
-                    case 5: {   // dynamo impulse frequency
-                        var freq = _data.FLdata[FL_frequency] / ($.isV6 ? 10.0 : 1.0);
-                        return freq.toNumber() + "Hz"; }
+                    case 5: {   // tour km
+                        var tourkm = _data.FLdata[FL_impulseCounter] * _data.imp2km;
+                        return tourkm.format("%.1f") + "km"; }
                     case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
                     case 3:     // dynamo power
