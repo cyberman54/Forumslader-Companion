@@ -26,7 +26,7 @@
     <string id="DynamoPowerLabel">W</string>
     <string id="DynamoGear">Generator Gear</string>
     <string id="DynamoGearLabel">S</string>
-    <string id="Distance">Tour Distance</string>
+    <string id="Distance">Odometer</string>
     <string id="DistanceLabel">km</string>
     <string id="BatteryVoltage">Battery Voltage</string>
     <string id="BatteryVoltageLabel">V</string>
