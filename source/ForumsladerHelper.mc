@@ -1,10 +1,16 @@
 import Toybox.Lang;
 import Toybox.System;
 
-(:debug) function debug(val as String or Char or Number) as Void {
+(:debug) function debug(val as String or Char or Number or Float or Double) as Void {
     switch(val) {
         case instanceof Lang.Number:
             System.println(val as Number);
+            break;
+        case instanceof Lang.Float:
+            System.println(val as Float);
+            break;
+        case instanceof Lang.Double:
+            System.println(val as Double);
             break;
         case instanceof Lang.Char:
             System.print(val as Char);
