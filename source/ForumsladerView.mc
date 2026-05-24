@@ -42,7 +42,7 @@ class ForumsladerView extends SimpleDataField {
             WatchUi.loadResource($.Rez.Strings.connecting) as String] as Array<String>;
         _data = dataManager;
         _device = deviceManager;
-        _battVoltage = 0f;
+        _battVoltage = 0.0;
         _capacity = 0;
         _index = 0;
         _alertMute = 0;
@@ -152,8 +152,8 @@ class ForumsladerView extends SimpleDataField {
                         return (_data.FLdata[FL_battCurrent] / 1000.0).format("%+.1f") + "A";
                     case 6:     // battery voltage
                         return _battVoltage.format("%.1f") + "V";
-                    case 5: {   // tour km
-                        var tourkm = _data.FLdata[FL_impulseCounter] * _data.imp2km;
+                    case 5: {   // odometer
+                        var tourkm = _data.FLdata[FL_impulseCounter].toDouble() * _data.imp2km;
                         return tourkm.format("%.1f") + $.distanceunit; }
                     case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
