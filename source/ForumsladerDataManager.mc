@@ -1,29 +1,25 @@
 import Toybox.Lang;
 import Toybox.Activity;
 
-// Forumslader Daten-Felder (Kompilieren direkt als primitive Integers)
+// Verwendete Forumslader Datensätze
 enum {
     // FL5/FL6 sentences
-    FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
-    FL_battCurrent, FL_loadCurrent, FL_impulseCounter, //FL_intTemp,
-
+        FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
+        FL_battCurrent, FL_loadCurrent, FL_impulseCounter, //FL_intTemp,
     // FLB sentence
-    FL_temperature,
-
+        FL_temperature,
     // FLP sentence
-    FL_wheelsize, FL_poles, FL_acc2mah,
-
+        FL_wheelsize, FL_poles, FL_acc2mah,
     // FLC sentence
-    FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                           // set 3
-    FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,              // set 5
-    
-    // Gesamtgröße des Daten-Arrays, abhängig von den unterstützten Sätzen
+        FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                 // set 3
+        FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,    // set 5
+    // Resultierende Größe des Daten-Arrays
     FL_tablesize
 }
 
 class DataManager {
 
-    // NMEA Satz-Typen für den Forumslader
+    // Verwendete Datensatztypen des Forumsladers
     enum {
         SENTENCE_OTHER = -1,
         SENTENCE_FL5, 
@@ -33,26 +29,28 @@ class DataManager {
         SENTENCE_FLP
     }
   
-    public const MAX_AGE_SEC = 10; // Timeout in Sekunden für $FLx Daten
+    public const 
+        MAX_AGE_SEC = 10; // Maximales Alter der Daten in Sekunden, bevor sie als veraltet gelten
 
-    private const _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>;
-    private const _MAX_TERM_SIZE = 24;  // Reduziert auf realistisches Maximum zur RAM-Schonung
-    private const _MAX_TERM_COUNT = 16; 
+    private const 
+        _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
+        _MAX_TERM_SIZE = 24,
+        _MAX_TERM_COUNT = 16; 
 
-    public var age as Number = MAX_AGE_SEC;
-    public var FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
-    public var freq2speed as Float = 0.0f; 
-    public var imp2odo as Double = 0.0d;  
+    public var 
+        age as Number = MAX_AGE_SEC,
+        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
+        freq2speed as Float = 0.0f,
+        imp2odo as Double = 0.0d;  
 
-    private var _parity as Number = 0;
-    private var _isChecksumTerm as Boolean = false;
-    private var _currSentenceType as Number = SENTENCE_OTHER;
-    private var _currTermNumber as Number = 0;
-    private var _currTermOffset as Number = 0;
-    
-    // Speicher-Optimierung: Feste Puffer verhindern Speicherfragmentierung (kein "new" im 1Hz-Stream)
-    private var _charBuffer as Array<Char> = new [_MAX_TERM_SIZE] as Array<Char>;
-    private var _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
+    private var 
+        _parity as Number = 0,
+        _isChecksumTerm as Boolean = false,
+        _currSentenceType as Number = SENTENCE_OTHER,
+        _currTermNumber as Number = 0,
+        _currTermOffset as Number = 0,
+        _charBuffer as Array<Char> = new [_MAX_TERM_SIZE] as Array<Char>,
+        _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
 
     //! Konstruktor initialisiert das Datenfeld komplett genullt
     public function initialize() {
@@ -65,6 +63,7 @@ class DataManager {
     //! Interpretiert den $FLx Datenstrom des Forumsladers Byte für Byte
     public function encode(b as Number) as Void {
         var c = b.toChar();
+        // debug(c);
 
         switch(c) {
             case ',': 
