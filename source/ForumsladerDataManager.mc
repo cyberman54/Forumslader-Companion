@@ -72,6 +72,7 @@ class DataManager {
     //! Highly optimized for streaming input to prevent Garbage Collection spikes
     public function encode(b as Number) as Void {
         var c = b.toChar();
+        //debug(c);
 
         switch(c) {
             // Term-Separator oder Satzende
@@ -80,7 +81,6 @@ class DataManager {
             case '\r':
             case '*':
                 if (_currTermOffset < _MAX_TERM_SIZE) {
-                    // Wandelt das Char-Array erst beim Term-Ende in einen String um
                     var term = StringUtil.charArrayToString(_currTermBuffer.slice(0, _currTermOffset));
                     if (_currTermNumber < _MAX_TERM_COUNT) {
                         _FLterm[_currTermNumber] = term;
@@ -187,8 +187,13 @@ class DataManager {
                             freq2speed = 0.0f;
                             imp2odo = 0.0d;
                         }
+                        debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
                         break;
                 }
+            }
+            // invalid term or checksum error, ignore sentence and log error
+            else {
+                debug ("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
         }
     }
