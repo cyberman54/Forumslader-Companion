@@ -153,7 +153,7 @@ class ForumsladerView extends SimpleDataField {
                     case 6:     // battery voltage
                         return _battVoltage.format("%.1f") + "V";
                     case 5: {   // odometer
-                        var tourkm = _data.FLdata[FL_impulseCounter].toDouble() * _data.imp2km;
+                        var tourkm = _data.FLdata[FL_impulseCounter].toDouble() * _data.imp2odo;
                         return tourkm.format("%.1f") + $.distanceunit; }
                     case 4:     // generator gear
                         return _data.FLdata[FL_gear] + "";
