@@ -192,7 +192,7 @@ class ForumsladerView extends SimpleDataField {
 
         // 2. Alarm auslösen (State-Trigger statt dauerhaftem Abfragen)
         if (!_capacityAlertLock) {
-            if (_capacity < _capacityAlarmMin) {
+            if (_capacity > 0 &&_capacity < _capacityAlarmMin) {
                 _capacityAlertLock = true;
                 _alertMute = _alertLockTime;
                 showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
