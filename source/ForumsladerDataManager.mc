@@ -1,33 +1,29 @@
 import Toybox.Lang;
 import Toybox.Activity;
 
-// forumslader data fields
+// Forumslader Daten-Felder (Kompilieren direkt als primitive Integers)
 enum {
-    // FL5/6 sentence
+    // FL5/FL6 sentences
     FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
     FL_battCurrent, FL_loadCurrent, FL_impulseCounter, //FL_intTemp,
 
     // FLB sentence
-    FL_temperature, //FL_pressure, FL_sealevel, FL_incline,
+    FL_temperature,
 
     // FLP sentence
     FL_wheelsize, FL_poles, FL_acc2mah,
 
     // FLC sentence
-    //FL_tourElevation, FL_tourInclineMax, FL_tourTempMax, FL_tourAltitudeMax, FL_tourPulseMax,   // set 0
-    //FL_tripElevation, FL_tripInclineMax, FL_tripTempMax, FL_tripAltitudeMax, FL_tripPulseMax,   // set 1
-    //FL_Elevation, FL_tourInclineMin, FL_tourTempMin, FL_tripInclineMin, FL_tripTempMin,         // set 2
     FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                           // set 3
-    //FL_tripSpeedAvg, FL_tourSpeedAvg, FL_tripClimbAvg, FL_tourClimbAvg, FL_empty2,              // set 4
     FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,              // set 5
     
-    // size of FLdata array
+    // Gesamtgröße des Daten-Arrays, abhängig von den unterstützten Sätzen
     FL_tablesize
 }
 
 class DataManager {
 
-    // types of forumslader data sentences
+    // NMEA Satz-Typen für den Forumslader
     enum {
         SENTENCE_OTHER = -1,
         SENTENCE_FL5, 
@@ -37,54 +33,48 @@ class DataManager {
         SENTENCE_FLP
     }
   
-    public const
-        MAX_AGE_SEC = 10; // Maximales Alter der Daten in Sekunden, bevor sie als veraltet gelten
+    public const MAX_AGE_SEC = 10; // Timeout in Sekunden für $FLx Daten
 
-    private const 
-        _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>, // Erkennung der Satztypen anhand des ersten Terms
-        _MAX_TERM_SIZE = 30,  // Maximale Länge eines Terms, um Pufferüberläufe zu verhindern
-        _MAX_TERM_COUNT = 20; // Maximale Anzahl von Terms pro Satz, um Array-Überläufe zu verhindern
+    private const _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>;
+    private const _MAX_TERM_SIZE = 24;  // Reduziert auf realistisches Maximum zur RAM-Schonung
+    private const _MAX_TERM_COUNT = 16; 
 
-    public var
-        age as Number = MAX_AGE_SEC,                    // Alter der Daten in Sekunden, wird bei erfolgreichem Empfang eines vollständigen Satzes auf 0 zurückgesetzt
-        FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,          // Array zur Speicherung der aktuellen Werte der Forumslader-Datenfelder
-        freq2speed as Float = 0.0,                      // Umrechnung von Trittfrequenz zu Geschwindigkeit (abhängig von Radgröße und Polzahl)
-        imp2odo as Double = 0.0d;                       // Umrechnung von Impulsen zu zurückgelegter Strecke (abhängig von Radgröße und Polzahl)
+    public var age as Number = MAX_AGE_SEC;
+    public var FLdata as Array<Number> = new [FL_tablesize] as Array<Number>;
+    public var freq2speed as Float = 0.0f; 
+    public var imp2odo as Double = 0.0d;  
 
-    private var 
-        _parity as Number = 0,                          // Parity-Check für die Überprüfung der Datenintegrität, wird byteweise mit XOR berechnet
-        _isChecksumTerm as Boolean = false,             // Flag, um zu erkennen, ob der aktuelle Term der Checksum-Term ist (beginnt mit '*')
-        _currSentenceType as Number = SENTENCE_OTHER,   // Aktueller Satztyp, wird anhand des ersten Terms eines Satzes bestimmt
-        _currTermNumber as Number = 0,                  // Nummer des aktuellen Terms im Satz, beginnt bei 0 für den ersten Term
-        _currTermOffset as Number = 0,                  // Aktuelle Position im Term-Puffer, um die Länge des Terms zu verfolgen und Pufferüberläufe zu verhindern
-        _currTermBuffer as Array<Char> = new [_MAX_TERM_SIZE] as Array<Char>,   // Puffer zur Speicherung der Zeichen eines Terms, wird byteweise gefüllt und erst am Ende des Terms in einen String umgewandelt
-        _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;      // Array zur Speicherung der Terms eines Satzes, wird bei jedem Term-Ende aktualisiert und für die Datenextraktion verwendet
+    private var _parity as Number = 0;
+    private var _isChecksumTerm as Boolean = false;
+    private var _currSentenceType as Number = SENTENCE_OTHER;
+    private var _currTermNumber as Number = 0;
+    private var _currTermOffset as Number = 0;
+    
+    // Speicher-Optimierung: Feste Puffer verhindern Speicherfragmentierung (kein "new" im 1Hz-Stream)
+    private var _charBuffer as Array<Char> = new [_MAX_TERM_SIZE] as Array<Char>;
+    private var _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
 
-    //! Constructor
+    //! Konstruktor initialisiert das Datenfeld komplett genullt
     public function initialize() {
-        var k = FLdata.size();
-        for (var i = 0; i < k; i++) {
+        var size = FLdata.size();
+        for (var i = 0; i < size; i++) {
             FLdata[i] = 0;
         }
     }
 
-    //! Interpretes $FLx data stream of Forumslader byte by byte
-    //! Highly optimized for streaming input to prevent Garbage Collection spikes
+    //! Interpretiert den $FLx Datenstrom des Forumsladers Byte für Byte
     public function encode(b as Number) as Void {
         var c = b.toChar();
-        //debug(c);
 
         switch(c) {
-            // Term-Separator oder Satzende
             case ',': 
                 _parity ^= b;
+                // Absichtlicher Fallthrough zur Term-Verarbeitung
             case '\r':
             case '*':
-                if (_currTermOffset < _MAX_TERM_SIZE) {
-                    var term = StringUtil.charArrayToString(_currTermBuffer.slice(0, _currTermOffset));
-                    if (_currTermNumber < _MAX_TERM_COUNT) {
-                        _FLterm[_currTermNumber] = term;
-                    }
+                if (_currTermOffset < _MAX_TERM_SIZE && _currTermNumber < _MAX_TERM_COUNT) {
+                    var term = StringUtil.charArrayToString(_charBuffer.slice(0, _currTermOffset));
+                    _FLterm[_currTermNumber] = term;
                     parseTerm(term);
                 }
                 _currTermNumber++;
@@ -92,7 +82,6 @@ class DataManager {
                 _isChecksumTerm = (c == '*');
                 break;
 
-            // Satzbeginn
             case '$':
                 _currSentenceType = SENTENCE_OTHER;
                 _parity = 0;
@@ -101,10 +90,9 @@ class DataManager {
                 _isChecksumTerm = false;
                 break;
 
-            // Alle anderen Zeichen werden in den Term-Puffer geschrieben, solange die maximale Termgröße nicht überschritten wird
             default:
                 if (_currTermOffset < _MAX_TERM_SIZE - 1) {
-                    _currTermBuffer[_currTermOffset] = c;
+                    _charBuffer[_currTermOffset] = c;
                     _currTermOffset++;
                 }
                 if (!_isChecksumTerm) {
@@ -114,12 +102,12 @@ class DataManager {
         }
     }
 
-    //! Processes a term of a $FLx sentence
+    //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
     private function parseTerm(term as String) as Void {
-        // Erstes Term bestimmt den Satz-Typ
+        // Der erste Term indiziert den Telegramm-Typ ($FL5, $FLP etc.)
         if (_currTermNumber == 0) {
             _currSentenceType = SENTENCE_OTHER;
-            for (var i = 0; i < _sentenceType.size(); i++) {
+            for (var i = 0; i < 5; i++) {
                 if (term.equals(_sentenceType[i])) {
                     _currSentenceType = i;
                     break;
@@ -127,34 +115,36 @@ class DataManager {
             }
             return;
         }
-        // Wenn der aktuelle Term der Checksum-Term ist, wird die Parity-Check durchgeführt und bei Erfolg die Daten extrahiert
+
+        // Validierung der Prüfsumme sichert Datenintegrität vor dem Speichern im Array
         if (_isChecksumTerm) {
             if (term.toNumberWithBase(16) == _parity) {
-                age = 0; // Frische Daten, Timeout zurücksetzen
-                var fl = FLdata; // Lokaler Cache für schnelleren Array-Zugriff
-                var terms = _FLterm;
+                age = 0; // Daten sind valide, Timeout-Zähler zurücksetzen
+                
+                var fl = FLdata; // Lokaler Cache-Zeiger verkürzt die VM-Adressierung
+                var t = _FLterm;
 
                 switch(_currSentenceType) {
                     case SENTENCE_FL5:
                     case SENTENCE_FL6:
-                        var state = terms[1].toNumberWithBase(16);
+                        var state = t[1].toNumberWithBase(16);
                         fl[FL_status] = (state != null) ? state : 0;
-                        fl[FL_gear]             = commitValue(terms[2], 0, 10);       
-                        fl[FL_frequency]        = commitValue(terms[3], 0, 5000);     
-                        fl[FL_battVoltage1]     = commitValue(terms[4], 0, 5000);     
-                        fl[FL_battVoltage2]     = commitValue(terms[5], 0, 5000);     
-                        fl[FL_battVoltage3]     = commitValue(terms[6], 0, 5000);     
-                        fl[FL_battCurrent]      = commitValue(terms[7], -10000, 10000);  
-                        fl[FL_loadCurrent]      = commitValue(terms[8], 0, 10000);    
-                        fl[FL_impulseCounter]   = commitValue(terms[$.isV6 ? 12 : 13], 0, 0);  
+                        fl[FL_gear]             = commitValue(t[2], 0, 10);       
+                        fl[FL_frequency]        = commitValue(t[3], 0, 5000);     
+                        fl[FL_battVoltage1]     = commitValue(t[4], 0, 5000);     
+                        fl[FL_battVoltage2]     = commitValue(t[5], 0, 5000);     
+                        fl[FL_battVoltage3]     = commitValue(t[6], 0, 5000);     
+                        fl[FL_battCurrent]      = commitValue(t[7], -10000, 10000);  
+                        fl[FL_loadCurrent]      = commitValue(t[8], 0, 10000);    
+                        fl[FL_impulseCounter]   = commitValue(t[$.isV6 ? 12 : 13], 0, 0);  
                         break;
 
                     case SENTENCE_FLB:
-                        fl[FL_temperature]      = commitValue(terms[1], -300, 800);   
+                        fl[FL_temperature]      = commitValue(t[1], -300, 800);   
                         break;
 
                     case SENTENCE_FLC: {
-                        var _FLCsetnr = commitValue(terms[1], 0, 5);  
+                        var _FLCsetnr = commitValue(t[1], 0, 5);  
                         var _offset = 0;
                         if (_FLCsetnr == 3) { 
                             _offset = FL_Energy; 
@@ -165,15 +155,15 @@ class DataManager {
                         }
 
                         for (var i = 0; i < 5; i++) {
-                            fl[_offset + i] = commitValue(terms[i + 2], 0, 0);
+                            fl[_offset + i] = commitValue(t[i + 2], 0, 0);
                         }
                         break;
                     }
 
                     case SENTENCE_FLP:
-                        fl[FL_wheelsize] = commitValue(terms[1], 1000, 2500);
-                        fl[FL_poles]     = commitValue(terms[2], 10, 20);
-                        fl[FL_acc2mah]   = commitValue(terms[8], 1, 10000);
+                        fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
+                        fl[FL_poles]            = commitValue(t[2], 10, 20);
+                        fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
                         
                         var wSize = fl[FL_wheelsize];
                         var poles = fl[FL_poles];
@@ -198,7 +188,7 @@ class DataManager {
         }
     }
 
-    // Verwendet bei der Datenextraktion, um ungültige Werte (nicht-numerisch oder außerhalb von sinnvollen Bereichen) auf 0 zu setzen, um die Stabilität der Anwendung zu gewährleisten
+    //! Parst, validiert und begrenzt numerische Rohwerte defensiv
     private function commitValue(term as String, min as Number, max as Number) as Number {
         if (term == null || term.length() == 0) {
             return 0;
