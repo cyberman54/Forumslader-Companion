@@ -230,61 +230,64 @@ class DeviceManager {
         }
     }
 
-    //! finite state machine
+    //! Finite state machine
     public function updateState() as Number {
-        switch($.FLstate)
-            {
-            // waiting for delegate event, nothing to do meanwhile
+        var currentState = $.FLstate; 
+
+        switch(currentState) {
+            // Idle-Zustände: Sofortiger Abbruch spart CPU-Zyklen
             case FL_READY:
             case FL_SEARCH:
             case FL_DISCONNECT:
                 break;
-            // cold start (used after pairing)
+
+            // Kaltstart nach dem Pairing
             case FL_COLDSTART:
                 if (setupProfile()) {
-                    $.FLstate = FL_CONFIG1;
+                    currentState = FL_CONFIG1;
                     startDatastreamFL();
                 } else {
-                    $.FLstate = FL_SEARCH;
+                    currentState = FL_SEARCH;
                 }
                 break;
-            // warm start (used after reconnecting)
+
+            // Warmstart nach einem Verbindungsabbruch
             case FL_WARMSTART:
-                $.FLstate = FL_READY;
+                currentState = FL_READY;
                 startDatastreamFL();
                 break;
-            // 3-steps configuration sequence during startup
-            // step1: request parameters
+
+            // Parameter anfordern, sobald der Datenstrom aktiv ist
             case FL_CONFIG1:
-                if (_data.age == 0) {  // wait until data stream was turned on
-                    sendCommandFL(FLP); // request wheelsize and poles data
-                    $.FLstate = FL_CONFIG2;
+                if (_data.age == 0) { 
+                    sendCommandFL(FLP); // Radgröße und Polanzahl anfordern
+                    currentState = FL_CONFIG2;
                 }
                 break;
-            // step2: check parameters, first try
+
+            // Wenn die Polanzahl > 0 ist, sind die Parameter gültig und die App kann in den READY-Zustand wechseln
             case FL_CONFIG2:
-                if (_data.FLdata[FL_poles] > 0) {
-                    _configDone = true;
-                    $.FLstate = FL_READY;
-                } else {
-                    $.FLstate = FL_CONFIG3;
-                }
-                break;
-            // step3: check parameters, second try (for FLV5)
             case FL_CONFIG3:
-                if (_data.FLdata[FL_poles] > 0) {
+                var fl = _data.FLdata; 
+                if (fl[FL_poles] > 0) {
                     _configDone = true;
-                    $.FLstate = FL_READY;
+                    currentState = FL_READY;
                 } else {
-                    $.FLstate = FL_CONFIG1;
+                    // Wenn beim ersten Mal (CONFIG2) fehlgeschlagen, gehe zu CONFIG3, sonst zurück zu CONFIG1
+                    currentState = (currentState == FL_CONFIG2) ? FL_CONFIG3 : FL_CONFIG1;
                 }
                 break;
-            // life saver, should never be reached
+
+            // Fallback-Schutz
             default:
-            $.FLstate = FL_SEARCH;
-            debug("state engine error");
-            }
-       return $.FLstate;
+                currentState = FL_SEARCH;
+                debug("state engine error");
+                break;
+        }
+
+        // Den berechneten Zustand wieder zurückschreiben und zurückgeben
+        $.FLstate = currentState;
+        return currentState;
     }
 
 }
