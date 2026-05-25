@@ -195,10 +195,7 @@ class ForumsladerView extends SimpleDataField {
             if (_capacity > 0 &&_capacity < _capacityAlarmMin) {
                 _capacityAlertLock = true;
                 _alertMute = _alertLockTime;
-                // Defensiver API-Check: Verhindert Abstürze auf inkompatiblen Garmin-Firmwares
-                if (DataField has :showAlert) {
-                    showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
-                }
+                showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
             }
         } else {
         // 3. Alarm zurücksetzen, wenn die Kapazität sich erholt hat (z. B. durch Ladung)
@@ -210,16 +207,12 @@ class ForumsladerView extends SimpleDataField {
         // 4. Weitere Alarme prüfen (z. B. Kurzschluss, Systemunterbrechung) - ebenfalls mit State-Triggern
         if (_data.FLdata[FL_status] & 0x8) { // short circuit
             _alertMute = _alertLockTime;
-                if (DataField has :showAlert) {
-                    showAlert(new $.ForumsladerAlertView(_alertShortCircuitStr));
-                }
+            showAlert(new $.ForumsladerAlertView(_alertShortCircuitStr));
             return;
         }
         if (_data.FLdata[FL_status] & 0x800000) { // system interrupt
             _alertMute = _alertLockTime;
-            if (DataField has :showAlert) {
-                showAlert(new $.ForumsladerAlertView(_alertSystemInterruptStr));
-            }
+            showAlert(new $.ForumsladerAlertView(_alertSystemInterruptStr));
             return;
         }
     }
