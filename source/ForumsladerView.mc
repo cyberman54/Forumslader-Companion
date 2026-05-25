@@ -8,9 +8,9 @@ import Toybox.FitContributor;
 class ForumsladerView extends SimpleDataField {
 
     private const 
-        _alertLockTime as Number = 100,     // when an alarm occurs, no consecutive alarms for this time
-        _capacityAlarmMin as Number = 20,   // battery low alarm threshold
-        _capacityAlarmMax as Number = 30;   // battery low alarm clear threshold
+        _alertLockTime as Number = 100,     // Sperrzeit in Sekunden nach Alarm-Auslösung
+        _capacityAlarmMin as Number = 20,   // Warnung unter 20% Kapazität
+        _capacityAlarmMax as Number = 28;   // Entwarnung/Reset erst ab 28% (Hystereseschutz)
  
     private var 
         _data as DataManager,               // Reference to the DataManager for accessing Forumslader data
@@ -195,10 +195,13 @@ class ForumsladerView extends SimpleDataField {
             if (_capacity > 0 &&_capacity < _capacityAlarmMin) {
                 _capacityAlertLock = true;
                 _alertMute = _alertLockTime;
-                showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
+                // Defensiver API-Check: Verhindert Abstürze auf inkompatiblen Garmin-Firmwares
+                if (DataField has :showAlert) {
+                    showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
+                }
             }
         } else {
-            // 3. Alarm zurücksetzen, wenn die Kapazität sich erholt hat (z. B. durch Ladung)
+        // 3. Alarm zurücksetzen, wenn die Kapazität sich erholt hat (z. B. durch Ladung)
             if (_capacity > _capacityAlarmMax) {
                 _capacityAlertLock = false;
             }
@@ -207,16 +210,20 @@ class ForumsladerView extends SimpleDataField {
         // 4. Weitere Alarme prüfen (z. B. Kurzschluss, Systemunterbrechung) - ebenfalls mit State-Triggern
         if (_data.FLdata[FL_status] & 0x8) { // short circuit
             _alertMute = _alertLockTime;
-            showAlert(new $.ForumsladerAlertView(_alertShortCircuitStr));
+                if (DataField has :showAlert) {
+                    showAlert(new $.ForumsladerAlertView(_alertShortCircuitStr));
+                }
             return;
         }
         if (_data.FLdata[FL_status] & 0x800000) { // system interrupt
             _alertMute = _alertLockTime;
-            showAlert(new $.ForumsladerAlertView(_alertSystemInterruptStr)) ;
+            if (DataField has :showAlert) {
+                showAlert(new $.ForumsladerAlertView(_alertSystemInterruptStr));
+            }
             return;
         }
-    }  
-   
+    }
+
     //! switch device state, process the $FLx data, calculate and show values every one second
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
