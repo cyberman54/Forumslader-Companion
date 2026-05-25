@@ -20,10 +20,10 @@ class ForumsladerView extends SimpleDataField {
         _index as Number,                   //  Index for rotating display fields
         _alertMute as Number,               //  Counter to mute alarms for a certain time after they are triggered
         _capacityAlertLock as Boolean,      //  Lock to prevent repeated triggering of battery low alarm until capacity recovers
-        _fitRecording1 as Field,            //  Custom FIT data field for recording battery voltage
-        _fitRecording2 as Field,            //  Custom FIT data field for recording battery capacity
-        _fitRecording3 as Field,            //  Custom FIT data field for recording other values
-        _fitRecording4 as Field,            //  Custom FIT data field for recording additional values
+        _fitRecording1 as Field?,           //  Custom FIT data field for recording battery voltage
+        _fitRecording2 as Field?,           //  Custom FIT data field for recording battery capacity
+        _fitRecording3 as Field?,           //  Custom FIT data field for recording other values
+        _fitRecording4 as Field?,           //  Custom FIT data field for recording additional values
         _alertBatteryLowStr as String,      //  String für Batterie-Alarm
         _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
         _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
@@ -33,9 +33,12 @@ class ForumsladerView extends SimpleDataField {
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
+       
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
+        
         var initStr = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         var connStr = WatchUi.loadResource($.Rez.Strings.connecting) as String;
+        
         _stateDisplayString = [
             WatchUi.loadResource($.Rez.Strings.searching) as String,
             connStr, initStr, initStr, initStr, connStr, connStr, connStr
@@ -50,23 +53,22 @@ class ForumsladerView extends SimpleDataField {
         _index = 0;
         _alertMute = 0;
         _capacityAlertLock = false;
+    }
 
-        // Create custom FIT data fields for recording of 4 forumslader values
+    // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
+    private function initFitRecordingFields() as Void {
         _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
             1, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) as Field;
-
         _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
             2, FitContributor.DATA_TYPE_UINT8,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) as Field;
-
         _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
             3, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
             :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) as Field;
-
         _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
             4, FitContributor.DATA_TYPE_FLOAT,
             {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
@@ -97,11 +99,16 @@ class ForumsladerView extends SimpleDataField {
 
         // write values to fit file, if FitLogging is enabled by user
         if ($.UserSettings[$.FitLogging] == true) { 
-            _fitRecording1.setData(_battVoltage);
-            _fitRecording2.setData(_capacity);
-            _fitRecording3.setData(dynamoPower);
-            _fitRecording4.setData(electricalLoad);
-        }
+            if (_fitRecording1 == null) { initFitRecordingFields(); }
+            if (_fitRecording1 != null) { 
+                _fitRecording1.setData(_battVoltage); }
+            if (_fitRecording2 != null) { 
+                _fitRecording2.setData(_capacity); }
+            if (_fitRecording3 != null) { 
+                _fitRecording3.setData(dynamoPower); }
+            if (_fitRecording4 != null) { 
+                _fitRecording4.setData(electricalLoad); }
+            }
 
         // display forumslader alarms
         if (ForumsladerView has :showAlert && $.UserSettings[$.Alerts] == true) {
@@ -137,7 +144,6 @@ class ForumsladerView extends SimpleDataField {
                 }
             }
         }
-
         return displayString;
     }
 
