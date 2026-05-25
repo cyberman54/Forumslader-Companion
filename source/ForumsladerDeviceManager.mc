@@ -19,6 +19,8 @@ class DeviceManager {
     private const
         // threshold rssi for detecting forumslader devices
         _RSSI_threshold = -85,
+        // command to start the data stream on the forumslader V6 device (not needed for V5)
+        FL6_START = [0x01, 0x00]b,
 	    // command to request pole and wheelsize: $FLT,5*47<lf>
 	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b;
         // command to request firmware version (currently unused): $FLT,4*46<lf>
@@ -219,13 +221,12 @@ class DeviceManager {
         if (!$.isV6) { 
             return; // FLv5 does not need notification activation
         }
-        //debug("start datastream");
         var char = _config;
         if (null != char) {
             var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
             if (null != cccd) {
                 _writeInProgress = true;
-                cccd.requestWrite([0x01,0x00]b); // set notification bit
+                cccd.requestWrite(FL6_START); // set notification bit
             }
         }
     }
