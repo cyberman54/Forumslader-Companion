@@ -22,7 +22,8 @@ class DeviceManager {
         // command to start the data stream on the forumslader V6 device (not needed for V5)
         FL6_START = [0x01, 0x00]b,
 	    // command to request pole and wheelsize: $FLT,5*47<lf>
-	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b;
+	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
+        NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
         // command to request firmware version (currently unused): $FLT,4*46<lf>
         //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b;
 
@@ -36,9 +37,9 @@ class DeviceManager {
         _myDevice as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
-        _FL_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
-        _FL_CONFIG as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
-        _FL_COMMAND as Uuid = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
+        _FL_SERVICE as Uuid = NULL_UUID,
+        _FL_CONFIG as Uuid = NULL_UUID,
+        _FL_COMMAND as Uuid = NULL_UUID;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
@@ -130,96 +131,86 @@ class DeviceManager {
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
     private function sendCommandFL(cmd as ByteArray) as Void {
-        if ((null == _device) || _writeInProgress) {
+        if ((null == _device) || _writeInProgress || null == _command) {
             return;
         }
-        debug("Send FL Command: " + cmd.toString());
-        var command = _command;
-        if (null != command) {
-            _writeInProgress = true;
-            command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
-        }
+        _writeInProgress = true;
+        _command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
     }
 
     //! identify forumslader and get characteristic of it's GATT service
+    //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
     private function setupProfile() as Boolean {
-        if (null != _device) {
-            if (isForumslader(_device)) {
-                _service = (_device as Device).getService(_FL_SERVICE);
-                var service = _service;
-                if (null != service) {
-                    _command = service.getCharacteristic(_FL_COMMAND);
-                    _config = service.getCharacteristic(_FL_CONFIG);
-                    if ($.UserSettings[$.DeviceLock] == true) {
-                        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
-                        if (!(storedDevice instanceof ScanResult)) {
-                            saveDevice(_myDevice as BluetoothLowEnergy.ScanResult);
-                        }
-                    }
-                    return true;
-                }
-            }
+        if (!isForumslader(_device)) {
             debug("error: detected device is not a forumslader V5/V6");
-            if (Storage.getValue("MyDevice") != null) {
+            var storedDevice = Storage.getValue("MyDevice");
+            if (storedDevice != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
-        }   
-        startScan();
-        return false;
+            startScan();
+            return false;
+        }
+        _service = (_device as Device).getService(_FL_SERVICE);
+        if (null == _service) {
+            startScan();
+            return false;
+        }
+        _command = _service.getCharacteristic(_FL_COMMAND);
+        _config = _service.getCharacteristic(_FL_CONFIG);
+        if ($.UserSettings[$.DeviceLock] && _myDevice != null) {
+            var storedDevice = Storage.getValue("MyDevice");
+            if (!(storedDevice instanceof ScanResult)) {
+                saveDevice(_myDevice as BluetoothLowEnergy.ScanResult);
+            }
+        }
+        return true;
     }
 
     //! save a scanned ble device
     //! @param The ScanResult record of the  Device device
-    (:typecheck(false))
     private function saveDevice(device as ScanResult) as Void {
-        Storage.setValue("MyDevice", device); // needs typecheck false due to iq compiler bug
+        Storage.setValue("MyDevice", device); // store device for auto-locking
         debug("DeviceLock: device stored");
     }
 
     //! Identify the forumslader type and setup it's UUIDs
     //! @param Device to be validated as forumslader
     //! @return Boolean to indicate if the device was identified as a forumslader
-    private function isForumslader(device as Device) as Boolean {
-        var rc = false;
-        if (device != null) {
-            // select FL type
-			var iter = device.getServices();
-			for (var r = iter.next(); r != null; r = iter.next())
-			{
-				r = r as Service;
-				if (r != null)
-				{
-					if (r.getUuid().equals($.FL5_SERVICE))
-					{
-						_FL_SERVICE = $.FL5_SERVICE;
-						_FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
-						_FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
-                        rc = true;
-                        $.isV6 = false;
-                        debug("FLV5 detected");
-					}
-					else {
-						if (r.getUuid().equals($.FL6_SERVICE))
-						{
-							_FL_SERVICE = $.FL6_SERVICE;
-							_FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
-							_FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
-                            rc = true;
-                            $.isV6 = true;
-                            debug("FLV6 detected");
-						}
-					}
-				}
-			}
+    private function isForumslader(device as Device?) as Boolean {
+        if (device == null) {
+            return false;
         }
-        return rc;
+
+        var iter = device.getServices();
+        var service = iter.next() as Service;
+        while (service != null) {
+            var uuid = service.getUuid();
+            if (uuid.equals($.FL5_SERVICE)) {
+                _FL_SERVICE = $.FL5_SERVICE;
+                _FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
+                _FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
+                $.isV6 = false;
+                debug("FLV5 detected");
+                return true;
+            } else if (uuid.equals($.FL6_SERVICE)) {
+                _FL_SERVICE = $.FL6_SERVICE;
+                _FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
+                _FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
+                $.isV6 = true;
+                debug("FLV6 detected");
+                return true;
+            }
+            service = iter.next() as Service;
+        }
+        return false;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device
+    //! For FLv5 this is not needed, as it starts the data stream immediately after connection, but for FLv6 this is required to activate the data stream.
     private function startDatastreamFL() as Void {
         if (!$.isV6) { 
-            return; // FLv5 does not need notification activation
+            return;
         }
         var char = _config;
         if (null != char) {
@@ -232,6 +223,7 @@ class DeviceManager {
     }
 
     //! Finite state machine
+    //! This function is called after every relevant event (e.g. connection, data received, etc.) to update the state of the app and trigger the next steps in the setup process.
     public function updateState() as Number {
         var currentState = $.FLstate; 
 
