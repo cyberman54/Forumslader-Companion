@@ -174,33 +174,40 @@ class DeviceManager {
     //! Identify the forumslader type and setup it's UUIDs
     //! @param Device to be validated as forumslader
     //! @return Boolean to indicate if the device was identified as a forumslader
-    private function isForumslader(device as Device?) as Boolean {
-        if (device == null) {
-            return false;
+    private function isForumslader(device as Device or Null) as Boolean {
+        var rc = false;
+        if (device != null) {
+            // select FL type
+			var iter = device.getServices();
+			for (var r = iter.next(); r != null; r = iter.next())
+			{
+				r = r as Service;
+				if (r != null)
+				{
+					if (r.getUuid().equals($.FL5_SERVICE))
+					{
+						_FL_SERVICE = $.FL5_SERVICE;
+						_FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
+						_FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
+                        rc = true;
+                        $.isV6 = false;
+                        debug("FLV5 detected");
+					}
+					else {
+						if (r.getUuid().equals($.FL6_SERVICE))
+						{
+							_FL_SERVICE = $.FL6_SERVICE;
+							_FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
+							_FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
+                            rc = true;
+                            $.isV6 = true;
+                            debug("FLV6 detected");
+						}
+					}
+				}
+			}
         }
-
-        var iter = device.getServices();
-        var service = iter.next() as Service;
-        while (service != null) {
-            var uuid = service.getUuid();
-            if (uuid.equals($.FL5_SERVICE)) {
-                _FL_SERVICE = $.FL5_SERVICE;
-                _FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
-                _FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
-                $.isV6 = false;
-                debug("FLV5 detected");
-                return true;
-            } else if (uuid.equals($.FL6_SERVICE)) {
-                _FL_SERVICE = $.FL6_SERVICE;
-                _FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
-                _FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
-                $.isV6 = true;
-                debug("FLV6 detected");
-                return true;
-            }
-            service = iter.next() as Service;
-        }
-        return false;
+        return rc;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device
