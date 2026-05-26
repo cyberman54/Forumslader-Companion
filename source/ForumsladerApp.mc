@@ -12,14 +12,14 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Storage;
 
-// global variables
+// Globale Variablen
 var 
-    FLstate as Number = FL_SEARCH,      // current state of state engine
-    isV6 as Boolean = false,            // forumslader type V5/V6 identifier
-    speedunitFactor as Float = 1.0,     // changed according to FL type
-    speedunit as String = "kmh",        // changed according to garmin device settings
-    distanceunit as String = "km",      // changed according to garmin device settings
-    FLpayload as ByteArray = []b,       // $FLx data buffer
+    FLstate as Number = FL_SEARCH,
+    isV6 as Boolean = false,
+    speedunitFactor as Float = 1.0,
+    speedunit as String = "kmh",
+    distanceunit as String = "km",
+    FLpayload as ByteArray = []b,
     UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false];
 
 //! This data field app uses the BLE data interface of a forumslader.
@@ -40,10 +40,6 @@ class ForumsladerApp extends AppBase {
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
-        debug("--- started ---");
-        if (state != null) {
-            debug("state: " + state.toString());
-        }
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -63,10 +59,6 @@ class ForumsladerApp extends AppBase {
         _deviceManager = null;
         _bleDelegate = null;
         _dataManager = null;
-        debug("--- stopped ---");
-        if (state != null) {
-            debug("state: " + state.toString());
-        }
     }
 
     //! Return the initial view for the app

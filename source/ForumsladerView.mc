@@ -122,27 +122,37 @@ class ForumsladerView extends SimpleDataField {
 
         // generate display string based on user settings and rotation mode
         var displayString = "";
-        // In non-rotation mode, concatenate all selected fields with a separation blank
+        
         if ($.UserSettings[$.RotateFields] == false) { 
+            // Non-rotation mode: Sammle Strings in Array, dann zusammenfügen
+            var fields = [] as Array<String>;
             for (var i = 0; i < 4; i++) {  
                 var setting = $.UserSettings[i];
                 if (setting > 0) { 
-                    displayString += computeFieldValue(setting as Number);
-                    if (i < 3 && $.UserSettings[i+1] > 0) {
-                        displayString += " "; // separation blank
-                    }
+                    fields.add(computeFieldValue(setting as Number));
+                }
+            }
+            // Zusammenfügen mit Leerzeichen nur wenn mehrere Felder
+            if (fields.size() == 0) {
+                displayString = "";
+            } else if (fields.size() == 1) {
+                displayString = fields[0];
+            } else {
+                displayString = fields[0];
+                for (var j = 1; j < fields.size(); j++) {
+                    displayString += " " + fields[j];
                 }
             }
         } else {
-            // In rotation mode, find the next selected field to display based on the current index
-            for (var count = 0; count < 4; count++) {
-                _index = (_index + 1) % 4;
-                var setting = $.UserSettings[_index];
-                if (setting > 0) {
-                    displayString = computeFieldValue(setting as Number);
-                    break;
+            // Rotation mode: Nur ein Feld anzeigen
+                for (var count = 0; count < 4; count++) {
+                    _index = (_index + 1) % 4;
+                    var setting = $.UserSettings[_index];
+                    if (setting > 0) {
+                        displayString = computeFieldValue(setting as Number);
+                        break;
+                    }
                 }
-            }
         }
         return displayString;
     }
@@ -155,15 +165,12 @@ class ForumsladerView extends SimpleDataField {
         switch (fieldvalue) {
             case 11:    // charger state
                 var status = flData[FL_status];
-                var char = (status & 0x8000) ? "-" : "+"; // bit 15: discharge -> "-" / "+"
-                char = (status & 0x100) ? "*" : char; // bit 9: overload powerreduce
-                char = (status & 0x200) ? "o" : char; // bit 8: overload
-                return char;
+                var char = (status & 0x8000) ? "-" : "+";
+                return (status & 0x100) ? "*" : ((status & 0x200) ? "o" : char);
             case 10:    // remaining battery capacity
-                return _capacity + "%";
+                return _capacity.toString() + "%";
             case 9:     // speed
-                var speed = flData[FL_frequency] * _data.freq2speed;
-                return speed.format("%.1f") + $.speedunit;
+                return (flData[FL_frequency] * _data.freq2speed).format("%.1f") + $.speedunit;
             case 8:     // electrical load
                 return (_battVoltage * flData[FL_loadCurrent] / 1000).format("%.1f") + "W";
             case 7:     // battery current
@@ -171,12 +178,11 @@ class ForumsladerView extends SimpleDataField {
             case 6:     // battery voltage
                 return _battVoltage.format("%.1f") + "V";
             case 5:     // odometer
-                var tourkm = flData[FL_impulseCounter].toDouble() * _data.imp2odo;
-                return tourkm.format("%.1f") + $.distanceunit;
+                return (flData[FL_impulseCounter].toDouble() * _data.imp2odo).format("%.1f") + $.distanceunit;
             case 4:     // generator gear
-                return flData[FL_gear] + "";
+                return flData[FL_gear].toString();
             case 3:     // dynamo power
-                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).toNumber() + "W";
+                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).toNumber().toString() + "W";
             case 2:     // temperature
                 return (flData[FL_temperature] / 10.0).format("%.1f") + "°";
             case 1:     // trip energy
@@ -227,14 +233,12 @@ class ForumsladerView extends SimpleDataField {
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-
-        // decode input data
-		var size = $.FLpayload.slice(0, 300).size(); // slicing buffer to 300 is for timeout protection
+		var size = $.FLpayload.size();
+        if (size > 300) { size = 300; } // timeout protection
         for (var i = 0; i < size; i++) {
             _data.encode($.FLpayload[i]);
         }
         $.FLpayload = []b; // clear buffer
-        //debug("data.age=" + _data.age.format("%d") + " | state=" + $.FLstate.format("%d") + " | buffer=" + _size.format("%d"));
 
         // toggle device state machine and store current device state
         var deviceState = _device.updateState();

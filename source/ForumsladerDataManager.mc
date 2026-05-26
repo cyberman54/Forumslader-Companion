@@ -176,7 +176,7 @@ class DataManager {
                             freq2speed = 0.0f;
                             imp2odo = 0.0d;
                         }
-                        debug(FLdata[FL_poles] + " poles, " + FLdata[FL_wheelsize] + "mm wheelsize");
+                        debug(poles + " poles, " + wSize + "mm wheelsize");
                         break;
                 }
             }

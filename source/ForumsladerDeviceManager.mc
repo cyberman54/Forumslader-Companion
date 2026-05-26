@@ -109,7 +109,6 @@ class DeviceManager {
     //! @param char The characteristic that was written
     //! @param status The result of the operation
     public function procCharWrite(char as Characteristic, status as Status) as Void {
-        //debug("Write Char: " + char.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -117,7 +116,6 @@ class DeviceManager {
     //! @param char The descriptor that was written
     //! @param status The result of the operation
     public function procDescWrite(desc as Descriptor, status as Status) as Void {
-        //debug("Write Desc: " + desc.getUuid() + " -> " + status);
         _writeInProgress = false;
     }
 
@@ -125,7 +123,6 @@ class DeviceManager {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function procProfileRegister(uuid as Uuid, status as Status) as Void {
-        //debug("Profile register: " + uuid.toString() + " -> " + status);
     }
 
     //! Send command to forumslader device

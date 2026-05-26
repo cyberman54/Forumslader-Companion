@@ -40,7 +40,7 @@ class ForumsladerDelegate extends BleDelegate {
                     BluetoothLowEnergy.registerProfile($.FL6_profile);
                 }
                 catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                    debug("cannot register V6 profile: " + ex.getErrorMessage());
+                    debug("error: cannot register V6 profile: " + ex.getErrorMessage());
                 }
                 finally {
                     broadcastScanResult(result);
@@ -57,7 +57,7 @@ class ForumsladerDelegate extends BleDelegate {
                     BluetoothLowEnergy.registerProfile($.FL5_profile);
                 }
                 catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                    debug("cannot register V5 profile: " + ex.getErrorMessage());
+                    debug("error: cannot register V5 profile: " + ex.getErrorMessage());
                 }
                 finally {
                     broadcastScanResult(result);
