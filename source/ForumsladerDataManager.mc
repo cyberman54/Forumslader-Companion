@@ -34,8 +34,8 @@ class DataManager {
 
     private const 
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
-        _MAX_TERM_SIZE = 24,
-        _MAX_TERM_COUNT = 16; 
+        _MAX_TERM_SIZE = 30, // Maximale Länge eines Terms im $FLx Datenstrom, um Pufferüberläufe zu vermeiden
+        _MAX_TERM_COUNT = 20; // Maximale Anzahl von Terms in einem $FLx Satz, um ungültige Daten zu erkennen
 
     public var 
         age as Number = MAX_AGE_SEC,
