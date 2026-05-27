@@ -78,11 +78,16 @@ class ForumsladerView extends SimpleDataField {
     //! generate, display and log forumslader values
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
-        // calculate battery voltage and capacity
+        var settings = $.UserSettings;
         var flData = _data.FLdata;
+        var battCalcMethod = settings[$.BattCalcMethod] == true;
+        var fitLogging = settings[$.FitLogging] == true;
+        var alertsEnabled = settings[$.Alerts] == true;
+        var rotateFields = settings[$.RotateFields] == true;
+
+        // Pre-calculate battery voltage and capacity based on raw sensor values and user settings
         _battVoltage = (flData[FL_battVoltage1] + flData[FL_battVoltage2] + flData[FL_battVoltage3]) / 1000.0 as Float;
-        
-        if ($.UserSettings[$.BattCalcMethod] == true) { // use coloumb calculation method
+        if (battCalcMethod) { // use coloumb calculation method
             var x1 = flData[FL_ccadcValue].toLong() * flData[FL_acc2mah].toLong() / 167772.16 as Float;
             var x2 = flData[FL_fullChargeCapacity];
             if (x2 > 0) {
@@ -94,65 +99,52 @@ class ForumsladerView extends SimpleDataField {
 
         // Pre-calculate powers to avoid redundant math
         var loadCurrent = flData[FL_loadCurrent];
-        var dynamoPower = _battVoltage * (loadCurrent + flData[FL_battCurrent]) / 1000;
+        var battCurrent = flData[FL_battCurrent];
+        var dynamoPower = _battVoltage * (loadCurrent + battCurrent) / 1000;
         var electricalLoad = _battVoltage * loadCurrent / 1000;
 
         // write values to fit file, if FitLogging is enabled by user
-        if ($.UserSettings[$.FitLogging] == true) { 
+        if (fitLogging) { 
             if (_fitRecording1 == null) { initFitRecordingFields(); }
-            if (_fitRecording1 != null) { 
-                _fitRecording1.setData(_battVoltage); }
-            if (_fitRecording2 != null) { 
-                _fitRecording2.setData(_capacity); }
-            if (_fitRecording3 != null) { 
-                _fitRecording3.setData(dynamoPower); }
-            if (_fitRecording4 != null) { 
-                _fitRecording4.setData(electricalLoad); }
-            }
+            if (_fitRecording1 != null) { _fitRecording1.setData(_battVoltage); }
+            if (_fitRecording2 != null) { _fitRecording2.setData(_capacity); }
+            if (_fitRecording3 != null) { _fitRecording3.setData(dynamoPower); }
+            if (_fitRecording4 != null) { _fitRecording4.setData(electricalLoad); }
+        }
 
         // display forumslader alarms
-        if (ForumsladerView has :showAlert && $.UserSettings[$.Alerts] == true) {
+        if (ForumsladerView has :showAlert && alertsEnabled) {
             checkAlarms();
         }            
         
         // check if nothing is selected for display, if so return "--"
-        if ($.UserSettings[0] == 0 && $.UserSettings[1] == 0 && $.UserSettings[2] == 0 && $.UserSettings[3] == 0) {
+        if (settings[0] == 0 && settings[1] == 0 && settings[2] == 0 && settings[3] == 0) {
             return "--";
         }
 
         // generate display string based on user settings and rotation mode
         var displayString = "";
-        
-        if ($.UserSettings[$.RotateFields] == false) { 
-            // Non-rotation mode: Sammle Strings in Array, dann zusammenfügen
-            var fields = [] as Array<String>;
-            for (var i = 0; i < 4; i++) {  
-                var setting = $.UserSettings[i];
-                if (setting > 0) { 
-                    fields.add(computeFieldValue(setting as Number));
-                }
-            }
-            // Zusammenfügen mit Leerzeichen nur wenn mehrere Felder
-            if (fields.size() == 0) {
-                displayString = "";
-            } else if (fields.size() == 1) {
-                displayString = fields[0];
-            } else {
-                displayString = fields[0];
-                for (var j = 1; j < fields.size(); j++) {
-                    displayString += " " + fields[j];
+        if (!rotateFields) {
+            var firstField = true;
+            for (var i = 0; i < 4; i++) {
+                var setting = settings[i];
+                if (setting > 0) {
+                    if (!firstField) {
+                        displayString += " ";
+                    }
+                    displayString += computeFieldValue(setting as Number);
+                    firstField = false;
                 }
             }
         } else {
-            // Rotation mode: Nur ein Feld anzeigen
-                for (var count = 0; count < 4; count++) {
-                    _index = (_index + 1) % 4;
-                    var setting = $.UserSettings[_index];
-                    if (setting > 0) {
-                        displayString = computeFieldValue(setting as Number);
-                        break;
-                    }
+            for (var count = 0; count < 4; count++) {
+                _index = (_index + 1) % 4;
+                var setting = settings[_index];
+                if (setting > 0) {
+                    displayString = computeFieldValue(setting as Number);
+                    break;
                 }
+            }
         }
         return displayString;
     }
