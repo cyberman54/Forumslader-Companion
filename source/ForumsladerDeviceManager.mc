@@ -77,6 +77,12 @@ class DeviceManager {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+            // if the device is already paired, we can skip the pairing process and directly connect to save time
+            if (isAlreadyPaired(scanResult)) { 
+                _myDevice = scanResult;
+                return;
+            }
+            // if the pairing process is disrupted, so we need to catch the exception and restart scanning in that case
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
                 _myDevice = scanResult;
@@ -92,6 +98,28 @@ class DeviceManager {
         }   
     }
 
+    //! Check whether the incoming scan result already belongs to a paired device
+    //! @param scanResult The scan result to compare with stored lock device info
+    //! @return true if the device is already paired or matched by stored device name
+    private function isAlreadyPaired(scanResult as ScanResult) as Boolean {
+        if (_myDevice != null && _myDevice == scanResult) {
+            return true;
+        }
+        var storedDevice = Storage.getValue("MyDevice") as ScanResult?;
+        if (storedDevice == null) {
+            return false;
+        }
+        if (storedDevice == scanResult) {
+            return true;
+        }
+        var scanName = scanResult.getDeviceName() as String;
+        var storedName = storedDevice.getDeviceName() as String;
+        if (scanName != null && storedName != null && scanName.equals(storedName)) {
+            return true;
+        }
+        return false;
+    }
+
     //! Process a new device connection
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
@@ -103,6 +131,11 @@ class DeviceManager {
             debug ("connection failed, restarting scan");
             startScan();
         }
+    }
+
+    //! Handle device disconnect and restart scanning immediately
+    public function procDisconnect() as Void {
+        startScan();
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -139,7 +172,7 @@ class DeviceManager {
     //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
     private function setupProfile() as Boolean {
         if (!isForumslader(_device)) {
-            debug("error: detected device is not a forumslader V5/V6");
+            debug("error: connected device is not a forumslader V5/V6");
             var storedDevice = Storage.getValue("MyDevice");
             if (storedDevice != null) {
                 Storage.deleteValue("MyDevice");
@@ -171,43 +204,42 @@ class DeviceManager {
         debug("DeviceLock: device stored");
     }
 
-    //! Identify the forumslader type and setup it's UUIDs
+    //! Identify the forumslader type and setup its UUIDs
     //! @param Device to be validated as forumslader
     //! @return Boolean to indicate if the device was identified as a forumslader
     private function isForumslader(device as Device or Null) as Boolean {
-        var rc = false;
-        if (device != null) {
-            // select FL type
-			var iter = device.getServices();
-			for (var r = iter.next(); r != null; r = iter.next())
-			{
-				r = r as Service;
-				if (r != null)
-				{
-					if (r.getUuid().equals($.FL5_SERVICE))
-					{
-						_FL_SERVICE = $.FL5_SERVICE;
-						_FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
-						_FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
-                        rc = true;
-                        $.isV6 = false;
-                        debug("FLV5 detected");
-					}
-					else {
-						if (r.getUuid().equals($.FL6_SERVICE))
-						{
-							_FL_SERVICE = $.FL6_SERVICE;
-							_FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
-							_FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
-                            rc = true;
-                            $.isV6 = true;
-                            debug("FLV6 detected");
-						}
-					}
-				}
-			}
+        _FL_SERVICE = NULL_UUID;
+        _FL_CONFIG = NULL_UUID;
+        _FL_COMMAND = NULL_UUID;
+
+        if (device == null) {
+            return false;
         }
-        return rc;
+
+        var iter = device.getServices();
+        for (var service = iter.next(); service != null; service = iter.next()) {
+            service = service as Service;
+            var uuid = service.getUuid();
+
+            if (uuid.equals($.FL5_SERVICE)) {
+                _FL_SERVICE = $.FL5_SERVICE;
+                _FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
+                _FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
+                $.isV6 = false;
+                debug("FLv5");
+                return true;
+            }
+            if (uuid.equals($.FL6_SERVICE)) {
+                _FL_SERVICE = $.FL6_SERVICE;
+                _FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
+                _FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
+                $.isV6 = true;
+                debug("FLv6");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //! Write notification to descriptor to start data stream on forumslader device

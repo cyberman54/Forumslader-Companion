@@ -1,4 +1,5 @@
 import Toybox.BluetoothLowEnergy;
+import Toybox.Lang;
 
 //! BLE profiles for Forumslader v5/v6
 const 
@@ -11,12 +12,15 @@ const
     FL6_RX_CHARACTERISTIC as Uuid = BluetoothLowEnergy.stringToUuid("6e40ef38-b5a3-f393-e0a9-e50e24dcca9e"),
     FL6_TX_CHARACTERISTIC as Uuid = BluetoothLowEnergy.stringToUuid("6e40ef39-b5a3-f393-e0a9-e50e24dcca9e"),
 
+    //! Common descriptor array, reused for all characteristics
+    FL_CCCD_DESCRIPTORS as Array<Uuid> = [BluetoothLowEnergy.cccdUuid()] as Array<Uuid>,
+
     //! profile v5
     FL5_profile = {
         :uuid => FL5_SERVICE,
         :characteristics => [{
                 :uuid => FL5_RXTX_CHARACTERISTIC,
-                :descriptors => [BluetoothLowEnergy.cccdUuid()]
+                :descriptors => FL_CCCD_DESCRIPTORS
             }]
     },
 
@@ -25,9 +29,9 @@ const
         :uuid => FL6_SERVICE,
         :characteristics => [{
                 :uuid => FL6_RX_CHARACTERISTIC,
-                :descriptors => [BluetoothLowEnergy.cccdUuid()]
+                :descriptors => FL_CCCD_DESCRIPTORS
             }, {
                 :uuid => FL6_TX_CHARACTERISTIC,
-                :descriptors => [BluetoothLowEnergy.cccdUuid()]
+                :descriptors => FL_CCCD_DESCRIPTORS
             }]
     };

@@ -8,7 +8,8 @@ class ForumsladerDelegate extends BleDelegate {
         _onConnection as WeakReference?,
         _onCharWrite as WeakReference?,
         _onDescWrite as WeakReference?,
-        _onProfileRegister as WeakReference?;
+        _onProfileRegister as WeakReference?,
+        _registeredProfiles as Array<Uuid> = [] as Array<Uuid>;
     
 	//! Constructor
     public function initialize() {
@@ -34,17 +35,16 @@ class ForumsladerDelegate extends BleDelegate {
     // identify a forumslader device by it's advertised local name
         var _deviceName = result.getDeviceName() as String;
         if (_deviceName != null) { 
-            if (_deviceName.equals("FLV6") || _deviceName.equals("FL_BLE")) {
-                debug("register V6 profile");
-                try { 
-                    BluetoothLowEnergy.registerProfile($.FL6_profile);
+            if (_deviceName.equals("FLV6") || _deviceName.equals("flv6") || _deviceName.equals("FL_BLE") || _deviceName.equals("fl_ble")) {
+                if (!isProfileRegistered($.FL6_SERVICE)) {
+                    try {
+                        BluetoothLowEnergy.registerProfile($.FL6_profile);
+                    }
+                    catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+                        // ignore duplicate or already-registered profile errors
+                    }
                 }
-                catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                    debug("error: cannot register V6 profile: " + ex.getErrorMessage());
-                }
-                finally {
-                    broadcastScanResult(result);
-                }       
+                broadcastScanResult(result);
                 return true;
             }
         } 
@@ -52,16 +52,15 @@ class ForumsladerDelegate extends BleDelegate {
         var iter = result.getManufacturerSpecificDataIterator();
         for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
             if (dict.get(:companyId) == 0x4d48) {
-                debug("register V5 profile");
-                try {
-                    BluetoothLowEnergy.registerProfile($.FL5_profile);
+                if (!isProfileRegistered($.FL5_SERVICE)) {
+                    try {
+                        BluetoothLowEnergy.registerProfile($.FL5_profile);
+                    }
+                    catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+                        // ignore duplicate or already-registered profile errors
+                    }
                 }
-                catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                    debug("error: cannot register V5 profile: " + ex.getErrorMessage());
-                }
-                finally {
-                    broadcastScanResult(result);
-                }
+                broadcastScanResult(result);
                 return true;
             }
         }
@@ -74,17 +73,16 @@ class ForumsladerDelegate extends BleDelegate {
     public function onConnectedStateChanged(device as Device, state as ConnectionState) as Void {
         var onConnection = _onConnection;
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
-            debug ("connected");
-            if (null != onConnection) {
-                if (onConnection.stillAlive()) {
-                    (onConnection.get() as DeviceManager).procConnection(device);
-                } else {
-                    debug ("procConnection disrupted");
-                }
+            debug("connected");
+            if (null != onConnection && onConnection.stillAlive()) {
+                (onConnection.get() as DeviceManager).procConnection(device);
             }
         } else {
-            debug ("disconnected");
             $.FLstate = FL_DISCONNECT;
+            debug("disconnected");
+            if (null != onConnection && onConnection.stillAlive()) {
+                (onConnection.get() as DeviceManager).procDisconnect();
+            }
         }
     }
 
@@ -132,15 +130,28 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onProfileRegister(uuid as Uuid, status as Status) as Void {
-        //debug("onProfileRegister");
+        if (status == BluetoothLowEnergy.STATUS_SUCCESS && !isProfileRegistered(uuid)) {
+            rememberProfile(uuid);
+        }
         var onProfileRegister = _onProfileRegister;
         if (null != onProfileRegister) {
             if (onProfileRegister.stillAlive()) {
                 (onProfileRegister.get() as DeviceManager).procProfileRegister(uuid, status);
-            } else {
-                debug ("procProfileRegister disrupted");
             }
         }
+    }
+
+    private function isProfileRegistered(uuid as Uuid) as Boolean {
+        for (var i = 0; i < _registeredProfiles.size(); i++) {
+            if (_registeredProfiles[i].equals(uuid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function rememberProfile(uuid as Uuid) as Void {
+        _registeredProfiles.add(uuid);
     }
 
     /*
