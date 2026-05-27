@@ -4,24 +4,25 @@ import Toybox.Application.Storage;
 
 // app states
 enum {
-    FL_SEARCH = 0,  // 0 = entry state (waiting for pairing & connect)
-    FL_COLDSTART,   // 1 = request $FLP data and start $FLx data stream
-    FL_CONFIG1,     // 2 = configuration step 1
-    FL_CONFIG2,     // 3 = configuration step 2
-    FL_CONFIG3,     // 4 = configuration step 3
-    FL_DISCONNECT,  // 5 = forumslader has disconnected
-    FL_WARMSTART,   // 6 = start data stream, skip configuration
-    FL_READY        // 7 = running state (all setup is done)
+    FL_SEARCH = 0,  // 0 = searching for forumslader devices
+    FL_COLDSTART,   // 1 = cold start after pairing (full setup process)
+    FL_CONFIG1,     // 2 = configuration step 1 (request parameters, wait for data stream to be active)
+    FL_CONFIG2,     // 3 = configuration step 2 (wait for valid parameters in data stream)
+    FL_CONFIG3,     // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
+    FL_DISCONNECT,  // 5 = device disconnected, start scan again
+    FL_WARMSTART,   // 6 = warm start after disconnect (skip setup process, just restart data stream)
+    FL_READY        // 7 = ready, device is connected and configured, data stream is active
 }
 
 class DeviceManager {
 
     private const
-        // threshold rssi for detecting forumslader devices
+        // RSSI threshold for pairing, to avoid pairing with devices that are too far away and thus have an unstable connection.
+        // This is especially important for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike.
         _RSSI_threshold = -85,
-        // command to start the data stream on the forumslader V6 device (not needed for V5)
+        // command to start data stream on FLv6: 0x01,0x00 (notification bit in cccd)
         FL6_START = [0x01, 0x00]b,
-	    // command to request pole and wheelsize: $FLT,5*47<lf>
+	    // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
 	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
         NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
         // command to request firmware version (currently unused): $FLT,4*46<lf>
@@ -58,9 +59,9 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        if (_myDevice != null) {    // try to connect to a locked device
+        if (_myDevice != null) {  // if we have a stored device, try to pair with it directly to save time
             _bleDelegate.ProcessScanRecord(_myDevice);
-        } else {                    // otherwhise search for a device
+        } else {                  // otherwise search for a device
             debug("scanning");
             if (_device != null) { 
                 BluetoothLowEnergy.unpairDevice(_device);
