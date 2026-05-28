@@ -90,10 +90,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param characteristic The characteristic that notified
     //! @param data The data which is delivered by the characteristic
 	public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
-		//debug("onCharChanged");
-        if (null != data) {
             $.FLpayload.addAll(data);
-		}
 	}
 
     //! Handle the completion of a write operation on a characteristic
@@ -142,7 +139,8 @@ class ForumsladerDelegate extends BleDelegate {
     }
 
     private function isProfileRegistered(uuid as Uuid) as Boolean {
-        for (var i = 0; i < _registeredProfiles.size(); i++) {
+        var size = _registeredProfiles.size();
+        for (var i = 0; i < size; i++) {
             if (_registeredProfiles[i].equals(uuid)) {
                 return true;
             }
