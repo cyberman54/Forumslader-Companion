@@ -175,7 +175,7 @@ class DeviceManager {
         if (!isForumslader(_device)) {
             debug("error: connected device is not a forumslader V5/V6");
             var storedDevice = Storage.getValue("MyDevice");
-            if (storedDevice != null) {
+            if (storedDevice != null) { // if the device was not identified as forumslader, but we have a stored device, clear the stored device to avoid repeated failed connection attempts in case the stored device is not a forumslader or out of range
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
@@ -189,7 +189,7 @@ class DeviceManager {
         }
         _command = _service.getCharacteristic(_FL_COMMAND);
         _config = _service.getCharacteristic(_FL_CONFIG);
-        if ($.UserSettings[$.DeviceLock] && _myDevice != null) {
+        if ($.UserSettings[$.DeviceLock]) { // if device lock is enabled, save the device info for auto-locking
             var storedDevice = Storage.getValue("MyDevice");
             if (!(storedDevice instanceof ScanResult)) {
                 saveDevice(_myDevice as BluetoothLowEnergy.ScanResult);
