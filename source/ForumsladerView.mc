@@ -158,7 +158,7 @@ class ForumsladerView extends SimpleDataField {
             case 11:    // charger state
                 var status = flData[FL_status];
                 var char = (status & 0x8000) ? "-" : "+";
-                return (status & 0x100) ? "*" : ((status & 0x200) ? "o" : char);
+                return (status & 0x200) ? "o" : ((status & 0x100) ? "*" : char);
             case 10:    // remaining battery capacity
                 return _capacity.toString() + "%";
             case 9:     // speed
