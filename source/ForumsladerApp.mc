@@ -88,12 +88,10 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
-        if ($.UserSettings[$.DeviceLock] == false) { 
-            if (Storage.getValue("MyDevice") != null) {
+        if (!$.UserSettings[$.DeviceLock] && Storage.getValue("MyDevice") != null) { 
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
-        }
 
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {

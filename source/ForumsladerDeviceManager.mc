@@ -78,10 +78,9 @@ class DeviceManager {
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
-            // if the device is already paired, we can skip the pairing process and directly connect to save time
-            if (isAlreadyPaired(scanResult)) { 
-                _myDevice = scanResult;
-                return;
+            // if the device is already paired, we can skip the pairing process to save time
+            if (_myDevice != null && _myDevice == scanResult) { 
+                return; 
             }
             // if the pairing process is disrupted, so we need to catch the exception and restart scanning in that case
             try {
@@ -97,28 +96,6 @@ class DeviceManager {
             } else {
             debug("signal too weak, rssi " + scanResult.getRssi());
         }   
-    }
-
-    //! Check whether the incoming scan result already belongs to a paired device
-    //! @param scanResult The scan result to compare with stored lock device info
-    //! @return true if the device is already paired or matched by stored device name
-    private function isAlreadyPaired(scanResult as ScanResult) as Boolean {
-        if (_myDevice != null && _myDevice == scanResult) {
-            return true;
-        }
-        var storedDevice = Storage.getValue("MyDevice") as ScanResult?;
-        if (storedDevice == null) {
-            return false;
-        }
-        if (storedDevice == scanResult) {
-            return true;
-        }
-        var scanName = scanResult.getDeviceName() as String;
-        var storedName = storedDevice.getDeviceName() as String;
-        if (scanName != null && storedName != null && scanName.equals(storedName)) {
-            return true;
-        }
-        return false;
     }
 
     //! Process a new device connection
@@ -174,35 +151,24 @@ class DeviceManager {
     private function setupProfile() as Boolean {
         if (!isForumslader(_device)) {
             debug("error: connected device is not a forumslader V5/V6");
-            var storedDevice = Storage.getValue("MyDevice");
-            if (storedDevice != null) { // if the device was not identified as forumslader, but we have a stored device, clear the stored device to avoid repeated failed connection attempts in case the stored device is not a forumslader or out of range
+            if (Storage.getValue("MyDevice") != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
             }
             startScan();
             return false;
         }
+
         _service = (_device as Device).getService(_FL_SERVICE);
         if (null == _service) {
             startScan();
             return false;
         }
+
         _command = _service.getCharacteristic(_FL_COMMAND);
         _config = _service.getCharacteristic(_FL_CONFIG);
-        if ($.UserSettings[$.DeviceLock]) { // if device lock is enabled, save the device info for auto-locking
-            var storedDevice = Storage.getValue("MyDevice");
-            if (!(storedDevice instanceof ScanResult)) {
-                saveDevice(_myDevice as BluetoothLowEnergy.ScanResult);
-            }
-        }
+       
         return true;
-    }
-
-    //! save a scanned ble device
-    //! @param The ScanResult record of the  Device device
-    private function saveDevice(device as ScanResult) as Void {
-        Storage.setValue("MyDevice", device); // store device for auto-locking
-        debug("DeviceLock: device stored");
     }
 
     //! Identify the forumslader type and setup its UUIDs
