@@ -4,14 +4,14 @@ import Toybox.Application.Storage;
 
 // app states
 enum {
-    FL_SEARCH = 0,  // 0 = searching for forumslader devices
-    FL_COLDSTART,   // 1 = cold start after pairing (full setup process)
-    FL_CONFIG1,     // 2 = configuration step 1 (request parameters, wait for data stream to be active)
-    FL_CONFIG2,     // 3 = configuration step 2 (wait for valid parameters in data stream)
-    FL_CONFIG3,     // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
-    FL_DISCONNECT,  // 5 = device disconnected, start scan again
-    FL_WARMSTART,   // 6 = warm start after disconnect (skip setup process, just restart data stream)
-    FL_READY        // 7 = ready, device is connected and configured, data stream is active
+    FL_SCANNING = 0, // 0 = scanning for forumslader devices
+    FL_COLDSTART,    // 1 = cold start after pairing (full setup process)
+    FL_CONFIG1,      // 2 = configuration step 1 (request parameters, wait for data stream to be active)
+    FL_CONFIG2,      // 3 = configuration step 2 (wait for valid parameters in data stream)
+    FL_CONFIG3,      // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
+    FL_DISCONNECT,   // 5 = device disconnected, waiting for reconnect (can be triggered by disconnect event or by failed setup)
+    FL_WARMSTART,    // 6 = warm start after disconnect (skip setup process, just restart data stream)
+    FL_RUNNING       // 7 = device is connected and configured, data stream is active
 }
 
 class DeviceManager {
@@ -77,7 +77,7 @@ class DeviceManager {
             if (storedDevice != null) {
                 try {
                     // Only attempt pairing if not already in a state transition
-                    if ($.FLstate == FL_SEARCH || $.FLstate == FL_DISCONNECT) {
+                    if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
                         BluetoothLowEnergy.pairDevice(storedDevice);
                         _myDevice = storedDevice;
                         debug("DeviceLock: found stored device, trying to pair directly");
@@ -98,7 +98,7 @@ class DeviceManager {
             BluetoothLowEnergy.unpairDevice(_device);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-        self._setState(FL_SEARCH);
+        self._setState(FL_SCANNING);
         _configDone = false;
         _myDevice = null;  // Clear old reference
     }
@@ -107,14 +107,14 @@ class DeviceManager {
     //! @param scanResult The scan result
     public function procScanResult(scanResult as ScanResult) as Void {
         // Race Condition State Guard: Only process scan results when actively searching
-        if ($.FLstate != FL_SEARCH) {
+        if ($.FLstate != FL_SCANNING) {
             return;  // State changed, abort
         }
 
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
             // Race Condition State Guard: Check state again before stopping scan
-            if ($.FLstate != FL_SEARCH) {
+            if ($.FLstate != FL_SCANNING) {
                 return;  // State changed, abort
             }
             
@@ -132,7 +132,7 @@ class DeviceManager {
                 debug("cannot pair device " + scanResult.getDeviceName());
                 debug("error: " + ex.getErrorMessage());
                 // Only resume scanning if still in search state
-                if ($.FLstate == FL_SEARCH) {
+                if ($.FLstate == FL_SCANNING) {
                     BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
                 }
                 _myDevice = null;
@@ -150,7 +150,7 @@ class DeviceManager {
             _writeInProgress = false;  // Reset write flag on successful connection
             // Set state ONLY if we're actually starting fresh
             // Don't override if already in a valid state
-            if ($.FLstate == FL_SEARCH || $.FLstate == FL_DISCONNECT) {
+            if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
                 self._setState(_configDone ? FL_WARMSTART : FL_COLDSTART);
             }
         } else {
@@ -324,8 +324,8 @@ class DeviceManager {
 
         switch(currentState) {
             // Idle-Zustände: Sofortiger Abbruch spart CPU-Zyklen
-            case FL_READY:
-            case FL_SEARCH:
+            case FL_RUNNING:
+            case FL_SCANNING:
             case FL_DISCONNECT:
                 break;
 
@@ -335,13 +335,13 @@ class DeviceManager {
                     currentState = FL_CONFIG1;
                     startDatastreamFL();
                 } else {
-                    currentState = FL_SEARCH;
+                    currentState = FL_SCANNING;
                 }
                 break;
 
             // Warmstart nach einem Verbindungsabbruch
             case FL_WARMSTART:
-                currentState = FL_READY;
+                currentState = FL_RUNNING;
                 startDatastreamFL();
                 break;
 
@@ -359,7 +359,7 @@ class DeviceManager {
                 var fl = _data.FLdata; 
                 if (fl[FL_poles] > 0) {
                     _configDone = true;
-                    currentState = FL_READY;
+                    currentState = FL_RUNNING;
                 } else {
                     // Wenn beim ersten Mal (CONFIG2) fehlgeschlagen, gehe zu CONFIG3, sonst zurück zu CONFIG1
                     currentState = (currentState == FL_CONFIG2) ? FL_CONFIG3 : FL_CONFIG1;
@@ -368,7 +368,7 @@ class DeviceManager {
 
             // Fallback-Schutz
             default:
-                currentState = FL_SEARCH;
+                currentState = FL_SCANNING;
                 debug("state engine error");
                 break;
         }

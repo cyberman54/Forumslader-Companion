@@ -14,7 +14,7 @@ import Toybox.Application.Storage;
 
 // Globale Variablen
 var 
-    FLstate as Number = FL_SEARCH,
+    FLstate as Number = FL_SCANNING,
     isV6 as Boolean = false,
     speedunitFactor as Float = 1.0,
     speedunit as String = "kmh",
