@@ -22,13 +22,11 @@ class DeviceManager {
         _RSSI_threshold = -85,
         // command to start data stream on FLv6: 0x01,0x00 (notification bit in cccd)
         FL6_START = [0x01, 0x00]b,
-	    // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
-	    FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
+        // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
+        FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
         NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
-        // command to request firmware version (currently unused): $FLT,4*46<lf>
-        //FLV = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x34, 0x2A, 0x34, 0x36, 0x0a]b;
 
-    private var 
+    private var
         _data as DataManager,
         _device as Device?,
         _service as Service?,
@@ -70,7 +68,7 @@ class DeviceManager {
     public function startScan() as Void {
         // Ensure _writeInProgress is reset for clean state
         _writeInProgress = false;
-        
+
         // Try direct pairing with stored device if DeviceLock enabled
         if ($.UserSettings[$.DeviceLock] == true) {
             var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
@@ -94,7 +92,7 @@ class DeviceManager {
 
         // Start normal scanning
         debug("scanning");
-        if (_device != null) { 
+        if (_device != null) {
             BluetoothLowEnergy.unpairDevice(_device);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
@@ -117,17 +115,17 @@ class DeviceManager {
             if ($.FLstate != FL_SCANNING) {
                 return;  // State changed, abort
             }
-            
+
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             // if the device is already paired, we can skip the pairing process to save time
-            if (_myDevice != null && _myDevice == scanResult) { 
-                return; 
+            if (_myDevice != null && _myDevice == scanResult) {
+                return;
             }
             // if the pairing process is disrupted, so we need to catch the exception and restart scanning in that case
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
                 _myDevice = scanResult;
-                }  
+                }
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                 debug("cannot pair device " + scanResult.getDeviceName());
                 debug("error: " + ex.getErrorMessage());
@@ -139,7 +137,7 @@ class DeviceManager {
                 }
             } else {
             debug("signal too weak, rssi " + scanResult.getRssi());
-        }   
+        }
     }
 
     //! Process a new device connection
@@ -200,7 +198,7 @@ class DeviceManager {
     //! identify forumslader and get characteristic of it's GATT service
     //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
     private function setupProfile() as Boolean {
-        if (_device == null || !_device.isConnected()) { 
+        if (_device == null || !_device.isConnected()) {
             return false;
         }
 
@@ -238,7 +236,7 @@ class DeviceManager {
 
         _command = _service.getCharacteristic(_FL_COMMAND);
         _config = _service.getCharacteristic(_FL_CONFIG);
-       
+
         return true;
     }
 
@@ -263,25 +261,27 @@ class DeviceManager {
                 if (!device.isConnected()) {
                     return false;
                 }
+
                 service = service as Service;
                 var uuid = service.getUuid();
 
-            if (uuid.equals($.FL5_SERVICE)) {
-                _FL_SERVICE = $.FL5_SERVICE;
-                _FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
-                _FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
-                $.isV6 = false;
-                debug("FLv5");
-                return true;
-            }
-            if (uuid.equals($.FL6_SERVICE)) {
-                _FL_SERVICE = $.FL6_SERVICE;
-                _FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
-                _FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
-                $.isV6 = true;
-                debug("FLv6");
-                return true;
-            }
+                if (uuid.equals($.FL5_SERVICE)) {
+                    _FL_SERVICE = $.FL5_SERVICE;
+                    _FL_CONFIG = $.FL5_RXTX_CHARACTERISTIC;
+                    _FL_COMMAND = $.FL5_RXTX_CHARACTERISTIC;
+                    $.isV6 = false;
+                    debug("FLv5");
+                    return true;
+                }
+
+                if (uuid.equals($.FL6_SERVICE)) {
+                    _FL_SERVICE = $.FL6_SERVICE;
+                    _FL_CONFIG = $.FL6_RX_CHARACTERISTIC;
+                    _FL_COMMAND = $.FL6_TX_CHARACTERISTIC;
+                    $.isV6 = true;
+                    debug("FLv6");
+                    return true;
+                }
             }
         } catch(ex instanceof Exception) {
             debug("Exception during service iteration: " + ex.getErrorMessage());
@@ -294,14 +294,14 @@ class DeviceManager {
     //! Write notification to descriptor to start data stream on forumslader device
     //! For FLv5 this is not needed, as it starts the data stream immediately after connection, but for FLv6 this is required to activate the data stream.
     private function startDatastreamFL() as Void {
-        if (!$.isV6) { 
+        if (!$.isV6) {
             return;
         }
         // Validate device and config are still valid before accessing
         if (_device == null || !_device.isConnected() || _config == null) {
             return;
         }
-        
+
         try {
             var cccd = _config.getDescriptor(BluetoothLowEnergy.cccdUuid());
             if (null != cccd) {
@@ -320,7 +320,7 @@ class DeviceManager {
     //! Finite state machine
     //! This function is called after every relevant event (e.g. connection, data received, etc.) to update the state of the app and trigger the next steps in the setup process.
     public function updateState() as Number {
-        var currentState = $.FLstate; 
+        var currentState = $.FLstate;
 
         switch(currentState) {
             // Idle-Zustände: Sofortiger Abbruch spart CPU-Zyklen
@@ -347,7 +347,7 @@ class DeviceManager {
 
             // Parameter anfordern, sobald der Datenstrom aktiv ist
             case FL_CONFIG1:
-                if (_data.age == 0) { 
+                if (_data.age == 0) {
                     sendCommandFL(FLP); // Radgröße und Polanzahl anfordern
                     currentState = FL_CONFIG2;
                 }
@@ -356,7 +356,7 @@ class DeviceManager {
             // Wenn die Polanzahl > 0 ist, sind die Parameter gültig und die App kann in den READY-Zustand wechseln
             case FL_CONFIG2:
             case FL_CONFIG3:
-                var fl = _data.FLdata; 
+                var fl = _data.FLdata;
                 if (fl[FL_poles] > 0) {
                     _configDone = true;
                     currentState = FL_RUNNING;
@@ -379,3 +379,4 @@ class DeviceManager {
     }
 
 }
+

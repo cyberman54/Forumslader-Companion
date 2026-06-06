@@ -22,28 +22,28 @@ class DataManager {
     // Verwendete Datensatztypen des Forumsladers
     enum {
         SENTENCE_OTHER = -1,
-        SENTENCE_FL5, 
+        SENTENCE_FL5,
         SENTENCE_FL6,
         SENTENCE_FLB,
         SENTENCE_FLC,
         SENTENCE_FLP
     }
-  
-    public const 
+
+    public const
         MAX_AGE_SEC = 10; // Maximales Alter der Daten in Sekunden, bevor sie als veraltet gelten
 
-    private const 
+    private const
         _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
         _MAX_TERM_SIZE = 20, // Maximale Länge eines Terms im $FLx Datenstrom, um Pufferüberläufe zu vermeiden
         _MAX_TERM_COUNT = 16; // Maximale Anzahl von Terms in einem $FLx Satz, um ungültige Daten zu erkennen
 
-    public var 
+    public var
         age as Number = MAX_AGE_SEC,
         FLdata as Array<Number> = new [FL_tablesize] as Array<Number>,
         freq2speed as Float = 0.0f,
-        imp2odo as Double = 0.0d;  
+        imp2odo as Double = 0.0d;
 
-    private var 
+    private var
         _parity as Number = 0,
         _isChecksumTerm as Boolean = false,
         _currSentenceType as Number = SENTENCE_OTHER,
@@ -66,7 +66,7 @@ class DataManager {
         // debug(c);
 
         switch(c) {
-            case ',': 
+            case ',':
                 _parity ^= b;
                 // Absichtlicher Fallthrough zur Term-Verarbeitung
             case '\r':
@@ -119,7 +119,7 @@ class DataManager {
         if (_isChecksumTerm) {
             if (term.toNumberWithBase(16) == _parity) {
                 age = 0; // Daten sind valide, Timeout-Zähler zurücksetzen
-                
+
                 var fl = FLdata; // Lokaler Cache-Zeiger verkürzt die VM-Adressierung
                 var t = _FLterm;
 
@@ -128,29 +128,29 @@ class DataManager {
                     case SENTENCE_FL6:
                         var state = t[1].toNumberWithBase(16);
                         fl[FL_status] = (state != null) ? state : 0;
-                        fl[FL_gear]             = commitValue(t[2], 0, 10);       
-                        fl[FL_frequency]        = commitValue(t[3], 0, 5000);     
-                        fl[FL_battVoltage1]     = commitValue(t[4], 0, 5000);     
-                        fl[FL_battVoltage2]     = commitValue(t[5], 0, 5000);     
-                        fl[FL_battVoltage3]     = commitValue(t[6], 0, 5000);     
-                        fl[FL_battCurrent]      = commitValue(t[7], -10000, 10000);  
-                        fl[FL_loadCurrent]      = commitValue(t[8], 0, 10000);    
-                        fl[FL_impulseCounter]   = commitValue(t[$.isV6 ? 12 : 13], 0, 0);  
+                        fl[FL_gear]             = commitValue(t[2], 0, 10);
+                        fl[FL_frequency]        = commitValue(t[3], 0, 5000);
+                        fl[FL_battVoltage1]     = commitValue(t[4], 0, 5000);
+                        fl[FL_battVoltage2]     = commitValue(t[5], 0, 5000);
+                        fl[FL_battVoltage3]     = commitValue(t[6], 0, 5000);
+                        fl[FL_battCurrent]      = commitValue(t[7], -10000, 10000);
+                        fl[FL_loadCurrent]      = commitValue(t[8], 0, 10000);
+                        fl[FL_impulseCounter]   = commitValue(t[$.isV6 ? 12 : 13], 0, 0);
                         break;
 
                     case SENTENCE_FLB:
-                        fl[FL_temperature]      = commitValue(t[1], -300, 800);   
+                        fl[FL_temperature]      = commitValue(t[1], -300, 800);
                         break;
 
                     case SENTENCE_FLC: {
-                        var _FLCsetnr = commitValue(t[1], 0, 5);  
+                        var _FLCsetnr = commitValue(t[1], 0, 5);
                         var _offset = 0;
-                        if (_FLCsetnr == 3) { 
-                            _offset = FL_Energy; 
-                        } else if (_FLCsetnr == 5) { 
-                            _offset = FL_startCount; 
-                        } else { 
-                            break; 
+                        if (_FLCsetnr == 3) {
+                            _offset = FL_Energy;
+                        } else if (_FLCsetnr == 5) {
+                            _offset = FL_startCount;
+                        } else {
+                            break;
                         }
 
                         for (var i = 0; i < 5; i++) {
@@ -163,10 +163,10 @@ class DataManager {
                         fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
                         fl[FL_poles]            = commitValue(t[2], 10, 20);
                         fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
-                        
+
                         var wSize = fl[FL_wheelsize];
                         var poles = fl[FL_poles];
-                        
+
                         if (wSize > 0 && poles > 0) {
                             var wSizeFloat = wSize.toFloat();
                             var polesFloat = poles.toFloat();
@@ -180,10 +180,9 @@ class DataManager {
                         break;
                 }
             }
+        } else {
             // invalid term or checksum error, ignore sentence and log error
-            else {
-                debug ("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
-            }
+            debug("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
         }
     }
 
@@ -204,3 +203,4 @@ class DataManager {
         return val;
     }
 }
+

@@ -24,7 +24,7 @@ class SettingsMenu extends WatchUi.Menu2 {
         // Add setup menu items
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuSettings) as String, null, :options, null));
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuDatafields) as String, null, :fields, null));
-    }    
+    }
 }
 
 (:SettingsMenu)
@@ -126,7 +126,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("RotateFields", $.UserSettings[$.RotateFields] as Boolean);
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
-        if ($.UserSettings[$.DeviceLock] == false) { 
+        if ($.UserSettings[$.DeviceLock] == false) {
             if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
                 Storage.deleteValue("MyDevice");
                 debug("DeviceLock: device cleared");
@@ -143,8 +143,8 @@ class PickList extends WatchUi.Drawable {
 
     // This constant stores the fieldvalue strings
     private const _settingsStrings = [
-        WatchUi.loadResource($.Rez.Strings.Off), 
-        WatchUi.loadResource($.Rez.Strings.TripEnergy), 
+        WatchUi.loadResource($.Rez.Strings.Off),
+        WatchUi.loadResource($.Rez.Strings.TripEnergy),
         WatchUi.loadResource($.Rez.Strings.Temperature),
         WatchUi.loadResource($.Rez.Strings.DynamoPower),
         WatchUi.loadResource($.Rez.Strings.DynamoGear),
@@ -157,14 +157,14 @@ class PickList extends WatchUi.Drawable {
         WatchUi.loadResource($.Rez.Strings.ChargingState)
         ];
 
-    private var 
-        _index as Number, 
+    private var
+        _index as Number,
         _field as Number;
 
     //! Constructor
     public function initialize(field as Number) {
         Drawable.initialize({});
-        _index = $.UserSettings[field] as Number;   
+        _index = $.UserSettings[field] as Number;
         _field = field;
     }
 
@@ -196,3 +196,4 @@ class PickList extends WatchUi.Drawable {
         return _field;
     }
 }
+

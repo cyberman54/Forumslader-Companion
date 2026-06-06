@@ -2,7 +2,7 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 
 //! BLE profiles for Forumslader v5/v6
-const 
+const
     //! Service UUIDs
     FL5_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("0000ffe0-0000-1000-8000-00805f9b34fb"),
     FL6_SERVICE as Uuid = BluetoothLowEnergy.stringToUuid("6e40ffe2-b5a3-f393-e0a9-e50e24dcca9e"),
@@ -35,3 +35,4 @@ const
                 :descriptors => FL_CCCD_DESCRIPTORS
             }]
     };
+

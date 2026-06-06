@@ -7,16 +7,16 @@ import Toybox.FitContributor;
 
 class ForumsladerView extends SimpleDataField {
 
-    private const 
+    private const
         _alertLockTime as Number = 100,     // Sperrzeit in Sekunden nach Alarm-Auslösung
         _capacityAlarmMin as Number = 20,   // Warnung unter 20% Kapazität
         _capacityAlarmMax as Number = 28;   // Entwarnung/Reset erst ab 28% (Hystereseschutz)
- 
-    private var 
+
+    private var
         _data as DataManager,               // Reference to the DataManager for accessing Forumslader data
         _device as DeviceManager,           // Reference to the DeviceManager for accessing Forumslader device state
         _battVoltage as Float,              //  Current battery voltage, calculated from raw sensor values
-        _capacity as Number,                //  Current battery capacity in %, calculated from either coulomb counting or voltage method based on user settings 
+        _capacity as Number,                //  Current battery capacity in %, calculated from either coulomb counting or voltage method based on user settings
         _index as Number,                   //  Index for rotating display fields
         _alertMute as Number,               //  Counter to mute alarms for a certain time after they are triggered
         _capacityAlertLock as Boolean,      //  Lock to prevent repeated triggering of battery low alarm until capacity recovers
@@ -33,12 +33,12 @@ class ForumsladerView extends SimpleDataField {
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
         SimpleDataField.initialize();
-       
+
         label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
-        
+
         var initStr = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         var connStr = WatchUi.loadResource($.Rez.Strings.connecting) as String;
-        
+
         _stateDisplayString = [
             WatchUi.loadResource($.Rez.Strings.searching) as String,
             connStr, initStr, initStr, initStr, connStr, connStr, connStr
@@ -57,21 +57,21 @@ class ForumsladerView extends SimpleDataField {
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
     private function initFitRecordingFields() as Void {
-        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, 
+        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String,
             1, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) as Field;
-        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, 
+        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String,
             2, FitContributor.DATA_TYPE_UINT8,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
             :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) as Field;
-        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, 
+        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String,
             3, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
             :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) as Field;
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String, 
+        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String,
             4, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD, 
+            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
             :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) as Field;
     }
 
@@ -91,7 +91,7 @@ class ForumsladerView extends SimpleDataField {
         var socState = flData[FL_socState];
         var ccadcValue = flData[FL_ccadcValue];
         var fullChargeCapacity = flData[FL_fullChargeCapacity];
-        
+
         var battCalcMethod = settings[$.BattCalcMethod] == true;
         var fitLogging = settings[$.FitLogging] == true;
         var alertsEnabled = settings[$.Alerts] == true;
@@ -106,7 +106,7 @@ class ForumsladerView extends SimpleDataField {
                 _capacity = (x1 / x2).toNumber();
             }
         } else { // use voltage calculation method
-            _capacity = socState; 
+            _capacity = socState;
         }
 
         // Pre-calculate powers using snapshot values
@@ -114,7 +114,7 @@ class ForumsladerView extends SimpleDataField {
         var electricalLoad = _battVoltage * loadCurrent / 1000;
 
         // write values to fit file, if FitLogging is enabled by user
-        if (fitLogging) { 
+        if (fitLogging) {
             if (_fitRecording1 == null) { initFitRecordingFields(); }
             if (_fitRecording1 != null) { _fitRecording1.setData(_battVoltage); }
             if (_fitRecording2 != null) { _fitRecording2.setData(_capacity); }
@@ -125,8 +125,8 @@ class ForumsladerView extends SimpleDataField {
         // display forumslader alarms
         if (ForumsladerView has :showAlert && alertsEnabled) {
             checkAlarms();
-        }            
-        
+        }
+
         // check if nothing is selected for display, if so return "--"
         if (settings[0] == 0 && settings[1] == 0 && settings[2] == 0 && settings[3] == 0) {
             return "--";
@@ -194,19 +194,19 @@ class ForumsladerView extends SimpleDataField {
         }
     }
 
-    
+
     //! Checks background alarm states for battery capacity and forumslader status and shows alert if necessary
     //! Optimized for 1Hz execution loop
     private function checkAlarms() as Void {
         // 1. Early Exit: Wenn der Alarm stummgeschaltet ist, zähle nur den Timer runter
         if (_alertMute > 0) {
             _alertMute--;
-            return; 
+            return;
         }
 
         // 2. Alarm auslösen (State-Trigger statt dauerhaftem Abfragen)
         if (!_capacityAlertLock) {
-            if (_capacity > 0 &&_capacity < _capacityAlarmMin) {
+            if (_capacity > 0 && _capacity < _capacityAlarmMin) {
                 _capacityAlertLock = true;
                 _alertMute = _alertLockTime;
                 showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
@@ -217,7 +217,7 @@ class ForumsladerView extends SimpleDataField {
                 _capacityAlertLock = false;
             }
         }
- 
+
         // 4. Weitere Alarme prüfen (z. B. Kurzschluss, Systemunterbrechung) - ebenfalls mit State-Triggern
         var flStatus = _data.FLdata[FL_status];
         if (flStatus & 0x8) { // short circuit
@@ -256,3 +256,4 @@ class ForumsladerView extends SimpleDataField {
         }
     }
 }
+

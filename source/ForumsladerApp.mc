@@ -1,4 +1,4 @@
-/* 
+/*
 to do:
 [ ] Bluetooth Bonding mit SDK v7 implementieren
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
@@ -13,7 +13,7 @@ import Toybox.WatchUi;
 import Toybox.Application.Storage;
 
 // Globale Variablen
-var 
+var
     FLstate as Number = FL_SCANNING,
     isV6 as Boolean = false,
     speedunitFactor as Float = 1.0,
@@ -28,9 +28,9 @@ var
 class ForumsladerApp extends AppBase {
 
     private var
-    _bleDelegate as ForumsladerDelegate?,
-    _deviceManager as DeviceManager?,
-    _dataManager as DataManager?;
+        _bleDelegate as ForumsladerDelegate?,
+        _deviceManager as DeviceManager?,
+        _dataManager as DataManager?;
 
     //! Constructor
     public function initialize() {
@@ -71,12 +71,12 @@ class ForumsladerApp extends AppBase {
     }
 
     //! Handle change of settings by user in GCM while App is running
-	public function onSettingsChanged() {
-    	getUserSettings();
+    public function onSettingsChanged() {
+        getUserSettings();
         WatchUi.requestUpdate();
-	}
+    }
 
-    //! get user settings and store them in UserSettings array
+    //! Get user settings and store them in UserSettings array
     private function getUserSettings() as Void {
         // get user settings from application properties
         $.UserSettings[$.DisplayField1] = readKey("UserSetting1", 0);
@@ -85,15 +85,15 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
-        $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
+        $.UserSettings[$.RotateFields] = readKey("RotateFields", false);
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
-        if ($.UserSettings[$.DeviceLock] == false && Storage.getValue("MyDevice") != null) { 
+        if ($.UserSettings[$.DeviceLock] == false && Storage.getValue("MyDevice") != null) {
             Storage.deleteValue("MyDevice");
             debug("DeviceLock: device cleared");
         }
 
-        // get speedunit from garmin device settings
+        // get speed unit from Garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;
             speedunit = "kmh";
@@ -103,30 +103,34 @@ class ForumsladerApp extends AppBase {
             speedunit = "mph";
             distanceunit = "mi";
         }
+
         debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
     }
 
-    //! helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean
+    //! Helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean
     //! @param property key, default value
-    //! @return value as Number
+    //! @return value as Number or Boolean
     private function readKey(key as PropertyKeyType, thisDefault as Number or Boolean) as Number or Boolean {
-    var value = Properties.getValue(key as String) as PropertyValueType;
-    if(value instanceof Boolean) {
-        return value;
-    }
-    if(value == null || !(value instanceof Number)) {
-        if(value != null) {
-            value = value as Number;
-        } else {
-            value = thisDefault;
+        var value = Properties.getValue(key as String) as PropertyValueType;
+
+        if (value instanceof Boolean) {
+            return value;
         }
-    }
-    return value;
+
+        if (value == null || !(value instanceof Number)) {
+            if (value != null) {
+                value = value as Number;
+            } else {
+                value = thisDefault;
+            }
+        }
+
+        return value;
     }
 
     //! Return the settings view and delegate for the app
     //! @return Array Pair [View, Delegate]
-    (:SettingsMenu) 
+    (:SettingsMenu)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
         return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
     }
@@ -147,3 +151,4 @@ class ForumsladerApp extends AppBase {
         }
     }
 }
+

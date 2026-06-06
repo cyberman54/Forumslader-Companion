@@ -3,20 +3,20 @@ import Toybox.Lang;
 
 class ForumsladerDelegate extends BleDelegate {
 
-    private var 
+    private var
         _onScanResult as WeakReference?,
         _onConnection as WeakReference?,
         _onCharWrite as WeakReference?,
         _onDescWrite as WeakReference?,
         _onProfileRegister as WeakReference?,
         _registeredProfiles as Array<Uuid> = [] as Array<Uuid>;
-    
-	//! Constructor
+
+    //! Constructor
     public function initialize() {
         BleDelegate.initialize();
     }
 
-	//! Handle new Scan Results being received
+    //! Handle new Scan Results being received
     //! @param scanResults An iterator of new scan result objects
     public function onScanResults(scanResults as Iterator) as Void {
         for (var result = scanResults.next(); result != null; result = scanResults.next()) {
@@ -32,9 +32,9 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param scanRecord scan result object
     //! @return true if forumslader was found with scan record, false otherwise
     public function ProcessScanRecord(result as ScanResult) as Boolean {
-    // identify a forumslader device by it's advertised local name
+        // identify a forumslader device by its advertised local name
         var _deviceName = result.getDeviceName() as String;
-        if (_deviceName != null) { 
+        if (_deviceName != null) {
             if (_deviceName.equals("FLV6") || _deviceName.equals("flv6") || _deviceName.equals("FL_BLE") || _deviceName.equals("fl_ble")) {
                 if (!isProfileRegistered($.FL6_SERVICE)) {
                     try {
@@ -47,7 +47,7 @@ class ForumsladerDelegate extends BleDelegate {
                 broadcastScanResult(result);
                 return true;
             }
-        } 
+        }
         // identify a FLV5 forumslader device by it's manufacturer ID in advertisement data
         var iter = result.getManufacturerSpecificDataIterator();
         for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
@@ -88,15 +88,12 @@ class ForumsladerDelegate extends BleDelegate {
         }
     }
 
-	//! Handle the completion of notification on a characteristic change, store $FLx payload in buffer
+    //! Handle the completion of notification on a characteristic change, store $FLx payload in buffer
     //! @param characteristic The characteristic that notified
     //! @param data The data which is delivered by the characteristic
-	public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
-            $.FLpayload.addAll(data);
-	}
-
-    //! Handle the completion of a write operation on a characteristic
-    //! @param characteristic The characteristic that was written
+    public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
+        $.FLpayload.addAll(data);
+    }
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
         //debug("onCharWrite");
@@ -159,7 +156,7 @@ class ForumsladerDelegate extends BleDelegate {
     public function onCharacteristicRead(characteristic as BluetoothLowEnergy.Characteristic, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void {
          debug("onCharacteristicRead");
     }
-    public function onDescriptorRead(descriptor as BluetoothLowEnergy.Descriptor, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void { 
+    public function onDescriptorRead(descriptor as BluetoothLowEnergy.Descriptor, status as BluetoothLowEnergy.Status, value as Lang.ByteArray) as Void {
          debug("onDescriptorRead");
     }
     public function onScanStateChange(scanState as BluetoothLowEnergy.ScanState, status as BluetoothLowEnergy.Status) as Void {
@@ -213,3 +210,4 @@ class ForumsladerDelegate extends BleDelegate {
         _onProfileRegister = manager.weak();
     }
 }
+
