@@ -79,27 +79,37 @@ class ForumsladerView extends SimpleDataField {
     //! @return String value to display in the simpledatafield
     private function computeDisplayString() as String {
         var settings = $.UserSettings;
+        // Race protection FLdata Parallel-Access
+        // Make local snapshots of volatile FLdata array to ensure consistency
+        // During encode() calls, individual elements can be updated
         var flData = _data.FLdata;
+        var battVoltage1 = flData[FL_battVoltage1];
+        var battVoltage2 = flData[FL_battVoltage2];
+        var battVoltage3 = flData[FL_battVoltage3];
+        var battCurrent = flData[FL_battCurrent];
+        var loadCurrent = flData[FL_loadCurrent];
+        var socState = flData[FL_socState];
+        var ccadcValue = flData[FL_ccadcValue];
+        var fullChargeCapacity = flData[FL_fullChargeCapacity];
+        
         var battCalcMethod = settings[$.BattCalcMethod] == true;
         var fitLogging = settings[$.FitLogging] == true;
         var alertsEnabled = settings[$.Alerts] == true;
         var rotateFields = settings[$.RotateFields] == true;
 
-        // Pre-calculate battery voltage and capacity based on raw sensor values and user settings
-        _battVoltage = (flData[FL_battVoltage1] + flData[FL_battVoltage2] + flData[FL_battVoltage3]) / 1000.0 as Float;
+        // Pre-calculate battery voltage and capacity using snapshot values
+        _battVoltage = (battVoltage1 + battVoltage2 + battVoltage3) / 1000.0 as Float;
         if (battCalcMethod) { // use coloumb calculation method
-            var x1 = flData[FL_ccadcValue].toLong() * flData[FL_acc2mah].toLong() / 167772.16 as Float;
-            var x2 = flData[FL_fullChargeCapacity];
+            var x1 = ccadcValue.toLong() * flData[FL_acc2mah].toLong() / 167772.16 as Float;
+            var x2 = fullChargeCapacity;
             if (x2 > 0) {
                 _capacity = (x1 / x2).toNumber();
             }
         } else { // use voltage calculation method
-            _capacity = flData[FL_socState]; 
+            _capacity = socState; 
         }
 
-        // Pre-calculate powers to avoid redundant math
-        var loadCurrent = flData[FL_loadCurrent];
-        var battCurrent = flData[FL_battCurrent];
+        // Pre-calculate powers using snapshot values
         var dynamoPower = _battVoltage * (loadCurrent + battCurrent) / 1000;
         var electricalLoad = _battVoltage * loadCurrent / 1000;
 
@@ -209,12 +219,13 @@ class ForumsladerView extends SimpleDataField {
         }
  
         // 4. Weitere Alarme prüfen (z. B. Kurzschluss, Systemunterbrechung) - ebenfalls mit State-Triggern
-        if (_data.FLdata[FL_status] & 0x8) { // short circuit
+        var flStatus = _data.FLdata[FL_status];
+        if (flStatus & 0x8) { // short circuit
             _alertMute = _alertLockTime;
             showAlert(new $.ForumsladerAlertView(_alertShortCircuitStr));
             return;
         }
-        if (_data.FLdata[FL_status] & 0x800000) { // system interrupt
+        if (flStatus & 0x800000) { // system interrupt
             _alertMute = _alertLockTime;
             showAlert(new $.ForumsladerAlertView(_alertSystemInterruptStr));
             return;
@@ -225,12 +236,15 @@ class ForumsladerView extends SimpleDataField {
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-		var size = $.FLpayload.size();
-        if (size > 300) { size = 300; } // timeout protection
+        // Make atomic copy of buffer before iteration to prevent race with onCharacteristicChanged()
+        var payloadCopy = $.FLpayload.slice(0, $.FLpayload.size() % 300); // limit to 300 bytes to prevent timeouts
+        $.FLpayload = []b; // clear buffer immediately
+        
+        // Now iterate over safe copy (onCharacteristicChanged won't affect this)
+        var size = payloadCopy.size();
         for (var i = 0; i < size; i++) {
-            _data.encode($.FLpayload[i]);
+            _data.encode(payloadCopy[i]);
         }
-        $.FLpayload = []b; // clear buffer
 
         // toggle device state machine and store current device state
         var deviceState = _device.updateState();

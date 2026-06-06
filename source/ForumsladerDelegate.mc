@@ -78,11 +78,12 @@ class ForumsladerDelegate extends BleDelegate {
                 (onConnection.get() as DeviceManager).procConnection(device);
             }
         } else {
-            $.FLstate = FL_DISCONNECT;
-            debug("disconnected");
+            // Call procDisconnect (which clears flags) before set global state to disconnected
             if (null != onConnection && onConnection.stillAlive()) {
                 (onConnection.get() as DeviceManager).procDisconnect();
             }
+            $.FLstate = FL_DISCONNECT;
+            debug("disconnected");
         }
     }
 

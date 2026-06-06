@@ -30,7 +30,6 @@ class DeviceManager {
 
     private var 
         _data as DataManager,
-        _bleDelegate as ForumsladerDelegate,
         _device as Device?,
         _service as Service?,
         _command as Characteristic?,
@@ -48,7 +47,6 @@ class DeviceManager {
     public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
         _device = null;
         _data = dataManager;
-        _bleDelegate = bleDelegate;
         _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
@@ -59,24 +57,56 @@ class DeviceManager {
 
     //! Start BLE scanning
     public function startScan() as Void {
-        if (_myDevice != null) {  // if we have a stored device, try to pair with it directly to save time
-            _bleDelegate.ProcessScanRecord(_myDevice);
-        } else {                  // otherwise search for a device
-            debug("scanning");
-            if (_device != null) { 
-                BluetoothLowEnergy.unpairDevice(_device);
+        // Ensure _writeInProgress is reset for clean state
+        _writeInProgress = false;
+        
+        // Try direct pairing with stored device if DeviceLock enabled
+        if ($.UserSettings[$.DeviceLock] == true) {
+            var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
+            if (storedDevice != null) {
+                try {
+                    // Only attempt pairing if not already in a state transition
+                    if ($.FLstate == FL_SEARCH || $.FLstate == FL_DISCONNECT) {
+                        BluetoothLowEnergy.pairDevice(storedDevice);
+                        _myDevice = storedDevice;
+                        debug("DeviceLock: found stored device, trying to pair directly");
+                        return;
+                    }
+                }
+                catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
+                    debug("DeviceLock: stored device pairing failed: " + ex.getErrorMessage());
+                    _myDevice = null;
+                    // Fall through to normal scanning
+                }
             }
-            BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-            $.FLstate = FL_SEARCH;
-            _configDone = false;
         }
+
+        // Start normal scanning
+        debug("scanning");
+        if (_device != null) { 
+            BluetoothLowEnergy.unpairDevice(_device);
+        }
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        $.FLstate = FL_SEARCH;
+        _configDone = false;
+        _myDevice = null;  // Clear old reference
     }
 
     //! Process scan result of incoming BLE advertises
     //! @param scanResult The scan result
     public function procScanResult(scanResult as ScanResult) as Void {
+        // Race Condition State Guard: Only process scan results when actively searching
+        if ($.FLstate != FL_SEARCH) {
+            return;  // State changed, abort
+        }
+
         // Pair the first Forumslader we see with good RSSI
         if (scanResult.getRssi() > _RSSI_threshold) {
+            // Race Condition State Guard: Check state again before stopping scan
+            if ($.FLstate != FL_SEARCH) {
+                return;  // State changed, abort
+            }
+            
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
             // if the device is already paired, we can skip the pairing process to save time
             if (_myDevice != null && _myDevice == scanResult) { 
@@ -86,11 +116,14 @@ class DeviceManager {
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
                 _myDevice = scanResult;
-                }
+                }  
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                 debug("cannot pair device " + scanResult.getDeviceName());
                 debug("error: " + ex.getErrorMessage());
-                BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+                // Only resume scanning if still in search state
+                if ($.FLstate == FL_SEARCH) {
+                    BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+                }
                 _myDevice = null;
                 }
             } else {
@@ -102,18 +135,25 @@ class DeviceManager {
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
-            //device.requestBond();
             _device = device;
-            $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
+            _writeInProgress = false;  // Reset write flag on successful connection
+            // Set state ONLY if we're actually starting fresh
+            // Don't override if already in a valid state
+            if ($.FLstate == FL_SEARCH || $.FLstate == FL_DISCONNECT) {
+                $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
+            }
         } else {
-            debug ("connection failed, restarting scan");
+            debug("connection failed, restarting scan");
+            _writeInProgress = false;
+            _device = null;
             startScan();
         }
     }
 
     //! Handle device disconnect and restart scanning immediately
     public function procDisconnect() as Void {
-        startScan();
+        _writeInProgress = false;
+        _device = null;  // Clear device reference immediately
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -149,19 +189,39 @@ class DeviceManager {
     //! identify forumslader and get characteristic of it's GATT service
     //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
     private function setupProfile() as Boolean {
-        if (!isForumslader(_device)) {
-            debug("error: connected device is not a forumslader V5/V6");
-            if (Storage.getValue("MyDevice") != null) {
-                Storage.deleteValue("MyDevice");
-                debug("DeviceLock: device cleared");
+        if (_device == null || !_device.isConnected()) { 
+            return false;
+        }
+
+        // Wrap iterator in try-catch for disconnect during iteration
+        try {
+            if (!isForumslader(_device)) {
+                debug("error: connected device is not a forumslader V5/V6");
+                // Ensure device check before storage operation
+                if (_device != null && Storage.getValue("MyDevice") != null) {
+                    Storage.deleteValue("MyDevice");
+                    debug("DeviceLock: device cleared");
+                }
+                if (_device != null && _device.isConnected()) {
+                    startScan();
+                }
+                return false;
             }
-            startScan();
+        } catch(ex instanceof Exception) {
+            debug("Exception in isForumslader: " + ex.getErrorMessage());
+            return false;
+        }
+
+        // Race protection: Check device still connected before getService
+        if (_device == null || !_device.isConnected()) {
             return false;
         }
 
         _service = (_device as Device).getService(_FL_SERVICE);
         if (null == _service) {
-            startScan();
+            if (_device != null && _device.isConnected()) {
+                startScan();
+            }
             return false;
         }
 
@@ -179,14 +239,21 @@ class DeviceManager {
         _FL_CONFIG = NULL_UUID;
         _FL_COMMAND = NULL_UUID;
 
-        if (device == null) {
+        // Race protection: Service Iterator Disconnect Check
+        if (device == null || !device.isConnected()) {
             return false;
         }
 
-        var iter = device.getServices();
-        for (var service = iter.next(); service != null; service = iter.next()) {
-            service = service as Service;
-            var uuid = service.getUuid();
+        // Race protection: Iterator might fail if device disconnects - wrap in try-catch
+        try {
+            var iter = device.getServices();
+            for (var service = iter.next(); service != null; service = iter.next()) {
+                // Check device still connected during iteration
+                if (!device.isConnected()) {
+                    return false;
+                }
+                service = service as Service;
+                var uuid = service.getUuid();
 
             if (uuid.equals($.FL5_SERVICE)) {
                 _FL_SERVICE = $.FL5_SERVICE;
@@ -204,6 +271,10 @@ class DeviceManager {
                 debug("FLv6");
                 return true;
             }
+            }
+        } catch(ex instanceof Exception) {
+            debug("Exception during service iteration: " + ex.getErrorMessage());
+            return false;
         }
 
         return false;
@@ -215,13 +286,23 @@ class DeviceManager {
         if (!$.isV6) { 
             return;
         }
-        var char = _config;
-        if (null != char) {
-            var cccd = char.getDescriptor(BluetoothLowEnergy.cccdUuid());
+        // Validate device and config are still valid before accessing
+        if (_device == null || !_device.isConnected() || _config == null) {
+            return;
+        }
+        
+        try {
+            var cccd = _config.getDescriptor(BluetoothLowEnergy.cccdUuid());
             if (null != cccd) {
-                _writeInProgress = true;
-                cccd.requestWrite(FL6_START); // set notification bit
+                // Race protection: Check device still connected before write
+                if (_device.isConnected()) {
+                    _writeInProgress = true;
+                    cccd.requestWrite(FL6_START); // set notification bit
+                }
             }
+        } catch(ex instanceof Exception) {
+            debug("Exception in startDatastreamFL: " + ex.getErrorMessage());
+            _writeInProgress = false;
         }
     }
 
