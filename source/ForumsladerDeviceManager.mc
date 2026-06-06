@@ -55,6 +55,17 @@ class DeviceManager {
         bleDelegate.notifyProfileRegister(self);
     }
 
+    private function _setState(state as Number) as Void {
+        if ($.FLstate != state) {
+            debug("FLstate " + $.FLstate + " -> " + state);
+            $.FLstate = state;
+        }
+    }
+
+    public function notifyDisconnect() as Void {
+        self._setState(FL_DISCONNECT);
+    }
+
     //! Start BLE scanning
     public function startScan() as Void {
         // Ensure _writeInProgress is reset for clean state
@@ -87,7 +98,7 @@ class DeviceManager {
             BluetoothLowEnergy.unpairDevice(_device);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-        $.FLstate = FL_SEARCH;
+        self._setState(FL_SEARCH);
         _configDone = false;
         _myDevice = null;  // Clear old reference
     }
@@ -140,7 +151,7 @@ class DeviceManager {
             // Set state ONLY if we're actually starting fresh
             // Don't override if already in a valid state
             if ($.FLstate == FL_SEARCH || $.FLstate == FL_DISCONNECT) {
-                $.FLstate = _configDone ? FL_WARMSTART : FL_COLDSTART;
+                self._setState(_configDone ? FL_WARMSTART : FL_COLDSTART);
             }
         } else {
             debug("connection failed, restarting scan");
@@ -363,7 +374,7 @@ class DeviceManager {
         }
 
         // Den berechneten Zustand wieder zurückschreiben und zurückgeben
-        $.FLstate = currentState;
+        self._setState(currentState);
         return currentState;
     }
 
