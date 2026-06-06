@@ -19,7 +19,7 @@ class SettingsMenu extends WatchUi.Menu2 {
         Menu2.initialize(null);
         // Cache frequently used resource strings to reduce temporary allocations
         var appName = WatchUi.loadResource($.Rez.Strings.AppName) as String;
-        var appVersion = Application.loadResource($.Rez.Strings.AppVersion) as String;
+        var appVersion = WatchUi.loadResource($.Rez.Strings.AppVersion) as String;
         Menu2.setTitle(appName + " v" + appVersion as String);
         // Add setup menu items
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuSettings) as String, null, :options, null));
