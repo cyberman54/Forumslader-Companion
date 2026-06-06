@@ -237,13 +237,14 @@ class ForumsladerView extends SimpleDataField {
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
         // Make atomic copy of buffer before iteration to prevent race with onCharacteristicChanged()
-        var payloadCopy = $.FLpayload.slice(0, $.FLpayload.size() % 300); // limit to 300 bytes to prevent timeouts
-        $.FLpayload = []b; // clear buffer immediately
-        
-        // Now iterate over safe copy (onCharacteristicChanged won't affect this)
-        var size = payloadCopy.size();
-        for (var i = 0; i < size; i++) {
-            _data.encode(payloadCopy[i]);
+            // Use reference-swap instead of copying to avoid temporary allocation
+            var payloadRef = $.FLpayload;   // take reference to current buffer
+            $.FLpayload = []b;              // publish empty buffer for new incoming data
+
+            var size = payloadRef.size();
+            if (size > 300) { size = 300; } // timeout protection
+            for (var i = 0; i < size; i++) {
+                _data.encode(payloadRef[i]);
         }
 
         // toggle device state machine and store current device state
