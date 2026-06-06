@@ -87,11 +87,11 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);       
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
-        $.UserSettings[$.DeviceLock] = Properties.getValue("DeviceLock") as Boolean;
-        if (!$.UserSettings[$.DeviceLock] && Storage.getValue("MyDevice") != null) { 
-                Storage.deleteValue("MyDevice");
-                debug("DeviceLock: device cleared");
-            }
+        $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
+        if ($.UserSettings[$.DeviceLock] == false && Storage.getValue("MyDevice") != null) { 
+            Storage.deleteValue("MyDevice");
+            debug("DeviceLock: device cleared");
+        }
 
         // get speedunit from garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
@@ -108,7 +108,7 @@ class ForumsladerApp extends AppBase {
         Properties.setValue("appVersion", Application.loadResource($.Rez.Strings.AppVersion) as String);
     }
 
-    //! helper to safely convert a property's value with maybe unexpected type to a Nunmber or a Boolean
+    //! helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean
     //! @param property key, default value
     //! @return value as Number
     private function readKey(key as PropertyKeyType, thisDefault as Number or Boolean) as Number or Boolean {
