@@ -132,6 +132,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
                 debug("DeviceLock: device cleared");
             }
         }
+        debug("User Settings: " + $.UserSettings.toString() + " unit: " + speedunit);
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
 }

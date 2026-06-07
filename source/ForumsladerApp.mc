@@ -11,6 +11,7 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Application.Storage;
+import Toybox.System;
 
 // Globale Variablen
 var
@@ -88,9 +89,11 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
-        if ($.UserSettings[$.DeviceLock] == false && Storage.getValue("MyDevice") != null) {
-            Storage.deleteValue("MyDevice");
-            debug("DeviceLock: device cleared");
+        if ($.UserSettings[$.DeviceLock] == false) {
+            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
+                Storage.deleteValue("MyDevice");
+                debug("DeviceLock: device cleared");
+            }
         }
 
         // get speed unit from Garmin device settings
@@ -104,7 +107,7 @@ class ForumsladerApp extends AppBase {
             distanceunit = "mi";
         }
 
-        debug("User Settings: " + $.UserSettings.toString() + " " + speedunit);
+        debug("User Settings: " + $.UserSettings.toString() + " unit: " + speedunit);
     }
 
     //! Helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean

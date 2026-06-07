@@ -63,7 +63,7 @@ class DataManager {
     //! Interpretiert den $FLx Datenstrom des Forumsladers Byte für Byte
     public function encode(b as Number) as Void {
         var c = b.toChar();
-        // debug(c);
+        //debug(c);
 
         switch(c) {
             case ',':
@@ -159,7 +159,7 @@ class DataManager {
                         break;
                     }
 
-                    case SENTENCE_FLP:
+                    case SENTENCE_FLP: {
                         fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
                         fl[FL_poles]            = commitValue(t[2], 10, 20);
                         fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
@@ -178,11 +178,12 @@ class DataManager {
                         }
                         debug(poles + " poles, " + wSize + "mm wheelsize");
                         break;
+                    }
                 }
+            } else {
+                // invalid term or checksum error, ignore sentence and log error
+                debug("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
             }
-        } else {
-            // invalid term or checksum error, ignore sentence and log error
-            debug("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
         }
     }
 
