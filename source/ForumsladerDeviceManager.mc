@@ -237,6 +237,12 @@ class DeviceManager {
         _command = _service.getCharacteristic(_FL_COMMAND);
         _config = _service.getCharacteristic(_FL_CONFIG);
 
+        // Save device to storage if DeviceLock is enabled
+        if ($.UserSettings[$.DeviceLock] == true && _myDevice != null) {
+            Storage.setValue("MyDevice", _myDevice);
+            debug("DeviceLock: device saved");
+        }
+
         return true;
     }
 
