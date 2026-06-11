@@ -27,6 +27,7 @@ class DeviceManager {
         NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
 
     private var
+        _delegate as ForumsladerDelegate,
         _data as DataManager,
         _device as Device?,
         _service as Service?,
@@ -44,6 +45,7 @@ class DeviceManager {
     //! @param dataManager The DataManager class which processes the received data stream of the BLE device
     public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
         _device = null;
+        _delegate = bleDelegate;
         _data = dataManager;
         _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
         bleDelegate.notifyScanResult(self);
@@ -79,6 +81,7 @@ class DeviceManager {
                         BluetoothLowEnergy.pairDevice(storedDevice);
                         _myDevice = storedDevice;
                         debug("DeviceLock: found stored device, trying to pair directly");
+                        _delegate.ProcessScanRecord(storedDevice); // Process the stored device as if it was just scanned to trigger connection flow
                         return;
                     }
                 }
@@ -147,7 +150,7 @@ class DeviceManager {
             _device = device;
             _writeInProgress = false;  // Reset write flag on successful connection
             // Set state ONLY if we're actually starting fresh
-            // Don't override if already in a valid state
+            // Don't override if already in a valid state (e.g. CONFIG1-3) to avoid disrupting the setup process
             if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
                 self._setState(_configDone ? FL_WARMSTART : FL_COLDSTART);
             }
@@ -256,20 +259,24 @@ class DeviceManager {
 
         // Race protection: Service Iterator Disconnect Check
         if (device == null || !device.isConnected()) {
+            debug("Device is null or disconnected in isForumslader");
             return false;
         }
 
         // Race protection: Iterator might fail if device disconnects - wrap in try-catch
         try {
+            
             var iter = device.getServices();
             for (var service = iter.next(); service != null; service = iter.next()) {
                 // Check device still connected during iteration
                 if (!device.isConnected()) {
+                    debug("Device disconnected during service iteration");
                     return false;
                 }
-
+            
                 service = service as Service;
                 var uuid = service.getUuid();
+                debug("checking service " + uuid.toString());
 
                 if (uuid.equals($.FL5_SERVICE)) {
                     _FL_SERVICE = $.FL5_SERVICE;
@@ -293,7 +300,7 @@ class DeviceManager {
             debug("Exception during service iteration: " + ex.getErrorMessage());
             return false;
         }
-
+        debug("no matching service found");
         return false;
     }
 
