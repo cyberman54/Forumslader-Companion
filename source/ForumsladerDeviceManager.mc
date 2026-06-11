@@ -150,7 +150,7 @@ class DeviceManager {
             _device = device;
             _writeInProgress = false;  // Reset write flag on successful connection
             // Set state ONLY if we're actually starting fresh
-            // Don't override if already in a valid state (e.g. CONFIG1-3) to avoid disrupting the setup process
+            // Don't override if already in a valid state (e.g. CONFIG1-3) to avoid disrupting the setup processg
             if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
                 self._setState(_configDone ? FL_WARMSTART : FL_COLDSTART);
             }
