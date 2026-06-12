@@ -1,6 +1,6 @@
 /*
 to do:
-[ ] Bluetooth Bonding mit SDK v7 implementieren
+[ ] Bluetooth Bonding mit SDK v9.2.x implementieren
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
 [ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
 [ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
@@ -74,6 +74,7 @@ class ForumsladerApp extends AppBase {
     //! Handle change of settings by user in GCM while App is running
     public function onSettingsChanged() {
         getUserSettings();
+        $.DeviceManager.saveDevice();
         WatchUi.requestUpdate();
     }
 
@@ -89,12 +90,6 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
-        if ($.UserSettings[$.DeviceLock] == false) {
-            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
-                Storage.deleteValue("MyDevice");
-                debug("DeviceLock: device cleared");
-            }
-        }
 
         // get speed unit from Garmin device settings
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
@@ -107,7 +102,7 @@ class ForumsladerApp extends AppBase {
             distanceunit = "mi";
         }
 
-        debug("User Settings: " + $.UserSettings.toString() + " unit: " + speedunit);
+        debug("Read user settings: " + $.UserSettings.toString() + " unit: " + speedunit);
     }
 
     //! Helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean

@@ -33,12 +33,14 @@ class DeviceManager {
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
-        _myDevice as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
         _FL_SERVICE as Uuid = NULL_UUID,
         _FL_CONFIG as Uuid = NULL_UUID,
         _FL_COMMAND as Uuid = NULL_UUID;
+
+    private static var 
+        _myDevice as ScanResult?;
 
     //! Constructor
     //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
@@ -109,30 +111,31 @@ class DeviceManager {
     public function procScanResult(scanResult as ScanResult) as Void {
         // Race Condition State Guard: Only process scan results when actively searching
         if ($.FLstate != FL_SCANNING) {
-            return;  // State changed, abort
+            return;
         }
-
         // Pair the first Forumslader we see with good RSSI
+        // This is a critical point for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike, so we only attempt pairing with devices that have a strong signal (i.e. are nearby)
+        // We also check if the device is already paired to avoid unnecessary pairing attempts, which can save time and reduce the chance of pairing failures due to interference or other issues.
         if (scanResult.getRssi() > _RSSI_threshold) {
-            // Race Condition State Guard: Check state again before stopping scan
-            if ($.FLstate != FL_SCANNING) {
-                return;  // State changed, abort
-            }
 
+            // Stop scanning to save resources, as we found a device with good signal. If it's not the right device or pairing fails, we'll restart scanning in the catch block.    
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+
             // if the device is already paired, we can skip the pairing process to save time
             if (_myDevice != null && _myDevice == scanResult) {
                 return;
             }
-            // if the pairing process is disrupted, so we need to catch the exception and restart scanning in that case
+            // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
+                debug("paired");
                 _myDevice = scanResult;
+                saveDevice(); // Save the newly paired device if device lock is enabled
                 }
+            // if the pairing process is disrupted, restart scanning, but only if we're still in the scanning state, to avoid interfering with other states
             catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                 debug("cannot pair device " + scanResult.getDeviceName());
                 debug("error: " + ex.getErrorMessage());
-                // Only resume scanning if still in search state
                 if ($.FLstate == FL_SCANNING) {
                     BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
                 }
@@ -209,11 +212,6 @@ class DeviceManager {
         try {
             if (!isForumslader(_device)) {
                 debug("error: connected device is not a forumslader V5/V6");
-                // Ensure device check before storage operation
-                if (_device != null && Storage.getValue("MyDevice") != null) {
-                    Storage.deleteValue("MyDevice");
-                    debug("DeviceLock: device cleared");
-                }
                 if (_device != null && _device.isConnected()) {
                     startScan();
                 }
@@ -228,7 +226,6 @@ class DeviceManager {
         if (_device == null || !_device.isConnected()) {
             return false;
         }
-
         _service = (_device as Device).getService(_FL_SERVICE);
         if (null == _service) {
             if (_device != null && _device.isConnected()) {
@@ -239,14 +236,24 @@ class DeviceManager {
 
         _command = _service.getCharacteristic(_FL_COMMAND);
         _config = _service.getCharacteristic(_FL_CONFIG);
+        return true;
+    }
 
-        // Save device to storage if DeviceLock is enabled
-        if ($.UserSettings[$.DeviceLock] == true && _myDevice != null) {
+    //! This function is called from the settings menu when the user changes the DeviceLock setting, to either save the currently paired device or to clear the stored device, depending on the new value of the DeviceLock setting.
+    //! It is also called from the onSettingsChanged callback of the app, to persist the device immediately when the user changes the setting in the GCM while the app is running.
+    /// The function checks the current value of the DeviceLock setting and either saves the currently paired device to storage (if DeviceLock is enabled) or clears the stored device from storage (if DeviceLock is disabled).
+    public static function saveDevice () as Void {
+        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
+        if ($.UserSettings[$.DeviceLock] == false && storedDevice != null) {
+            Storage.deleteValue("MyDevice");
+            debug("DeviceLock: device cleared");
+            return;
+        }
+        if ($.UserSettings[$.DeviceLock] == true && storedDevice != null && !storedDevice.equals(_myDevice)) {
             Storage.setValue("MyDevice", _myDevice);
             debug("DeviceLock: device saved");
-        }
-
-        return true;
+            return;
+            }
     }
 
     //! Identify the forumslader type and setup its UUIDs

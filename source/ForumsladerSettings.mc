@@ -126,13 +126,8 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("RotateFields", $.UserSettings[$.RotateFields] as Boolean);
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
-        if ($.UserSettings[$.DeviceLock] == false) {
-            if (Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult != null) {
-                Storage.deleteValue("MyDevice");
-                debug("DeviceLock: device cleared");
-            }
-        }
-        debug("User Settings: " + $.UserSettings.toString() + " unit: " + speedunit);
+        debug("Write user settings: " + $.UserSettings.toString());
+        $.DeviceManager.saveDevice();
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
 }

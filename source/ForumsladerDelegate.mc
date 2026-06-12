@@ -32,13 +32,16 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param scanRecord scan result object
     //! @return true if forumslader was found with scan record, false otherwise
     public function ProcessScanRecord(result as ScanResult) as Boolean {
-        // identify a forumslader device by its advertised local name
+        // identify a V6 forumslader device by its advertised local name
         var _deviceName = result.getDeviceName() as String;
         if (_deviceName != null) {
             if (_deviceName.equals("FLV6") || _deviceName.equals("flv6") || _deviceName.equals("FL_BLE") || _deviceName.equals("fl_ble")) {
                 if (!isProfileRegistered($.FL6_SERVICE)) {
                     try {
                         BluetoothLowEnergy.registerProfile($.FL6_profile);
+                        BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_STRATEGY_DEFAULT);
+                        //BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_TYPE_SECURE_PAIR_BOND);
+                        debug("registered FL6 profile");
                     }
                     catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
                         // ignore duplicate or already-registered profile errors
@@ -48,13 +51,15 @@ class ForumsladerDelegate extends BleDelegate {
                 return true;
             }
         }
-        // identify a FLV5 forumslader device by it's manufacturer ID in advertisement data
+        // identify a V5 forumslader device by its manufacturer ID in advertisement data
         var iter = result.getManufacturerSpecificDataIterator();
         for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
             if (dict.get(:companyId) == 0x4d48) {
                 if (!isProfileRegistered($.FL5_SERVICE)) {
                     try {
                         BluetoothLowEnergy.registerProfile($.FL5_profile);
+                        BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_STRATEGY_DEFAULT);
+                        debug("registered FL5 profile");
                     }
                     catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
                         // ignore duplicate or already-registered profile errors
@@ -84,7 +89,7 @@ class ForumsladerDelegate extends BleDelegate {
                 manager.procDisconnect();
                 manager.notifyDisconnect();
             }
-            debug("disconnected");
+            debug("disconnected, state=" + state);
         }
     }
 
