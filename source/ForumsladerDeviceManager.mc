@@ -80,10 +80,10 @@ class DeviceManager {
                 try {
                     // Only attempt pairing if not already in a state transition
                     if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
-                        BluetoothLowEnergy.pairDevice(storedDevice);
-                        _myDevice = storedDevice;
-                        debug("DeviceLock: found stored device, trying to pair directly");
                         _delegate.ProcessScanRecord(storedDevice); // Process the stored device as if it was just scanned to trigger connection flow
+                        BluetoothLowEnergy.pairDevice(storedDevice);
+                        debug("DeviceLock: stored device paired");
+                        _myDevice = storedDevice;
                         return;
                     }
                 }
