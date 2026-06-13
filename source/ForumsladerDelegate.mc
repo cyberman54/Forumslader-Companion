@@ -39,8 +39,6 @@ class ForumsladerDelegate extends BleDelegate {
                 if (!isProfileRegistered($.FL6_SERVICE)) {
                     try {
                         BluetoothLowEnergy.registerProfile($.FL6_profile);
-                        BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_STRATEGY_DEFAULT);
-                        //BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_TYPE_SECURE_PAIR_BOND);
                         debug("registered FL6 profile");
                     }
                     catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
@@ -58,7 +56,6 @@ class ForumsladerDelegate extends BleDelegate {
                 if (!isProfileRegistered($.FL5_SERVICE)) {
                     try {
                         BluetoothLowEnergy.registerProfile($.FL5_profile);
-                        BluetoothLowEnergy.setConnectionStrategy(BluetoothLowEnergy.CONNECTION_STRATEGY_DEFAULT);
                         debug("registered FL5 profile");
                     }
                     catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
