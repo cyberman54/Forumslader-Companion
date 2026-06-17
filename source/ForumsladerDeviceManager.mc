@@ -80,17 +80,16 @@ class DeviceManager {
                 try {
                     // Only attempt pairing if not already in a state transition
                     if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
+                        _myDevice = storedDevice;
                         _delegate.ProcessScanRecord(storedDevice); // Process the stored device as if it was just scanned to trigger connection flow
                         BluetoothLowEnergy.pairDevice(storedDevice);
                         debug("DeviceLock: stored device paired");
-                        _myDevice = storedDevice;
                         return;
                     }
                 }
                 catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                     debug("DeviceLock: stored device pairing failed: " + ex.getErrorMessage());
-                    _myDevice = null;
-                    // Fall through to normal scanning
+                    return; // Don't start scanning if pairing fails, to avoid conflicts and allow user to troubleshoot (e.g. by moving closer to the device).
                 }
             }
         }
@@ -249,11 +248,16 @@ class DeviceManager {
             debug("DeviceLock: device cleared");
             return;
         }
-        if ($.UserSettings[$.DeviceLock] == true && storedDevice != null && !storedDevice.equals(_myDevice)) {
+        if ($.UserSettings[$.DeviceLock] == true && storedDevice != null && storedDevice.equals(_myDevice)) {
+            debug("DeviceLock: Device equal to stored device, no action needed");
+            return; // No change, avoid unnecessary write
+        }
+        if ($.UserSettings[$.DeviceLock] == true && _myDevice != null) {
             Storage.setValue("MyDevice", _myDevice);
             debug("DeviceLock: device saved");
             return;
-            }
+        }
+        debug("DeviceLock: no device to save or clear, no action taken");
     }
 
     //! Identify the forumslader type and setup its UUIDs
