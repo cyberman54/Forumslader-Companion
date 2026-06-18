@@ -112,6 +112,14 @@ class DeviceManager {
         if ($.FLstate != FL_SCANNING) {
             return;
         }
+
+        // Runtime safety for DeviceLock: if a lock target exists, only that device is allowed for pairing.
+        debug("storage read");
+        var lockedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
+        if ($.UserSettings[$.DeviceLock] == true && lockedDevice != null && !lockedDevice.equals(scanResult)) {
+            return;
+        }
+
         // Pair the first Forumslader we see with good RSSI
         // This is a critical point for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike, so we only attempt pairing with devices that have a strong signal (i.e. are nearby)
         // We also check if the device is already paired to avoid unnecessary pairing attempts, which can save time and reduce the chance of pairing failures due to interference or other issues.
@@ -121,7 +129,7 @@ class DeviceManager {
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
 
             // if the device is already paired, we can skip the pairing process to save time
-            if (_myDevice != null && _myDevice == scanResult) {
+            if (_myDevice != null && _myDevice.equals(scanResult)) {
                 return;
             }
             // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
