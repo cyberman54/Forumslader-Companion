@@ -74,7 +74,7 @@ class ForumsladerApp extends AppBase {
     //! Handle change of settings by user in GCM while App is running
     public function onSettingsChanged() {
         getUserSettings();
-        $.DeviceManager.saveDevice();
+        (_deviceManager as DeviceManager).saveDevice();
         WatchUi.requestUpdate();
     }
 
@@ -130,7 +130,7 @@ class ForumsladerApp extends AppBase {
     //! @return Array Pair [View, Delegate]
     (:SettingsMenu)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
-        return [new $.SettingsMenu(), new $.SettingsMenuDelegate()];
+        return [new $.SettingsMenu(_deviceManager as DeviceManager), new $.SettingsMenuDelegate(_deviceManager as DeviceManager)];
     }
 
     // debug functions

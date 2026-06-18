@@ -29,27 +29,27 @@ class DeviceManager {
     private var
         _delegate as ForumsladerDelegate,
         _data as DataManager,
-        _device as Device?,
+        _connectedDevice as Device?,
         _service as Service?,
         _command as Characteristic?,
         _config as Characteristic?,
+        _pairTarget as ScanResult?,
+        _lockTarget as ScanResult?,
         _writeInProgress as Boolean = false,
         _configDone as Boolean = false,
         _FL_SERVICE as Uuid = NULL_UUID,
         _FL_CONFIG as Uuid = NULL_UUID,
         _FL_COMMAND as Uuid = NULL_UUID;
 
-    private static var 
-        _myDevice as ScanResult?;
-
     //! Constructor
     //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
     //! @param dataManager The DataManager class which processes the received data stream of the BLE device
     public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
-        _device = null;
         _delegate = bleDelegate;
         _data = dataManager;
-        _myDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
+        _connectedDevice = null;
+        _pairTarget = null;
+        _lockTarget = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
         bleDelegate.notifyScanResult(self);
         bleDelegate.notifyConnection(self);
         bleDelegate.notifyCharWrite(self);
@@ -75,14 +75,14 @@ class DeviceManager {
 
         // Try direct pairing with stored device if DeviceLock enabled
         if ($.UserSettings[$.DeviceLock] == true) {
-            var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult;
-            if (storedDevice != null) {
+            if (_lockTarget != null) {
                 try {
                     // Only attempt pairing if not already in a state transition
                     if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
-                        _myDevice = storedDevice;
-                        _delegate.ProcessScanRecord(storedDevice); // Process the stored device as if it was just scanned to trigger connection flow
-                        BluetoothLowEnergy.pairDevice(storedDevice);
+                        var targetDevice = _lockTarget as ScanResult;
+                        _pairTarget = targetDevice; // Set the stored device as the current target for pairing
+                        _delegate.ProcessScanRecord(targetDevice); // Process the stored device as if it was just scanned to trigger connection flow
+                        BluetoothLowEnergy.pairDevice(targetDevice);
                         debug("DeviceLock: stored device paired");
                         return;
                     }
@@ -96,13 +96,13 @@ class DeviceManager {
 
         // Start normal scanning
         debug("scanning");
-        if (_device != null) {
-            BluetoothLowEnergy.unpairDevice(_device);
+        if (_connectedDevice != null) {
+            BluetoothLowEnergy.unpairDevice(_connectedDevice);
         }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
         self._setState(FL_SCANNING);
         _configDone = false;
-        _myDevice = null;  // Clear old reference
+        _pairTarget = null;  // Clear old reference
     }
 
     //! Process scan result of incoming BLE advertises
@@ -115,7 +115,7 @@ class DeviceManager {
 
         // Runtime safety for DeviceLock: if a lock target exists, only that device is allowed for pairing.
         debug("storage read");
-        var lockedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
+        var lockedDevice = _lockTarget; // Local copy to avoid multiple storage reads and potential race conditions
         if ($.UserSettings[$.DeviceLock] == true && lockedDevice != null && !lockedDevice.equals(scanResult)) {
             return;
         }
@@ -129,14 +129,14 @@ class DeviceManager {
             BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
 
             // if the device is already paired, we can skip the pairing process to save time
-            if (_myDevice != null && _myDevice.equals(scanResult)) {
+            if (_pairTarget != null && _pairTarget.equals(scanResult)) {
                 return;
             }
             // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
             try {
                 BluetoothLowEnergy.pairDevice(scanResult);
                 debug("paired");
-                _myDevice = scanResult;
+                _pairTarget = scanResult;
                 saveDevice(); // Save the newly paired device if device lock is enabled
                 }
             // if the pairing process is disrupted, restart scanning, but only if we're still in the scanning state, to avoid interfering with other states
@@ -146,7 +146,7 @@ class DeviceManager {
                 if ($.FLstate == FL_SCANNING) {
                     BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
                 }
-                _myDevice = null;
+                _pairTarget = null;
                 }
             } else {
             debug("signal too weak, rssi " + scanResult.getRssi());
@@ -157,7 +157,7 @@ class DeviceManager {
     //! @param device The device that was connected
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
-            _device = device;
+            _connectedDevice = device;
             _writeInProgress = false;  // Reset write flag on successful connection
             // Set state ONLY if we're actually starting fresh
             // Don't override if already in a valid state (e.g. CONFIG1-3) to avoid disrupting the setup process
@@ -167,7 +167,7 @@ class DeviceManager {
         } else {
             debug("connection failed, restarting scan");
             _writeInProgress = false;
-            _device = null;
+            _connectedDevice = null;
             startScan();
         }
     }
@@ -175,7 +175,7 @@ class DeviceManager {
     //! Handle device disconnect and restart scanning immediately
     public function procDisconnect() as Void {
         _writeInProgress = false;
-        _device = null;  // Clear device reference immediately
+        _connectedDevice = null;  // Clear device reference immediately
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -201,7 +201,7 @@ class DeviceManager {
     //! Send command to forumslader device
     //! @param cmd as command ByteArray
     private function sendCommandFL(cmd as ByteArray) as Void {
-        if ((null == _device) || _writeInProgress || null == _command) {
+        if ((null == _connectedDevice) || _writeInProgress || null == _command) {
             return;
         }
         _writeInProgress = true;
@@ -211,15 +211,15 @@ class DeviceManager {
     //! identify forumslader and get characteristic of it's GATT service
     //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
     private function setupProfile() as Boolean {
-        if (_device == null || !_device.isConnected()) {
+        if (_connectedDevice == null || !_connectedDevice.isConnected()) {
             return false;
         }
 
         // Wrap iterator in try-catch for disconnect during iteration
         try {
-            if (!isForumslader(_device)) {
+            if (!isForumslader(_connectedDevice)) {
                 debug("error: connected device is not a forumslader V5/V6");
-                if (_device != null && _device.isConnected()) {
+                if (_connectedDevice != null && _connectedDevice.isConnected()) {
                     startScan();
                 }
                 return false;
@@ -230,12 +230,12 @@ class DeviceManager {
         }
 
         // Race protection: Check device still connected before getService
-        if (_device == null || !_device.isConnected()) {
+        if (_connectedDevice == null || !_connectedDevice.isConnected()) {
             return false;
         }
-        _service = (_device as Device).getService(_FL_SERVICE);
+        _service = (_connectedDevice as Device).getService(_FL_SERVICE);
         if (null == _service) {
-            if (_device != null && _device.isConnected()) {
+            if (_connectedDevice != null && _connectedDevice.isConnected()) {
                 startScan();
             }
             return false;
@@ -249,19 +249,21 @@ class DeviceManager {
     //! This function is called from the settings menu when the user changes the DeviceLock setting, to either save the currently paired device or to clear the stored device, depending on the new value of the DeviceLock setting.
     //! It is also called from the onSettingsChanged callback of the app, to persist the device immediately when the user changes the setting in the GCM while the app is running.
     /// The function checks the current value of the DeviceLock setting and either saves the currently paired device to storage (if DeviceLock is enabled) or clears the stored device from storage (if DeviceLock is disabled).
-    public static function saveDevice () as Void {
-        var storedDevice = Storage.getValue("MyDevice") as BluetoothLowEnergy.ScanResult?;
+    public function saveDevice () as Void {
+        var storedDevice = _lockTarget;
         if ($.UserSettings[$.DeviceLock] == false && storedDevice != null) {
             Storage.deleteValue("MyDevice");
+            _lockTarget = null;
             debug("DeviceLock: device cleared");
             return;
         }
-        if ($.UserSettings[$.DeviceLock] == true && storedDevice != null && storedDevice.equals(_myDevice)) {
+        if ($.UserSettings[$.DeviceLock] == true && storedDevice != null && storedDevice.equals(_pairTarget)) {
             debug("DeviceLock: Device equal to stored device, no action needed");
             return; // No change, avoid unnecessary write
         }
-        if ($.UserSettings[$.DeviceLock] == true && _myDevice != null) {
-            Storage.setValue("MyDevice", _myDevice);
+        if ($.UserSettings[$.DeviceLock] == true && _pairTarget != null) {
+            Storage.setValue("MyDevice", _pairTarget);
+            _lockTarget = _pairTarget;
             debug("DeviceLock: device saved");
             return;
         }
@@ -330,7 +332,7 @@ class DeviceManager {
             return;
         }
         // Validate device and config are still valid before accessing
-        if (_device == null || !_device.isConnected() || _config == null) {
+        if (_connectedDevice == null || !_connectedDevice.isConnected() || _config == null) {
             return;
         }
 
@@ -338,7 +340,7 @@ class DeviceManager {
             var cccd = _config.getDescriptor(BluetoothLowEnergy.cccdUuid());
             if (null != cccd) {
                 // Race protection: Check device still connected before write
-                if (_device.isConnected()) {
+                if (_connectedDevice.isConnected()) {
                     _writeInProgress = true;
                     cccd.requestWrite(FL6_START); // set notification bit
                 }
