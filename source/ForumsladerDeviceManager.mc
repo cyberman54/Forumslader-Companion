@@ -79,6 +79,7 @@ class DeviceManager {
                 try {
                     // Only attempt pairing if not already in a state transition
                     if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
+                        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF); // Ensure scanning is off before pairing
                         var targetDevice = _lockTarget as ScanResult;
                         _pairTarget = targetDevice; // Set the stored device as the current target for pairing
                         _delegate.ProcessScanRecord(targetDevice); // Process the stored device as if it was just scanned to trigger connection flow
@@ -114,42 +115,43 @@ class DeviceManager {
         }
 
         // Runtime safety for DeviceLock: if a lock target exists, only that device is allowed for pairing.
-        debug("storage read");
         var lockedDevice = _lockTarget; // Local copy to avoid multiple storage reads and potential race conditions
         if ($.UserSettings[$.DeviceLock] == true && lockedDevice != null && !lockedDevice.equals(scanResult)) {
             return;
         }
 
-        // Pair the first Forumslader we see with good RSSI
-        // This is a critical point for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike, so we only attempt pairing with devices that have a strong signal (i.e. are nearby)
-        // We also check if the device is already paired to avoid unnecessary pairing attempts, which can save time and reduce the chance of pairing failures due to interference or other issues.
-        if (scanResult.getRssi() > _RSSI_threshold) {
-
-            // Stop scanning to save resources, as we found a device with good signal. If it's not the right device or pairing fails, we'll restart scanning in the catch block.    
-            BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
-
-            // if the device is already paired, we can skip the pairing process to save time
-            if (_pairTarget != null && _pairTarget.equals(scanResult)) {
-                return;
-            }
-            // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
-            try {
-                BluetoothLowEnergy.pairDevice(scanResult);
-                debug("paired");
-                _pairTarget = scanResult;
-                saveDevice(); // Save the newly paired device if device lock is enabled
-                }
-            // if the pairing process is disrupted, restart scanning, but only if we're still in the scanning state, to avoid interfering with other states
-            catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
-                debug("cannot pair device " + scanResult.getDeviceName());
-                debug("error: " + ex.getErrorMessage());
-                if ($.FLstate == FL_SCANNING) {
-                    BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
-                }
-                _pairTarget = null;
-                }
-            } else {
+        // For DeviceLock: skip RSSI check, user knows their device location
+        // For normal scanning: only pair with good RSSI to ensure stable connection
+        var isDeviceLocked = $.UserSettings[$.DeviceLock] == true && lockedDevice != null && lockedDevice.equals(scanResult);
+        var rssiThresholdPassed = scanResult.getRssi() > _RSSI_threshold;
+        
+        if (!isDeviceLocked && !rssiThresholdPassed) {
             debug("signal too weak, rssi " + scanResult.getRssi());
+            return;
+        }
+
+        // Stop scanning to save resources, as we found a device with good signal or locked device found. If it's not the right device or pairing fails, we'll restart scanning in the catch block.    
+        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+
+        // if the device is already paired, we can skip the pairing process to save time
+        if (_pairTarget != null && _pairTarget.equals(scanResult)) {
+            return;
+        }
+        // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
+        try {
+            BluetoothLowEnergy.pairDevice(scanResult);
+            debug("paired");
+            _pairTarget = scanResult;
+            saveDevice(); // Save the newly paired device if device lock is enabled
+        }
+        // if the pairing process is disrupted, restart scanning, but only if we're still in the scanning state, to avoid interfering with other states
+        catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
+            debug("cannot pair device " + scanResult.getDeviceName());
+            debug("error: " + ex.getErrorMessage());
+            if ($.FLstate == FL_SCANNING) {
+                BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+            }
+            _pairTarget = null;
         }
     }
 

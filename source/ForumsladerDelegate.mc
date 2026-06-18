@@ -14,6 +14,23 @@ class ForumsladerDelegate extends BleDelegate {
     //! Constructor
     public function initialize() {
         BleDelegate.initialize();
+        // Pre-register profiles at startup to avoid delays during pairing
+        try {
+            BluetoothLowEnergy.registerProfile($.FL6_profile);
+            rememberProfile($.FL6_SERVICE);
+            debug("registered FL6 profile");
+        }
+        catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+            // ignore duplicate or already-registered profile errors
+        }
+        try {
+            BluetoothLowEnergy.registerProfile($.FL5_profile);
+            rememberProfile($.FL5_SERVICE);
+            debug("registered FL5 profile");
+        }
+        catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
+            // ignore duplicate or already-registered profile errors
+        }
     }
 
     //! Handle new Scan Results being received
@@ -36,15 +53,6 @@ class ForumsladerDelegate extends BleDelegate {
         var _deviceName = result.getDeviceName() as String;
         if (_deviceName != null) {
             if (_deviceName.equals("FLV6") || _deviceName.equals("flv6") || _deviceName.equals("FL_BLE") || _deviceName.equals("fl_ble")) {
-                if (!isProfileRegistered($.FL6_SERVICE)) {
-                    try {
-                        BluetoothLowEnergy.registerProfile($.FL6_profile);
-                        debug("registered FL6 profile");
-                    }
-                    catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                        // ignore duplicate or already-registered profile errors
-                    }
-                }
                 broadcastScanResult(result);
                 return true;
             }
@@ -53,15 +61,6 @@ class ForumsladerDelegate extends BleDelegate {
         var iter = result.getManufacturerSpecificDataIterator();
         for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
             if (dict.get(:companyId) == 0x4d48) {
-                if (!isProfileRegistered($.FL5_SERVICE)) {
-                    try {
-                        BluetoothLowEnergy.registerProfile($.FL5_profile);
-                        debug("registered FL5 profile");
-                    }
-                    catch(ex instanceof BluetoothLowEnergy.ProfileRegistrationException) {
-                        // ignore duplicate or already-registered profile errors
-                    }
-                }
                 broadcastScanResult(result);
                 return true;
             }
