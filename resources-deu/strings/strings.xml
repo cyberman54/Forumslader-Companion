@@ -5,6 +5,10 @@
     <string scope="settings" id="ShowTitle2">Anzeigewert 2</string>
     <string scope="settings" id="ShowTitle3">Anzeigewert 3</string>
     <string scope="settings" id="ShowTitle4">Anzeigewert 4</string>
+    <string scope="settings" id="ShowFitTitle1">FIT-Wert 1</string>
+    <string scope="settings" id="ShowFitTitle2">FIT-Wert 2</string>
+    <string scope="settings" id="ShowFitTitle3">FIT-Wert 3</string>
+    <string scope="settings" id="ShowFitTitle4">FIT-Wert 4</string>
     <!-- runtime strings -->
     <string id="SelectDeviceLock">Gerätebindung</string>
     <string id="SelectCapacityMethod">Coloumbzähler</string>
@@ -13,6 +17,7 @@
     <string id="SelectAlerts">Alarme</string>
     <string id="MenuSettings">Einstellungen</string>
     <string id="MenuDatafields">Datenfelder</string>
+    <string id="MenuFitDatafields">FIT-Datenfelder</string>
     <string id="Off">-- Aus --</string>
     <string id="AppName">Forumslader</string>
     <string id="searching">suchen</string>

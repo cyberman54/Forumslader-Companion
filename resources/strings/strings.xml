@@ -5,6 +5,10 @@
     <string scope="settings" id="ShowTitle2">Displayvalue 2</string>
     <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
     <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
+    <string scope="settings" id="ShowFitTitle1">FIT value 1</string>
+    <string scope="settings" id="ShowFitTitle2">FIT value 2</string>
+    <string scope="settings" id="ShowFitTitle3">FIT value 3</string>
+    <string scope="settings" id="ShowFitTitle4">FIT value 4</string>
     <!-- runtime strings -->
     <string id="SelectDeviceLock">Devicebinding</string>
     <string id="SelectCapacityMethod">Coloumbcount</string>
@@ -13,6 +17,7 @@
     <string id="SelectAlerts">Alerts</string>
     <string id="MenuSettings">Settings</string>
     <string id="MenuDatafields">Datafields</string>
+    <string id="MenuFitDatafields">FIT datafields</string>
     <string id="Off">-- hide --</string>
     <string id="AppName">Forumloader</string>
     <string id="initializing">initializing</string>

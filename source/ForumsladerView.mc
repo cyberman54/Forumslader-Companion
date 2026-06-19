@@ -24,6 +24,11 @@ class ForumsladerView extends SimpleDataField {
         _fitRecording2 as Field?,           //  Custom FIT data field for recording battery capacity
         _fitRecording3 as Field?,           //  Custom FIT data field for recording other values
         _fitRecording4 as Field?,           //  Custom FIT data field for recording additional values
+        _fitFieldsInitialized as Boolean,   //  Tracks if FIT fields have been created for current settings
+        _fitSetting1 as Number,             //  Cached selected fields for FIT-logging (to detect changes in settings and re-create fields if needed)
+        _fitSetting2 as Number,             
+        _fitSetting3 as Number,             
+        _fitSetting4 as Number,             
         _alertBatteryLowStr as String,      //  String für Batterie-Alarm
         _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
         _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
@@ -53,26 +58,140 @@ class ForumsladerView extends SimpleDataField {
         _index = 0;
         _alertMute = 0;
         _capacityAlertLock = false;
+        _fitFieldsInitialized = false;
+        _fitSetting1 = -1;
+        _fitSetting2 = -1;
+        _fitSetting3 = -1;
+        _fitSetting4 = -1;
     }
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
     private function initFitRecordingFields() as Void {
-        _fitRecording1 = createField(WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String,
-            1, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryVoltageLabel) as String}) as Field;
-        _fitRecording2 = createField(WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String,
-            2, FitContributor.DATA_TYPE_UINT8,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
-            :units=>WatchUi.loadResource($.Rez.Strings.BatteryCapacityLabel) as String}) as Field;
-        _fitRecording3 = createField(WatchUi.loadResource($.Rez.Strings.DynamoPower) as String,
-            3, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
-            :units=>WatchUi.loadResource($.Rez.Strings.DynamoPowerLabel) as String}) as Field;
-        _fitRecording4 = createField(WatchUi.loadResource($.Rez.Strings.Load) as String,
-            4, FitContributor.DATA_TYPE_FLOAT,
-            {:mesgType=>FitContributor.MESG_TYPE_RECORD,
-            :units=>WatchUi.loadResource($.Rez.Strings.LoadLabel) as String}) as Field;
+        _fitSetting1 = $.UserSettings[$.FitField1] as Number;
+        _fitSetting2 = $.UserSettings[$.FitField2] as Number;
+        _fitSetting3 = $.UserSettings[$.FitField3] as Number;
+        _fitSetting4 = $.UserSettings[$.FitField4] as Number;
+
+        // Reset all field references first. Then create only fields explicitly enabled in settings.
+        _fitRecording1 = null;
+        _fitRecording2 = null;
+        _fitRecording3 = null;
+        _fitRecording4 = null;
+
+        if (_fitSetting1 > 0) {
+            _fitRecording1 = _createFitRecordingField(1, _fitSetting1);
+        }
+        if (_fitSetting2 > 0) {
+            _fitRecording2 = _createFitRecordingField(2, _fitSetting2);
+        }
+        if (_fitSetting3 > 0) {
+            _fitRecording3 = _createFitRecordingField(3, _fitSetting3);
+        }
+        if (_fitSetting4 > 0) {
+            _fitRecording4 = _createFitRecordingField(4, _fitSetting4);
+        }
+
+        _fitFieldsInitialized = true;
+    }
+
+    private function _createFitRecordingField(slot as Number, setting as Number) as Field? {
+        if (setting <= 0) {
+            return null;
+        }
+        return createField(
+            WatchUi.loadResource(_fitFieldLabelForSetting(setting)) as String,
+            slot,
+            _fitDataTypeForSetting(setting),
+            {
+                :mesgType => FitContributor.MESG_TYPE_RECORD,
+                :units => WatchUi.loadResource(_fitFieldUnitForSetting(setting)) as String
+            }
+        ) as Field;
+    }
+
+    private function _fitDataTypeForSetting(setting as Number) as FitContributor.DataType {
+        switch (setting) {
+            case 4: // generator gear
+                return FitContributor.DATA_TYPE_UINT8;
+            case 10: // battery capacity
+                return FitContributor.DATA_TYPE_UINT8;
+            default:
+                return FitContributor.DATA_TYPE_FLOAT;
+        }
+    }
+
+    private function _fitFieldLabelForSetting(setting as Number) as ResourceId {
+        switch (setting) {
+            case 1: return $.Rez.Strings.TripEnergy;
+            case 2: return $.Rez.Strings.Temperature;
+            case 3: return $.Rez.Strings.DynamoPower;
+            case 4: return $.Rez.Strings.DynamoGear;
+            case 5: return $.Rez.Strings.Distance;
+            case 6: return $.Rez.Strings.BatteryVoltage;
+            case 7: return $.Rez.Strings.BatteryCurrent;
+            case 8: return $.Rez.Strings.Load;
+            case 9: return $.Rez.Strings.Speed;
+            case 10: return $.Rez.Strings.BatteryCapacity;
+            default: return $.Rez.Strings.Off;
+        }
+    }
+
+    private function _fitFieldUnitForSetting(setting as Number) as ResourceId {
+        switch (setting) {
+            case 1: return $.Rez.Strings.TripEnergyLabel;
+            case 2: return $.Rez.Strings.TemperatureLabel;
+            case 3: return $.Rez.Strings.DynamoPowerLabel;
+            case 4: return $.Rez.Strings.DynamoGearLabel;
+            case 5: return $.Rez.Strings.DistanceLabel;
+            case 6: return $.Rez.Strings.BatteryVoltageLabel;
+            case 7: return $.Rez.Strings.BatteryCurrentLabel;
+            case 8: return $.Rez.Strings.LoadLabel;
+            case 9: return $.Rez.Strings.SpeedLabel;
+            case 10: return $.Rez.Strings.BatteryCapacityLabel;
+            default: return $.Rez.Strings.Off;
+        }
+    }
+
+    private function _fitValueForSetting(setting as Number, flData as Array<Number>) as Float or Number {
+        switch (setting) {
+            case 1: // trip energy
+                return (flData[FL_tripEnergy] / 10.0) as Float;
+            case 2: // temperature
+                return (flData[FL_temperature] / 10.0) as Float;
+            case 3: // dynamo power
+                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000) as Float;
+            case 4: // generator gear
+                return flData[FL_gear];
+            case 5: // odometer
+                return (flData[FL_impulseCounter].toDouble() * _data.imp2odo).toNumber();
+            case 6: // battery voltage
+                return _battVoltage;
+            case 7: // battery current
+                return (flData[FL_battCurrent] / 1000.0) as Float;
+            case 8: // electrical load
+                return (_battVoltage * flData[FL_loadCurrent] / 1000) as Float;
+            case 9: // speed
+                return (flData[FL_frequency] * _data.freq2speed).toNumber();
+            case 10: // battery capacity
+                return _capacity;
+            default:
+                return 0;
+        }
+    }
+
+    private function _writeFitRecordingValues(flData as Array<Number>) as Void {
+        if (_fitRecording1 != null && _fitSetting1 > 0) {
+            (_fitRecording1 as Field).setData(_fitValueForSetting(_fitSetting1, flData));
+        }
+        if (_fitRecording2 != null && _fitSetting2 > 0) {
+            (_fitRecording2 as Field).setData(_fitValueForSetting(_fitSetting2, flData));
+        }
+        if (_fitRecording3 != null && _fitSetting3 > 0) {
+            (_fitRecording3 as Field).setData(_fitValueForSetting(_fitSetting3, flData));
+        }
+        if (_fitRecording4 != null && _fitSetting4 > 0) {
+            (_fitRecording4 as Field).setData(_fitValueForSetting(_fitSetting4, flData));
+        }
     }
 
     //! generate, display and log forumslader values
@@ -86,12 +205,9 @@ class ForumsladerView extends SimpleDataField {
         var battVoltage1 = flData[FL_battVoltage1];
         var battVoltage2 = flData[FL_battVoltage2];
         var battVoltage3 = flData[FL_battVoltage3];
-        var battCurrent = flData[FL_battCurrent];
-        var loadCurrent = flData[FL_loadCurrent];
         var socState = flData[FL_socState];
         var ccadcValue = flData[FL_ccadcValue];
         var fullChargeCapacity = flData[FL_fullChargeCapacity];
-
         var battCalcMethod = settings[$.BattCalcMethod] == true;
         var fitLogging = settings[$.FitLogging] == true;
         var alertsEnabled = settings[$.Alerts] == true;
@@ -109,17 +225,12 @@ class ForumsladerView extends SimpleDataField {
             _capacity = socState;
         }
 
-        // Pre-calculate powers using snapshot values
-        var dynamoPower = _battVoltage * (loadCurrent + battCurrent) / 1000;
-        var electricalLoad = _battVoltage * loadCurrent / 1000;
-
         // write values to fit file, if FitLogging is enabled by user
         if (fitLogging) {
-            if (_fitRecording1 == null) { initFitRecordingFields(); }
-            if (_fitRecording1 != null) { _fitRecording1.setData(_battVoltage); }
-            if (_fitRecording2 != null) { _fitRecording2.setData(_capacity); }
-            if (_fitRecording3 != null) { _fitRecording3.setData(dynamoPower); }
-            if (_fitRecording4 != null) { _fitRecording4.setData(electricalLoad); }
+            if (!_fitFieldsInitialized || _fitSettingsChanged()) {
+                initFitRecordingFields();
+            }
+            _writeFitRecordingValues(flData);
         }
 
         // display forumslader alarms
@@ -194,6 +305,12 @@ class ForumsladerView extends SimpleDataField {
         }
     }
 
+    private function _fitSettingsChanged() as Boolean {
+        return _fitSetting1 != ($.UserSettings[$.FitField1] as Number)
+            || _fitSetting2 != ($.UserSettings[$.FitField2] as Number)
+            || _fitSetting3 != ($.UserSettings[$.FitField3] as Number)
+            || _fitSetting4 != ($.UserSettings[$.FitField4] as Number);
+    }
 
     //! Checks background alarm states for battery capacity and forumslader status and shows alert if necessary
     //! Optimized for 1Hz execution loop

@@ -92,4 +92,68 @@
         </settingConfig>
     </setting>
 
+    <setting propertyKey="@Properties.UserSettingFit1" title="@Strings.ShowFitTitle1">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.Off</listEntry>
+            <listEntry value="1">@Strings.TripEnergy</listEntry>
+            <listEntry value="2">@Strings.Temperature</listEntry>
+            <listEntry value="3">@Strings.DynamoPower</listEntry>
+            <listEntry value="4">@Strings.DynamoGear</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
+            <listEntry value="6">@Strings.BatteryVoltage</listEntry>
+            <listEntry value="7">@Strings.BatteryCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
+            <listEntry value="9">@Strings.Speed</listEntry>
+            <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.UserSettingFit2" title="@Strings.ShowFitTitle2">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.Off</listEntry>
+            <listEntry value="1">@Strings.TripEnergy</listEntry>
+            <listEntry value="2">@Strings.Temperature</listEntry>
+            <listEntry value="3">@Strings.DynamoPower</listEntry>
+            <listEntry value="4">@Strings.DynamoGear</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
+            <listEntry value="6">@Strings.BatteryVoltage</listEntry>
+            <listEntry value="7">@Strings.BatteryCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
+            <listEntry value="9">@Strings.Speed</listEntry>
+            <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.UserSettingFit3" title="@Strings.ShowFitTitle3">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.Off</listEntry>
+            <listEntry value="1">@Strings.TripEnergy</listEntry>
+            <listEntry value="2">@Strings.Temperature</listEntry>
+            <listEntry value="3">@Strings.DynamoPower</listEntry>
+            <listEntry value="4">@Strings.DynamoGear</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
+            <listEntry value="6">@Strings.BatteryVoltage</listEntry>
+            <listEntry value="7">@Strings.BatteryCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
+            <listEntry value="9">@Strings.Speed</listEntry>
+            <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.UserSettingFit4" title="@Strings.ShowFitTitle4">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.Off</listEntry>
+            <listEntry value="1">@Strings.TripEnergy</listEntry>
+            <listEntry value="2">@Strings.Temperature</listEntry>
+            <listEntry value="3">@Strings.DynamoPower</listEntry>
+            <listEntry value="4">@Strings.DynamoGear</listEntry>
+            <listEntry value="5">@Strings.Distance</listEntry>
+            <listEntry value="6">@Strings.BatteryVoltage</listEntry>
+            <listEntry value="7">@Strings.BatteryCurrent</listEntry>
+            <listEntry value="8">@Strings.Load</listEntry>
+            <listEntry value="9">@Strings.Speed</listEntry>
+            <listEntry value="10">@Strings.BatteryCapacity</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

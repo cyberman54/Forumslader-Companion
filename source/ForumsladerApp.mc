@@ -21,7 +21,7 @@ var
     speedunit as String = "kmh",
     distanceunit as String = "km",
     FLpayload as ByteArray = []b,
-    UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false];
+    UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false, 6, 10, 3, 8];
 
 //! This data field app uses the BLE data interface of a forumslader.
 //! The field will pair with the first Forumslader it encounters and will
@@ -85,6 +85,10 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.DisplayField2] = readKey("UserSetting2", 0);
         $.UserSettings[$.DisplayField3] = readKey("UserSetting3", 0);
         $.UserSettings[$.DisplayField4] = readKey("UserSetting4", 0);
+        $.UserSettings[$.FitField1] = readKey("UserSettingFit1", 6);
+        $.UserSettings[$.FitField2] = readKey("UserSettingFit2", 10);
+        $.UserSettings[$.FitField3] = readKey("UserSettingFit3", 3);
+        $.UserSettings[$.FitField4] = readKey("UserSettingFit4", 8);
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
         $.UserSettings[$.RotateFields] = readKey("RotateFields", false);

@@ -9,4 +9,8 @@
     <property id="UserSetting2" type="Number">3</property>				<!-- default show dynamo power -->
     <property id="UserSetting3" type="Number">6</property>				<!-- default show battery voltage -->
     <property id="UserSetting4" type="Number">7</property>				<!-- default show battery current -->
+    <property id="UserSettingFit1" type="Number">6</property>			<!-- default log battery voltage -->
+    <property id="UserSettingFit2" type="Number">10</property>			<!-- default log battery remaining -->
+    <property id="UserSettingFit3" type="Number">3</property>			<!-- default log dynamo power -->
+    <property id="UserSettingFit4" type="Number">8</property>			<!-- default log electrical load -->
 </properties>
