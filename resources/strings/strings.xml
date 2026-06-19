@@ -1,35 +1,35 @@
 <strings>
     <!-- GCM settings menu strings -->
-    <string scope="settings" id="AppVersionTitle">Softwareversion</string>
-    <string scope="settings" id="ShowTitle1">Displayvalue 1</string>
-    <string scope="settings" id="ShowTitle2">Displayvalue 2</string>
-    <string scope="settings" id="ShowTitle3">Displayvalue 3</string>
-    <string scope="settings" id="ShowTitle4">Displayvalue 4</string>
-    <string scope="settings" id="ShowFitTitle1">FIT value 1</string>
-    <string scope="settings" id="ShowFitTitle2">FIT value 2</string>
-    <string scope="settings" id="ShowFitTitle3">FIT value 3</string>
-    <string scope="settings" id="ShowFitTitle4">FIT value 4</string>
+    <string scope="settings" id="AppVersionTitle">App Version</string>
+    <string scope="settings" id="ShowTitle1">Display Field 1</string>
+    <string scope="settings" id="ShowTitle2">Display Field 2</string>
+    <string scope="settings" id="ShowTitle3">Display Field 3</string>
+    <string scope="settings" id="ShowTitle4">Display Field 4</string>
+    <string scope="settings" id="ShowFitTitle1">Recording Field 1</string>
+    <string scope="settings" id="ShowFitTitle2">Recording Field 2</string>
+    <string scope="settings" id="ShowFitTitle3">Recording Field 3</string>
+    <string scope="settings" id="ShowFitTitle4">Recording Field 4</string>
     <!-- runtime strings -->
-    <string id="SelectDeviceLock">Devicebinding</string>
-    <string id="SelectCapacityMethod">Coloumbcount</string>
-    <string id="SelectFitLogging">Log data</string>
-    <string id="SelectRotateFields">Rotate fields</string>
+    <string id="SelectDeviceLock">Lock to Device</string>
+    <string id="SelectCapacityMethod">Use Coulomb Counting</string>
+    <string id="SelectFitLogging">Enable FIT Recording</string>
+    <string id="SelectRotateFields">Rotate Display Fields</string>
     <string id="SelectAlerts">Alerts</string>
     <string id="MenuSettings">Settings</string>
-    <string id="MenuDatafields">Datafields</string>
-    <string id="MenuFitDatafields">FIT datafields</string>
-    <string id="Off">-- hide --</string>
-    <string id="AppName">Forumloader</string>
-    <string id="initializing">initializing</string>
-    <string id="searching">searching</string>
-    <string id="connecting">connecting</string>
+    <string id="MenuDatafields">Display Fields</string>
+    <string id="MenuFitDatafields">Recording Fields</string>
+    <string id="Off">Off</string>
+    <string id="AppName">Forumslader</string>
+    <string id="initializing">Initializing...</string>
+    <string id="searching">Searching...</string>
+    <string id="connecting">Connecting...</string>
     <string id="TripEnergy">Trip Energy</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperature</string>
     <string id="TemperatureLabel">°C</string>
-    <string id="DynamoPower">Generator Power</string>
+    <string id="DynamoPower">Dynamo Power</string>
     <string id="DynamoPowerLabel">W</string>
-    <string id="DynamoGear">Generator Gear</string>
+    <string id="DynamoGear">Dynamo Gear</string>
     <string id="DynamoGearLabel">S</string>
     <string id="Distance">Odometer</string>
     <string id="DistanceLabel">km</string>
@@ -41,10 +41,10 @@
     <string id="LoadLabel">W</string>
     <string id="Speed">Speed</string>
     <string id="SpeedLabel">km/h</string>
-    <string id="BatteryCapacity">Battery Remaining</string>
+    <string id="BatteryCapacity">Battery Level</string>
     <string id="BatteryCapacityLabel">%</string>
-    <string id="ChargingState">Chargerstate +/-/*/o</string>
-    <string id="ShortCircuit">Short circuit!</string>
-    <string id="SystemInterrupt">System interrupt!</string>
-    <string id="BatteryLow">Battery below 20%!</string>
+    <string id="ChargingState">Charge State (+/-/*/o)</string>
+    <string id="ShortCircuit">Short Circuit</string>
+    <string id="SystemInterrupt">System Interrupt</string>
+    <string id="BatteryLow">Battery Level Below 20%</string>
 </strings>
