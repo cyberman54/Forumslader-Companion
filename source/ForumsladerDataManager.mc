@@ -33,8 +33,8 @@ class DataManager {
         MAX_AGE_SEC = 10; // Maximales Alter der Daten in Sekunden, bevor sie als veraltet gelten
 
     private const
-        _sentenceType as Array<String> = ["FL5", "FL6", "FLB", "FLC", "FLP"] as Array<String>,
         _MAX_TERM_SIZE = 20, // Maximale Länge eines Terms im $FLx Datenstrom, um Pufferüberläufe zu vermeiden
+        _MAX_TERM_LAST = _MAX_TERM_SIZE - 1,
         _MAX_TERM_COUNT = 16; // Maximale Anzahl von Terms in einem $FLx Satz, um ungültige Daten zu erkennen
 
     public var
@@ -66,22 +66,35 @@ class DataManager {
         //debug(c);
 
         switch(c) {
-            case ',':
+            case ',': // Term-Trenner, Parity mit Trenner-Byte aktualisieren
                 _parity ^= b;
                 // Absichtlicher Fallthrough zur Term-Verarbeitung
             case '\r':
-            case '*':
-                if (_currTermOffset < _MAX_TERM_SIZE && _currTermNumber < _MAX_TERM_COUNT) {
-                    var term = StringUtil.charArrayToString(_charBuffer.slice(0, _currTermOffset));
-                    _FLterm[_currTermNumber] = term;
-                    parseTerm(term);
+            case '*': // Ende eines Terms, Term-Nummer und Offset für nächsten Term aktualisieren
+                var termNumber = _currTermNumber;
+                var isChecksum = _isChecksumTerm;
+                var termOffset = _currTermOffset;
+
+                if (termNumber < _MAX_TERM_COUNT) {
+                    if (termNumber == 0) {
+                        parseSentenceType();
+                    } else if (isChecksum) {
+                        var term = (termOffset == 0)
+                            ? ""
+                            : StringUtil.charArrayToString(_charBuffer.slice(0, termOffset));
+                        parseChecksumTerm(term);
+                    } else {
+                        _FLterm[termNumber] = (termOffset == 0)
+                            ? ""
+                            : StringUtil.charArrayToString(_charBuffer.slice(0, termOffset));
+                    }
                 }
-                _currTermNumber++;
+                _currTermNumber = termNumber + 1;
                 _currTermOffset = 0;
                 _isChecksumTerm = (c == '*');
                 break;
 
-            case '$':
+            case '$': // Start eines neuen Satzes, alle Zustände zurücksetzen
                 _currSentenceType = SENTENCE_OTHER;
                 _parity = 0;
                 _currTermNumber = 0;
@@ -90,7 +103,7 @@ class DataManager {
                 break;
 
             default:
-                if (_currTermOffset < _MAX_TERM_SIZE - 1) {
+                if (_currTermOffset < _MAX_TERM_LAST) {
                     _charBuffer[_currTermOffset] = c;
                     _currTermOffset++;
                 }
@@ -101,90 +114,140 @@ class DataManager {
         }
     }
 
-    //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
-    private function parseTerm(term as String) as Void {
-        // Der erste Term indiziert den Telegramm-Typ ($FL5, $FLP etc.)
-        if (_currTermNumber == 0) {
+    //! Der erste Term indiziert den Telegramm-Typ ($FL5, $FLP etc.)
+    private function parseSentenceType() as Void {
+        if (_currTermOffset != 3 || _charBuffer[0] != 'F' || _charBuffer[1] != 'L') {
             _currSentenceType = SENTENCE_OTHER;
-            for (var i = 0; i < 5; i++) {
-                if (term.equals(_sentenceType[i])) {
-                    _currSentenceType = i;
-                    break;
-                }
-            }
             return;
         }
 
-        // Validierung der Prüfsumme sichert Datenintegrität vor dem Speichern im Array
-        if (_isChecksumTerm) {
-            if (term.toNumberWithBase(16) == _parity) {
-                age = 0; // Daten sind valide, Timeout-Zähler zurücksetzen
+        switch (_charBuffer[2]) {
+            case '5':
+                _currSentenceType = SENTENCE_FL5;
+                break;
+            case '6':
+                _currSentenceType = SENTENCE_FL6;
+                break;
+            case 'B':
+                _currSentenceType = SENTENCE_FLB;
+                break;
+            case 'C':
+                _currSentenceType = SENTENCE_FLC;
+                break;
+            case 'P':
+                _currSentenceType = SENTENCE_FLP;
+                break;
+            default:
+                _currSentenceType = SENTENCE_OTHER;
+                break;
+        }
+    }
 
-                var fl = FLdata; // Lokaler Cache-Zeiger verkürzt die VM-Adressierung
-                var t = _FLterm;
+    //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
+    private function parseChecksumTerm(term as String) as Void {
+        var checksum = term.toNumberWithBase(16);
+        if (checksum == null || checksum != _parity) {
+            // invalid term or checksum error, ignore sentence and log error
+            debug("\nChecksum error");
+            return;
+        }
 
-                switch(_currSentenceType) {
-                    case SENTENCE_FL5:
-                    case SENTENCE_FL6:
-                        var state = t[1].toNumberWithBase(16);
-                        fl[FL_status] = (state != null) ? state : 0;
-                        fl[FL_gear]             = commitValue(t[2], 0, 10);
-                        fl[FL_frequency]        = commitValue(t[3], 0, 5000);
-                        fl[FL_battVoltage1]     = commitValue(t[4], 0, 5000);
-                        fl[FL_battVoltage2]     = commitValue(t[5], 0, 5000);
-                        fl[FL_battVoltage3]     = commitValue(t[6], 0, 5000);
-                        fl[FL_battCurrent]      = commitValue(t[7], -10000, 10000);
-                        fl[FL_loadCurrent]      = commitValue(t[8], 0, 10000);
-                        fl[FL_impulseCounter]   = commitValue(t[$.isV6 ? 12 : 13], 0, 0);
-                        break;
+        age = 0; // Daten sind frisch, Alter zurücksetzen
 
-                    case SENTENCE_FLB:
-                        fl[FL_temperature]      = commitValue(t[1], -300, 800);
-                        break;
+        if (_currSentenceType == SENTENCE_OTHER) {
+            return;
+        }
 
-                    case SENTENCE_FLC: {
-                        var _FLCsetnr = commitValue(t[1], 0, 5);
-                        var _offset = 0;
-                        if (_FLCsetnr == 3) {
-                            _offset = FL_Energy;
-                        } else if (_FLCsetnr == 5) {
-                            _offset = FL_startCount;
-                        } else {
-                            break;
-                        }
+        var fl = FLdata; // Lokaler Cache-Zeiger verkürzt die VM-Adressierung
+        var t = _FLterm;
+        var isV6 = $.isV6;
+        var speedUnitFactor = $.speedunitFactor;
+        var speedDivisor = isV6 ? 10.0f : 1.0f;
+        var impulseScale = isV6 ? 1.0d : 4096.0d;
 
-                        for (var i = 0; i < 5; i++) {
-                            fl[_offset + i] = commitValue(t[i + 2], 0, 0);
-                        }
-                        break;
-                    }
+        switch(_currSentenceType) {
+            case SENTENCE_FL5:
+            case SENTENCE_FL6:
+                var t1 = t[1];
+                var t2 = t[2];
+                var t3 = t[3];
+                var t4 = t[4];
+                var t5 = t[5];
+                var t6 = t[6];
+                var t7 = t[7];
+                var t8 = t[8];
+                var tImpulse = t[isV6 ? 12 : 13];
 
-                    case SENTENCE_FLP: {
-                        fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
-                        fl[FL_poles]            = commitValue(t[2], 10, 20);
-                        fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
+                var state = t1.toNumberWithBase(16);
+                fl[FL_status] = (state != null) ? state : 0;
+                fl[FL_gear]             = commitValue(t2, 0, 10);
+                fl[FL_frequency]        = commitValue(t3, 0, 5000);
+                fl[FL_battVoltage1]     = commitValue(t4, 0, 5000);
+                fl[FL_battVoltage2]     = commitValue(t5, 0, 5000);
+                fl[FL_battVoltage3]     = commitValue(t6, 0, 5000);
+                fl[FL_battCurrent]      = commitValue(t7, -10000, 10000);
+                fl[FL_loadCurrent]      = commitValue(t8, 0, 10000);
+                fl[FL_impulseCounter]   = parseValue(tImpulse);
+                break;
 
-                        var wSize = fl[FL_wheelsize];
-                        var poles = fl[FL_poles];
+            case SENTENCE_FLB:
+                fl[FL_temperature]      = commitValue(t[1], -300, 800);
+                break;
 
-                        if (wSize > 0 && poles > 0) {
-                            var wSizeFloat = wSize.toFloat();
-                            var polesFloat = poles.toFloat();
-                            freq2speed = wSizeFloat / polesFloat * 0.0036f / ($.isV6 ? 10.0f : 1.0f) * $.speedunitFactor.toFloat();
-                            imp2odo = wSize.toDouble() / poles.toDouble() / 1000000.0d * ($.isV6 ? 1.0d : 4096.0d) * $.speedunitFactor.toDouble();
-                        } else {
-                            freq2speed = 0.0f;
-                            imp2odo = 0.0d;
-                        }
-                        debug(poles + " poles, " + wSize + "mm wheelsize");
-                        break;
-                    }
+            case SENTENCE_FLC: {
+                var _FLCsetnr = commitValue(t[1], 0, 5);
+                var _offset = 0;
+                if (_FLCsetnr == 3) {
+                    _offset = FL_Energy;
+                } else if (_FLCsetnr == 5) {
+                    _offset = FL_startCount;
+                } else {
+                    break;
                 }
-            } else {
-                // invalid term or checksum error, ignore sentence and log error
-                debug("\nChecksum error" + (_currSentenceType == SENTENCE_OTHER ? "" : "in $" + _sentenceType[_currSentenceType]));
+
+                fl[_offset] = parseValue(t[2]);
+                fl[_offset + 1] = parseValue(t[3]);
+                fl[_offset + 2] = parseValue(t[4]);
+                fl[_offset + 3] = parseValue(t[5]);
+                fl[_offset + 4] = parseValue(t[6]);
+                break;
+            }
+
+            case SENTENCE_FLP: {
+                fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
+                fl[FL_poles]            = commitValue(t[2], 10, 20);
+                fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
+
+                var wSize = fl[FL_wheelsize];
+                var poles = fl[FL_poles];
+
+                if (wSize > 0 && poles > 0) {
+                    var wSizeFloat = wSize.toFloat();
+                    var polesFloat = poles.toFloat();
+                    var speedUnitFactorF = speedUnitFactor.toFloat();
+                    var speedUnitFactorD = speedUnitFactor.toDouble();
+                    freq2speed = wSizeFloat / polesFloat * 0.0036f / speedDivisor * speedUnitFactorF;
+                    imp2odo = wSize.toDouble() / poles.toDouble() / 1000000.0d * impulseScale * speedUnitFactorD;
+                } else {
+                    freq2speed = 0.0f;
+                    imp2odo = 0.0d;
+                }
+                debug(poles + " poles, " + wSize + "mm wheelsize");
+                break;
             }
         }
+    }
+
+    //! Schneller Parse-Pfad ohne Range-Checks (für Felder ohne min/max Begrenzung)
+    private function parseValue(term as String) as Number {
+        if (term == null || term.length() == 0) {
+            return 0;
+        }
+        var val = term.toNumber();
+        if (val == null) {
+            return 0;
+        }
+        return val;
     }
 
     //! Parst, validiert und begrenzt numerische Rohwerte defensiv
@@ -196,10 +259,8 @@ class DataManager {
         if (val == null) {
             return 0;
         }
-        if (min != 0 || max != 0) {
-            if (val < min || val > max) {
-                return 0;
-            }
+        if (val < min || val > max) {
+            return 0;
         }
         return val;
     }
