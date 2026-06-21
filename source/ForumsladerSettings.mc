@@ -91,7 +91,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     //! Handle the back key being pressed
     public function onBack() as Void {
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        Menu2InputDelegate.onBack();
     }
 }
 
@@ -152,7 +152,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
         debug("Write user settings: " + $.UserSettings.toString());
         _deviceManager.saveDevice();
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        Menu2InputDelegate.onBack();
     }
 }
 
