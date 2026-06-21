@@ -93,7 +93,31 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param characteristic The characteristic that notified
     //! @param data The data which is delivered by the characteristic
     public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
-        $.FLpayload.addAll(data);
+        var size = data.size();
+        var capacity = $.FLPayloadRingBufferCapacity;
+        var writeIdx = $.FLpayloadWriteIdx;
+        var readIdx = $.FLpayloadReadIdx;
+        var count = $.FLpayloadCount;
+
+        for (var i = 0; i < size; i++) {
+            $.FLpayload[writeIdx] = data[i];
+            writeIdx = (writeIdx + 1) % capacity;
+
+            if (count < capacity) {
+                count++;
+            } else {
+                // Buffer full: overwrite oldest entry and advance read index.
+                readIdx = (readIdx + 1) % capacity;
+                $.FLpayloadDropCount++;
+                if (($.FLpayloadDropCount % 100) == 0) {
+                    debug("Buffer full, dropping oldest entry. Total drops: " + $.FLpayloadDropCount);
+                }
+            }
+        }
+
+        $.FLpayloadWriteIdx = writeIdx;
+        $.FLpayloadReadIdx = readIdx;
+        $.FLpayloadCount = count;
     }
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
