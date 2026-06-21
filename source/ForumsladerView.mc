@@ -357,25 +357,16 @@ class ForumsladerView extends SimpleDataField {
         var pending = $.FLpayloadCount;
         var readIdx = $.FLpayloadReadIdx;
 
-        // toggle device state machine and store current device state
-        var deviceState = _device.updateState();
-
-        // If there are more pending bytes than the capacity of the ring buffer, we have an overflow situation. In this case, we skip all pending bytes to avoid processing corrupted data and just update the read/write indices and counters accordingly.
-        if (pending > capacity) {         
-            $.FLpayloadReadIdx = ($.FLpayloadWriteIdx + 1) % capacity; // Move read index to the position after the last written byte
-            $.FLpayloadCount = 0; // Reset count since we are skipping all pending data
-            $.FLpayloadDropCount += pending; // Increment drop count by the number of skipped bytes
-            debug("Data overflow: Skipped " + pending + " bytes, total dropped: " + $.FLpayloadDropCount);
-            return "--"; // Optionally return a placeholder string to indicate data is not available due to overflow
-        } 
-
-        // Normal case: Process all pending bytes in the ring buffer and feed them into the data manager for decoding
+        // Process all pending bytes in the ring buffer and feed them into the data manager for decoding
         for (var i = 0; i < pending; i++) {
             _data.encode($.FLpayload[readIdx]);
             readIdx = (readIdx + 1) % capacity;
         }
         $.FLpayloadReadIdx = readIdx;
         $.FLpayloadCount = 0;
+
+        // toggle device state machine and store current device state
+        var deviceState = _device.updateState();
 
         // if we have recent data, and are fully initialized, display data, else display device state
         if (_data.age <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
