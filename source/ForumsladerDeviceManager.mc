@@ -2,6 +2,18 @@ import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
 import Toybox.Application.Storage;
 
+// app states
+enum {
+    FL_SCANNING = 0, // 0 = scanning for forumslader devices
+    FL_COLDSTART,    // 1 = cold start after pairing (full setup process)
+    FL_CONFIG1,      // 2 = configuration step 1 (request parameters, wait for data stream to be active)
+    FL_CONFIG2,      // 3 = configuration step 2 (wait for valid parameters in data stream)
+    FL_CONFIG3,      // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
+    FL_DISCONNECT,   // 5 = device disconnected, waiting for reconnect (can be triggered by disconnect event or by failed setup)
+    FL_WARMSTART,    // 6 = warm start after disconnect (skip setup process, just restart data stream)
+    FL_RUNNING       // 7 = device is connected and configured, data stream is active
+}
+
 class DeviceManager {
 
     private const

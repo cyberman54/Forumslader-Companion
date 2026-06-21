@@ -2,6 +2,7 @@
 to do:
 [ ] Bluetooth Bonding mit SDK v9.2.x implementieren
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
+[ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
 [ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
  */
 
@@ -12,20 +13,6 @@ import Toybox.WatchUi;
 import Toybox.Application.Storage;
 import Toybox.System;
 
-// Status-Enum für die verschiedenen Phasen der Verbindung und Konfiguration eines Forumsladers
-enum {
-    FL_SCANNING = 0, // 0 = scanning for forumslader devices
-    FL_COLDSTART,    // 1 = cold start after pairing (full setup process)
-    FL_CONFIG1,      // 2 = configuration step 1 (request parameters, wait for data stream to be active)
-    FL_CONFIG2,      // 3 = configuration step 2 (wait for valid parameters in data stream)
-    FL_CONFIG3,      // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
-    FL_DISCONNECT,   // 5 = device disconnected, waiting for reconnect (can be triggered by disconnect event or by failed setup)
-    FL_WARMSTART,    // 6 = warm start after disconnect (skip setup process, just restart data stream)
-    FL_RUNNING       // 7 = device is connected and configured, data stream is active
-}
-// Kapazität des Ringpuffers für den $FLx Datenstrom, durch Versuche ermittelt, um die Balance zwischen Datenverlust bei kurzen Überlastungen und Speicherverbrauch zu halten
-const FLPayloadRingBufferCapacity = 200;
-
 // Globale Variablen
 var
     FLstate as Number = FL_SCANNING,
@@ -33,11 +20,7 @@ var
     speedunitFactor as Float = 1.0,
     speedunit as String = "kmh",
     distanceunit as String = "km",
-    FLpayload as ByteArray = new [FLPayloadRingBufferCapacity]b,
-    FLpayloadWriteIdx as Number = 0,
-    FLpayloadReadIdx as Number = 0,
-    FLpayloadCount as Number = 0,
-    FLpayloadDropCount as Number = 0,
+    FLpayload as ByteArray = []b,
     UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false, 0, 0, 0, 0];
 
 //! This data field app uses the BLE data interface of a forumslader.

@@ -257,17 +257,17 @@ class ForumsladerView extends SimpleDataField {
                     firstField = false;
                 }
             }
-            return displayString;
         } else {
-            for (var i = 0; i < 4; i++) {
+            for (var count = 0; count < 4; count++) {
                 _index = (_index + 1) % 4;
                 var setting = settings[_index];
                 if (setting > 0) {
-                    return computeFieldValue(setting as Number);
+                    displayString = computeFieldValue(setting as Number);
+                    break;
                 }
             }
-            return "--";
         }
+        return displayString;
     }
 
     //! generate a single field value
@@ -295,7 +295,7 @@ class ForumsladerView extends SimpleDataField {
             case 4:     // generator gear
                 return flData[FL_gear].toString();
             case 3:     // dynamo power
-                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).format("%.0f") + "W";
+                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).toNumber().toString() + "W";
             case 2:     // temperature
                 return (flData[FL_temperature] / 10.0).format("%.1f") + "°";
             case 1:     // trip energy
@@ -353,29 +353,16 @@ class ForumsladerView extends SimpleDataField {
     //! @param info The updated Activity.Info object
     //! @return String value to display in the simpledatafield
     public function compute(info as Info) as Numeric or Duration or String or Null {
-        var capacity = $.FLPayloadRingBufferCapacity;
-        var pending = $.FLpayloadCount;
-        var readIdx = $.FLpayloadReadIdx;
+        var payloadRef = $.FLpayload;   // take reference to current buffer to prevent race with onCharacteristicChanged()
+        $.FLpayload = []b;              // publish empty buffer for new incoming data
+
+        var size = payloadRef.size() % 300; // sanity check to prevent processing of excessively large buffers
+        for (var i = 0; i < size; i++) {
+            _data.encode(payloadRef[i]);
+        }
 
         // toggle device state machine and store current device state
         var deviceState = _device.updateState();
-
-        // If there are more pending bytes than the capacity of the ring buffer, we have an overflow situation. In this case, we skip all pending bytes to avoid processing corrupted data and just update the read/write indices and counters accordingly.
-        if (pending > capacity) {         
-            $.FLpayloadReadIdx = ($.FLpayloadWriteIdx + 1) % capacity; // Move read index to the position after the last written byte
-            $.FLpayloadCount = 0; // Reset count since we are skipping all pending data
-            $.FLpayloadDropCount += pending; // Increment drop count by the number of skipped bytes
-            debug("Data overflow: Skipped " + pending + " bytes, total dropped: " + $.FLpayloadDropCount);
-            return "--"; // Optionally return a placeholder string to indicate data is not available due to overflow
-        } 
-
-        // Normal case: Process all pending bytes in the ring buffer and feed them into the data manager for decoding
-        for (var i = 0; i < pending; i++) {
-            _data.encode($.FLpayload[readIdx]);
-            readIdx = (readIdx + 1) % capacity;
-        }
-        $.FLpayloadReadIdx = readIdx;
-        $.FLpayloadCount = 0;
 
         // if we have recent data, and are fully initialized, display data, else display device state
         if (_data.age <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {

@@ -54,10 +54,7 @@ class DataManager {
 
     //! Konstruktor initialisiert das Datenfeld komplett genullt
     public function initialize() {
-        var size = FLdata.size();
-        for (var i = 0; i < size; i++) {
-            FLdata[i] = 0;
-        }
+        FLdata = new [FL_tablesize] as Array<Number>;
     }
 
     //! Interpretiert den $FLx Datenstrom des Forumsladers Byte für Byte
