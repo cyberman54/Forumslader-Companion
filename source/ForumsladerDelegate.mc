@@ -110,7 +110,7 @@ class ForumsladerDelegate extends BleDelegate {
                 readIdx = (readIdx + 1) % capacity;
                 $.FLpayloadDropCount++;
                 if (($.FLpayloadDropCount % 100) == 0) {
-                    debug("Buffer full, total drops: " + $.FLpayloadDropCount);
+                    debug("Buffer full, dropping oldest entry. Total drops: " + $.FLpayloadDropCount);
                 }
             }
         }
