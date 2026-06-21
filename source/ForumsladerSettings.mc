@@ -15,6 +15,7 @@ enum {
 //! This is the settings main menu called by getSettingsView of the application
 class SettingsMenu extends WatchUi.Menu2 {
 
+    //! Constructor
     function initialize(deviceManager as DeviceManager) {
         // Generate main setup menu
         Menu2.initialize(null);
@@ -91,6 +92,8 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     //! Handle the back key being pressed
     public function onBack() as Void {
+        debug("Write user settings: " + $.UserSettings.toString());
+        _deviceManager.saveDevice();
         Menu2InputDelegate.onBack();
     }
 }
@@ -99,11 +102,8 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 //! This is the menu input delegate shared by all the basic sub-menus in the application
 class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
-    private var _deviceManager as DeviceManager;
-
     //! Constructor
     public function initialize(deviceManager as DeviceManager) {
-        _deviceManager = deviceManager;
         Menu2InputDelegate.initialize();
     }
 
@@ -150,8 +150,6 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("RotateFields", $.UserSettings[$.RotateFields] as Boolean);
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
-        debug("Write user settings: " + $.UserSettings.toString());
-        _deviceManager.saveDevice();
         Menu2InputDelegate.onBack();
     }
 }
