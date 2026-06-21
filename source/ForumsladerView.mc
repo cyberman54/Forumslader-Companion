@@ -295,7 +295,7 @@ class ForumsladerView extends SimpleDataField {
             case 4:     // generator gear
                 return flData[FL_gear].toString();
             case 3:     // dynamo power
-                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).toNumber().toString() + "W";
+                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).format("%.0f") + "W";
             case 2:     // temperature
                 return (flData[FL_temperature] / 10.0).format("%.1f") + "°";
             case 1:     // trip energy
