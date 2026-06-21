@@ -54,13 +54,12 @@ class DataManager {
 
     //! Konstruktor initialisiert das Datenfeld komplett genullt
     public function initialize() {
-        var size = FLdata.size();
-        for (var i = 0; i < size; i++) {
-            FLdata[i] = 0;
-        }
+        FLdata = new [FL_tablesize] as Array<Number>;
     }
 
     //! Interpretiert den $FLx Datenstrom des Forumsladers Byte für Byte
+    // Parst die Terms, validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
+    // Code ist performance optimiert mit minimalen String-Operationen und defensiven Checks, um Stabilität bei ungültigen Daten zu gewährleisten
     public function encode(b as Number) as Void {
         var c = b.toChar();
         //debug(c);
@@ -102,7 +101,7 @@ class DataManager {
                 _isChecksumTerm = false;
                 break;
 
-            default:
+            default: // Payload, in den aktuellen Term-Puffer schreiben, Parity aktualisieren
                 if (_currTermOffset < _MAX_TERM_LAST) {
                     _charBuffer[_currTermOffset] = c;
                     _currTermOffset++;
@@ -146,38 +145,26 @@ class DataManager {
     //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
     private function parseChecksumTerm(term as String) as Void {
         var checksum = term.toNumberWithBase(16);
-        if (checksum == null || checksum != _parity) {
-            // invalid term or checksum error, ignore sentence and log error
+        if (checksum == null || checksum != _parity || _currSentenceType == SENTENCE_OTHER) {
+            // Ungültige Prüfsumme oder unbekannter Satztyp, Daten verwerfen und Alter nicht zurücksetzen
             debug("\nChecksum error");
             return;
         }
 
         age = 0; // Daten sind frisch, Alter zurücksetzen
 
-        if (_currSentenceType == SENTENCE_OTHER) {
-            return;
-        }
-
-        var fl = FLdata; // Lokaler Cache-Zeiger verkürzt die VM-Adressierung
-        var t = _FLterm;
-        var isV6 = $.isV6;
-        var speedUnitFactor = $.speedunitFactor;
+        var fl = FLdata; // Lokaler Cache-Zeiger für Daten verkürzt die VM-Adressierung
+        var t = _FLterm; // Lokaler Cache-Zeiger für Terms verkürzt die VM-Adressierung
+        var isV6 = $.isV6;  // Unterschiedliche Dateninterpretation und Skalierung zwischen FL5 und FL6, abhängig von der Firmware-Version des Forumsladers
         var speedDivisor = isV6 ? 10.0f : 1.0f;
         var impulseScale = isV6 ? 1.0d : 4096.0d;
+        var speedUnitFactor = $.speedunitFactor;
 
         switch(_currSentenceType) {
             case SENTENCE_FL5:
             case SENTENCE_FL6:
-                var t1 = t[1];
-                var t2 = t[2];
-                var t3 = t[3];
-                var t4 = t[4];
-                var t5 = t[5];
-                var t6 = t[6];
-                var t7 = t[7];
-                var t8 = t[8];
+                var t1 = t[1], t2 = t[2], t3 = t[3], t4 = t[4], t5 = t[5], t6 = t[6], t7 = t[7], t8 = t[8];
                 var tImpulse = t[isV6 ? 12 : 13];
-
                 var state = t1.toNumberWithBase(16);
                 fl[FL_status] = (state != null) ? state : 0;
                 fl[FL_gear]             = commitValue(t2, 0, 10);

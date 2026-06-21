@@ -20,12 +20,12 @@ class ForumsladerView extends SimpleDataField {
         _index as Number,                   //  Index for rotating display fields
         _alertMute as Number,               //  Counter to mute alarms for a certain time after they are triggered
         _capacityAlertLock as Boolean,      //  Lock to prevent repeated triggering of battery low alarm until capacity recovers
-        _fitRecording1 as Field?,           //  Custom FIT data field for recording battery voltage
-        _fitRecording2 as Field?,           //  Custom FIT data field for recording battery capacity
-        _fitRecording3 as Field?,           //  Custom FIT data field for recording other values
-        _fitRecording4 as Field?,           //  Custom FIT data field for recording additional values
         _fitFieldsInitialized as Boolean,   //  Tracks if FIT fields have been created for current settings
-        _fitSetting1 as Number,             //  Cached selected fields for FIT-logging (to detect changes in settings and re-create fields if needed)
+        _fitRecording1 as Field?,           //  References to FIT recording fields for up to 4 user-selectable values (null if not enabled)
+        _fitRecording2 as Field?,           //  These fields are created dynamically based on user settings when FitLogging is enabled
+        _fitRecording3 as Field?,
+        _fitRecording4 as Field?,
+        _fitSetting1 as Number,             //  Currently active FIT setting for up to 4 user-selectable values (0 if disabled)
         _fitSetting2 as Number,             
         _fitSetting3 as Number,             
         _fitSetting4 as Number,             
@@ -155,21 +155,21 @@ class ForumsladerView extends SimpleDataField {
     private function _fitValueForSetting(setting as Number, flData as Array<Number>) as Float or Number {
         switch (setting) {
             case 1: // trip energy
-                return (flData[FL_tripEnergy] / 10.0) as Float;
+                return ((flData[FL_tripEnergy] / 10.0 * 10).toNumber() / 10.0) as Float;
             case 2: // temperature
-                return (flData[FL_temperature] / 10.0) as Float;
+                return ((flData[FL_temperature] / 10.0 * 10).toNumber() / 10.0) as Float;
             case 3: // dynamo power
-                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000) as Float;
+                return ((_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000 * 10).toNumber() / 10.0) as Float;
             case 4: // generator gear
                 return flData[FL_gear];
             case 5: // odometer
                 return (flData[FL_impulseCounter].toDouble() * _data.imp2odo).toNumber();
             case 6: // battery voltage
-                return _battVoltage;
+                return ((_battVoltage * 10).toNumber() / 10.0) as Float;
             case 7: // battery current
-                return (flData[FL_battCurrent] / 1000.0) as Float;
+                return ((flData[FL_battCurrent] / 1000.0 * 10).toNumber() / 10.0) as Float;
             case 8: // electrical load
-                return (_battVoltage * flData[FL_loadCurrent] / 1000) as Float;
+                return ((_battVoltage * flData[FL_loadCurrent] / 1000 * 10).toNumber() / 10.0) as Float;
             case 9: // speed
                 return (flData[FL_frequency] * _data.freq2speed).toNumber();
             case 10: // battery capacity
@@ -291,7 +291,7 @@ class ForumsladerView extends SimpleDataField {
             case 6:     // battery voltage
                 return _battVoltage.format("%.1f") + "V";
             case 5:     // odometer
-                return (flData[FL_impulseCounter].toDouble() * _data.imp2odo).format("%.1f") + $.distanceunit;
+                return (flData[FL_impulseCounter] * _data.imp2odo).format("%.1f") + $.distanceunit;
             case 4:     // generator gear
                 return flData[FL_gear].toString();
             case 3:     // dynamo power
