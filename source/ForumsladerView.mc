@@ -356,7 +356,8 @@ class ForumsladerView extends SimpleDataField {
         var payloadRef = $.FLpayload;   // take reference to current buffer to prevent race with onCharacteristicChanged()
         $.FLpayload = []b;              // publish empty buffer for new incoming data
 
-        var size = payloadRef.size() % 300; // sanity check to prevent processing of excessively large buffers
+        var size = payloadRef.size();
+        if (size > 300) { size = 300; } // cap to prevent processing of excessively large buffers
         for (var i = 0; i < size; i++) {
             _data.encode(payloadRef[i]);
         }
