@@ -207,7 +207,12 @@ class DeviceManager {
             return;
         }
         _writeInProgress = true;
-        _command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
+        try {
+            _command.requestWrite(cmd, {:writeType => BluetoothLowEnergy.WRITE_TYPE_WITH_RESPONSE});
+        } catch(ex instanceof Exception) {
+            debug("Exception in sendCommandFL: " + ex.getErrorMessage());
+            _writeInProgress = false;
+        }
     }
 
     //! identify forumslader and get characteristic of it's GATT service
