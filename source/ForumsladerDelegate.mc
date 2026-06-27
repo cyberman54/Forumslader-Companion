@@ -93,8 +93,16 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param characteristic The characteristic that notified
     //! @param data The data which is delivered by the characteristic
     public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
-        $.FLpayload.addAll(data);
+        var payload = $.FLpayload;
+        var remaining = 300 - payload.size();
+        // If the payload buffer is not full, add the new data to it, up to a maximum of 300 bytes
+        // note: while user is in setting menu, compute() is not executed, so payload buffer fills up
+        if (remaining > 0) {
+            payload.addAll(remaining >= data.size() ? data : data.slice(0, remaining));
+        }
+        //debug("onCharChanged, payload size=" + payload.size() + ", remaining=" + remaining);
     }
+
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function onCharacteristicWrite(characteristic as Characteristic, status as Status) as Void {
         //debug("onCharWrite");
