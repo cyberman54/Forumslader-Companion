@@ -12,7 +12,7 @@
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.RotateFields" title="@Strings.SelectRotateFields">
+    <setting propertyKey="@Properties.BrowseFields" title="@Strings.SelectBrowseFields">
         <settingConfig type="boolean" />
     </setting>
 

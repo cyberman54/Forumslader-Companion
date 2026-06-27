@@ -11,9 +11,9 @@
     <string scope="settings" id="ShowFitTitle4">Recording Field 4</string>
     <!-- runtime strings -->
     <string id="SelectDeviceLock">Lock to Device</string>
-    <string id="SelectCapacityMethod">Use Coulomb Counting</string>
-    <string id="SelectFitLogging">Enable FIT Recording</string>
-    <string id="SelectRotateFields">Rotate Display Fields</string>
+    <string id="SelectCapacityMethod">Coulomb Count</string>
+    <string id="SelectFitLogging">Recording</string>
+    <string id="SelectBrowseFields">Browse</string>
     <string id="SelectAlerts">Alerts</string>
     <string id="MenuSettings">Settings</string>
     <string id="MenuDatafields">Display Fields</string>

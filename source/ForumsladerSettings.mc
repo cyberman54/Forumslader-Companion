@@ -7,7 +7,7 @@ import Toybox.Application.Storage;
 // settings adjustable by user
 enum {
     DisplayField1, DisplayField2, DisplayField3, DisplayField4,     // user selected display values
-    BattCalcMethod, FitLogging, RotateFields, Alerts, DeviceLock,    // user configurable switches
+    BattCalcMethod, FitLogging, BrowseFields, Alerts, DeviceLock,    // user configurable switches
     FitField1, FitField2, FitField3, FitField4                       // user selected FIT logging values
     }
 
@@ -51,13 +51,13 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             var menuTitle = WatchUi.loadResource($.Rez.Strings.MenuSettings) as String;
             var sCapacity = WatchUi.loadResource($.Rez.Strings.SelectCapacityMethod) as String;
             var sFitLog = WatchUi.loadResource($.Rez.Strings.SelectFitLogging) as String;
-            var sRotate = WatchUi.loadResource($.Rez.Strings.SelectRotateFields) as String;
+            var sBrowse = WatchUi.loadResource($.Rez.Strings.SelectBrowseFields) as String;
             var sAlerts = WatchUi.loadResource($.Rez.Strings.SelectAlerts) as String;
             var sDeviceLock = WatchUi.loadResource($.Rez.Strings.SelectDeviceLock) as String;
             var menu = new WatchUi.Menu2({:title=>menuTitle});
             menu.addItem(new WatchUi.ToggleMenuItem(sCapacity, null, :battCalc, $.UserSettings[$.BattCalcMethod] as Boolean, null));
             menu.addItem(new WatchUi.ToggleMenuItem(sFitLog, null, :fitLog, $.UserSettings[$.FitLogging] as Boolean, null));
-            menu.addItem(new WatchUi.ToggleMenuItem(sRotate, null, :fieldRoll, $.UserSettings[$.RotateFields] as Boolean, null));
+            menu.addItem(new WatchUi.ToggleMenuItem(sBrowse, null, :fieldBrowse, $.UserSettings[$.BrowseFields] as Boolean, null));
             menu.addItem(new WatchUi.ToggleMenuItem(sAlerts, null, :alerts, $.UserSettings[$.Alerts] as Boolean, null));
             menu.addItem(new WatchUi.ToggleMenuItem(sDeviceLock, null, :devicelock, $.UserSettings[$.DeviceLock] as Boolean, null));
             WatchUi.pushView(menu, new $.SubMenuDelegate(_deviceManager), WatchUi.SLIDE_IMMEDIATE);
@@ -123,8 +123,8 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
                 $.UserSettings[$.FitLogging] = item.isEnabled();
             } else if (id == :battCalc) {
                 $.UserSettings[$.BattCalcMethod] = item.isEnabled();
-            } else if (id == :fieldRoll) {
-                $.UserSettings[$.RotateFields] = item.isEnabled();
+            } else if (id == :fieldBrowse) {
+                $.UserSettings[$.BrowseFields] = item.isEnabled();
             } else if (id == :alerts) {
                 $.UserSettings[$.Alerts] = item.isEnabled();
             } else if (id == :devicelock) {
@@ -147,7 +147,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
         Properties.setValue("UserSettingFit4", $.UserSettings[$.FitField4] as Number);
         Properties.setValue("BatteryCalcMethod", $.UserSettings[$.BattCalcMethod] as Boolean);
         Properties.setValue("FitLogging", $.UserSettings[$.FitLogging] as Boolean);
-        Properties.setValue("RotateFields", $.UserSettings[$.RotateFields] as Boolean);
+        Properties.setValue("BrowseFields", $.UserSettings[$.BrowseFields] as Boolean);
         Properties.setValue("Alerts", $.UserSettings[$.Alerts] as Boolean);
         Properties.setValue("DeviceLock", $.UserSettings[$.DeviceLock] as Boolean);
         Menu2InputDelegate.onBack();

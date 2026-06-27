@@ -11,9 +11,9 @@
     <string scope="settings" id="ShowFitTitle4">Aufzeichnungsfeld 4</string>
     <!-- runtime strings -->
     <string id="SelectDeviceLock">An Gerät binden</string>
-    <string id="SelectCapacityMethod">Coulomb-Zählung verwenden</string>
-    <string id="SelectFitLogging">FIT-Daten aufzeichnen</string>
-    <string id="SelectRotateFields">Anzeigefelder rotieren</string>
+    <string id="SelectCapacityMethod">Coulomb-Zählung</string>
+    <string id="SelectFitLogging">Aufzeichnen</string>
+    <string id="SelectBrowseFields">Blättern</string>
     <string id="SelectAlerts">Alarme</string>
     <string id="MenuSettings">Einstellungen</string>
     <string id="MenuDatafields">Anzeigefelder</string>
