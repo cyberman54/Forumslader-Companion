@@ -63,10 +63,11 @@ class ForumsladerApp extends AppBase {
     }
 
     //! Return the initial view for the app
-    //! @return Array [View]
+    //! @return Array [View, InputDelegate]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         if (_dataManager != null && _deviceManager != null) {
-            return [new $.ForumsladerView(_dataManager, _deviceManager)];
+            var view = new $.ForumsladerView(_dataManager, _deviceManager);
+            return [view, new $.ForumsladerInputDelegate(view)] as [Views, InputDelegates];
         }
         System.error("View initialization failure");
     }
@@ -91,7 +92,7 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.FitField4] = readKey("UserSettingFit4", 0);
         $.UserSettings[$.BattCalcMethod] = readKey("BatteryCalcMethod", false);
         $.UserSettings[$.FitLogging] = readKey("FitLogging", false);
-        $.UserSettings[$.RotateFields] = readKey("RotateFields", false);
+        $.UserSettings[$.BrowseFields] = readKey("BrowseFields", false);
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
 

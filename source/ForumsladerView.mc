@@ -1,11 +1,12 @@
 import Toybox.Activity;
+import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Time;
 import Toybox.WatchUi;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 
-class ForumsladerView extends SimpleDataField {
+class ForumsladerView extends DataField {
 
     private const
         _alertLockTime as Number = 100,     // Sperrzeit in Sekunden nach Alarm-Auslösung
@@ -32,14 +33,13 @@ class ForumsladerView extends SimpleDataField {
         _alertBatteryLowStr as String,      //  String für Batterie-Alarm
         _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
         _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
-        _stateDisplayString as Array<String>;// Array mit Status-Strings für die verschiedenen FL-States (z.B. "Suchen...", "Verbinden...", etc.)
+        _stateDisplayString as Array<String>,// Array mit Status-Strings für die verschiedenen FL-States (z.B. "Suchen...", "Verbinden...", etc.)
+        _displayString as String;           //  Aktuell angezeigter String (entweder Status oder Datenwert basierend auf FLstate und Datenalter)
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
     public function initialize(dataManager as DataManager, deviceManager as DeviceManager) {
-        SimpleDataField.initialize();
-
-        label = WatchUi.loadResource($.Rez.Strings.AppName) as String;
+        DataField.initialize();
 
         var initStr = WatchUi.loadResource($.Rez.Strings.initializing) as String;
         var connStr = WatchUi.loadResource($.Rez.Strings.connecting) as String;
@@ -63,6 +63,31 @@ class ForumsladerView extends SimpleDataField {
         _fitSetting2 = -1;
         _fitSetting3 = -1;
         _fitSetting4 = -1;
+        _displayString = "--";
+    }
+
+    public function onUpdate(dc as Dc) as Void {
+        dc.clear();
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
+
+        // Automatische Schriftskalierung: größte passende Schriftgröße wählen
+        var fonts = [Graphics.FONT_LARGE, Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_XTINY, Graphics.FONT_TINY] as Array<Graphics.FontDefinition>;
+        var maxWidth = dc.getWidth() - 4;
+        var font = fonts[fonts.size() - 1] as Graphics.FontDefinition;
+        for (var i = 0; i < fonts.size(); i++) {
+            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth) {
+                font = fonts[i] as Graphics.FontDefinition;
+                break;
+            }
+        }
+
+        dc.drawText(
+            dc.getWidth() / 2,
+            dc.getHeight() / 2,
+            font,
+            _displayString,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
+        );
     }
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
@@ -211,7 +236,7 @@ class ForumsladerView extends SimpleDataField {
         var battCalcMethod = settings[$.BattCalcMethod] == true;
         var fitLogging = settings[$.FitLogging] == true;
         var alertsEnabled = settings[$.Alerts] == true;
-        var rotateFields = settings[$.RotateFields] == true;
+        var rotateFields = settings[$.BrowseFields] == true;
 
         // Pre-calculate battery voltage and capacity using snapshot values
         _battVoltage = (battVoltage1 + battVoltage2 + battVoltage3) / 1000.0 as Float;
@@ -243,9 +268,9 @@ class ForumsladerView extends SimpleDataField {
             return "--";
         }
 
-        // generate display string based on user settings and rotation mode
-        var displayString = "";
+        // Feldrotation aus: alle aktiven Felder zusammengesetzt anzeigen
         if (!rotateFields) {
+            var displayString = "";
             var firstField = true;
             for (var i = 0; i < 4; i++) {
                 var setting = settings[i];
@@ -257,17 +282,21 @@ class ForumsladerView extends SimpleDataField {
                     firstField = false;
                 }
             }
-        } else {
-            for (var count = 0; count < 4; count++) {
-                _index = (_index + 1) % 4;
-                var setting = settings[_index];
-                if (setting > 0) {
-                    displayString = computeFieldValue(setting as Number);
+            return displayString;
+        }
+
+        // Feldrotation ein: nur das Feld an _index anzeigen, Weiterschaltung per Antippen
+        // Sicherstellen, dass _index auf ein aktives Feld zeigt (z. B. nach Einstellungsänderung)
+        if ((settings[_index] as Number) == 0) {
+            for (var i = 0; i < 4; i++) {
+                if ((settings[i] as Number) > 0) {
+                    _index = i;
                     break;
                 }
             }
         }
-        return displayString;
+
+        return computeFieldValue(settings[_index] as Number);
     }
 
     //! generate a single field value
@@ -349,10 +378,21 @@ class ForumsladerView extends SimpleDataField {
         }
     }
 
+    //! Wird vom InputDelegate aufgerufen, wenn der Benutzer das Datenfeld antippt oder eine Taste drückt.
+    //! Springt zum nächsten aktivierten Anzeigefeld und aktualisiert die Ansicht sofort.
+    public function onFieldAction() as Void {
+        for (var count = 0; count < 4; count++) {
+            _index = (_index + 1) % 4;
+            if (($.UserSettings[_index] as Number) > 0) {
+                break;
+            }
+        }
+        WatchUi.requestUpdate();
+    }
+
     //! switch device state, process the $FLx data, calculate and show values every one second
     //! @param info The updated Activity.Info object
-    //! @return String value to display in the simpledatafield
-    public function compute(info as Info) as Numeric or Duration or String or Null {
+    public function compute(info as Info) as Void {
         var payloadRef = $.FLpayload;   // take reference to current buffer to prevent race with onCharacteristicChanged()
         $.FLpayload = []b;              // publish empty buffer for new incoming data
 
@@ -368,10 +408,12 @@ class ForumsladerView extends SimpleDataField {
         // if we have recent data, and are fully initialized, display data, else display device state
         if (_data.age <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
             _data.age++; // increase data age seconds counter
-            return computeDisplayString(); // display data
+            _displayString = computeDisplayString(); // display data
         } else {
-            return _stateDisplayString[deviceState]; // display state
+            _displayString = _stateDisplayString[deviceState]; // display state
         }
+
+        WatchUi.requestUpdate();
     }
 }
 
