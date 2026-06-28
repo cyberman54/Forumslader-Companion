@@ -34,7 +34,8 @@ class ForumsladerView extends DataField {
         _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
         _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
         _stateDisplayString as Array<String>,// Array mit Status-Strings für die verschiedenen FL-States (z.B. "Suchen...", "Verbinden...", etc.)
-        _displayString as String;           //  Aktuell angezeigter String (entweder Status oder Datenwert basierend auf FLstate und Datenalter)
+        _displayString as String,           //  Aktuell angezeigter String (entweder Status oder Datenwert basierend auf FLstate und Datenalter)
+        _labelString as String;             //  Überschrift des Datenfelds (AppName aus Ressourcen)
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -51,6 +52,7 @@ class ForumsladerView extends DataField {
         _alertBatteryLowStr = WatchUi.loadResource($.Rez.Strings.BatteryLow) as String;
         _alertShortCircuitStr = WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String;
         _alertSystemInterruptStr = WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String;
+        _labelString = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         _data = dataManager;
         _device = deviceManager;
         _battVoltage = 0.0f;
@@ -74,22 +76,27 @@ class ForumsladerView extends DataField {
         dc.setColor(fgColor, bgColor);
         dc.clear();
 
-        // Größte passende Schriftgröße wählen (Breite und Höhe berücksichtigen)
-        var fonts = [Graphics.FONT_LARGE, Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_TINY, Graphics.FONT_XTINY] as Array<Graphics.FontDefinition>;
+        // Überschrift oben zentriert im kleinsten Systemfont
+        var labelFont = Graphics.FONT_SYSTEM_SMALL;
+        dc.drawText(dc.getWidth() / 2, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
+        var labelHeight = dc.getFontHeight(labelFont);
+
+        // Größte passende Schriftgröße wählen (nur Breite prüfen, Höhe wird vom DC geclippt)
+        var fonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
         var maxWidth = dc.getWidth() - 4;
-        var maxHeight = dc.getHeight();
         var font = fonts[fonts.size() - 1] as Graphics.FontDefinition;
         for (var i = 0; i < fonts.size(); i++) {
-            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth &&
-                dc.getFontHeight(fonts[i]) <= maxHeight) {
+            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth) {
                 font = fonts[i] as Graphics.FontDefinition;
                 break;
             }
         }
 
+        // Wert vertikal zentriert im verbleibenden Bereich unterhalb der Überschrift
+        var valueY = labelHeight + (dc.getHeight() - labelHeight) / 2;
         dc.drawText(
             dc.getWidth() / 2,
-            dc.getHeight() / 2,
+            valueY,
             font,
             _displayString,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
