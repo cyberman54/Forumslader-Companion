@@ -67,15 +67,21 @@ class ForumsladerView extends DataField {
     }
 
     public function onUpdate(dc as Dc) as Void {
+        // System-Farben für Day/Night-Mode: getBackgroundColor() liefert die vom System
+        // vorgegebene Hintergrundfarbe (COLOR_WHITE im Tag-, COLOR_BLACK im Nachtmodus).
+        var bgColor = getBackgroundColor();
+        var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
+        dc.setColor(fgColor, bgColor);
         dc.clear();
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
 
-        // Automatische Schriftskalierung: größte passende Schriftgröße wählen
-        var fonts = [Graphics.FONT_LARGE, Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_XTINY, Graphics.FONT_TINY] as Array<Graphics.FontDefinition>;
+        // Größte passende Schriftgröße wählen (Breite und Höhe berücksichtigen)
+        var fonts = [Graphics.FONT_LARGE, Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_TINY, Graphics.FONT_XTINY] as Array<Graphics.FontDefinition>;
         var maxWidth = dc.getWidth() - 4;
+        var maxHeight = dc.getHeight();
         var font = fonts[fonts.size() - 1] as Graphics.FontDefinition;
         for (var i = 0; i < fonts.size(); i++) {
-            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth) {
+            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth &&
+                dc.getFontHeight(fonts[i]) <= maxHeight) {
                 font = fonts[i] as Graphics.FontDefinition;
                 break;
             }
