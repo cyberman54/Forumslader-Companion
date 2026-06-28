@@ -41,6 +41,7 @@ class ForumsladerApp extends AppBase {
     //! Handle app startup
     //! @param state Startup arguments
     public function onStart(state as Dictionary?) as Void {
+        debug("-- start --");
         getUserSettings();
         _dataManager = new $.DataManager();
         _bleDelegate = new $.ForumsladerDelegate();
@@ -55,6 +56,7 @@ class ForumsladerApp extends AppBase {
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
+        debug("-- stop --");
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
         BluetoothLowEnergy.setDelegate(null as BleDelegate);
         _deviceManager = null;
