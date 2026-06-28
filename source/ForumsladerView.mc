@@ -477,7 +477,7 @@ class ForumsladerView extends DataField {
         $.FLpayload = []b;              // publish empty buffer for new incoming data
 
         var size = payloadRef.size();
-        if (size > 300) { size = 300; } // cap to prevent processing of excessively large buffers
+        if (size > $.MAX_PAYLOAD_SIZE) { size = $.MAX_PAYLOAD_SIZE; } // cap to prevent processing of excessively large buffers
         for (var i = 0; i < size; i++) {
             _data.encode(payloadRef[i]);
         }

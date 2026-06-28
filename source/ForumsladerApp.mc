@@ -13,6 +13,8 @@ import Toybox.Application.Storage;
 import Toybox.System;
 
 // Globale Variablen
+const MAX_PAYLOAD_SIZE as Number = 300; // Maximum BLE payload buffer size in bytes
+
 var
     FLstate as Number = FL_SCANNING,
     isV6 as Boolean = false,

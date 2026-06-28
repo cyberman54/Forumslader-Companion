@@ -94,8 +94,8 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param data The data which is delivered by the characteristic
     public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
         var payload = $.FLpayload;
-        var remaining = 300 - payload.size();
-        // If the payload buffer is not full, add the new data to it, up to a maximum of 300 bytes
+        var remaining = $.MAX_PAYLOAD_SIZE - payload.size();
+        // If the payload buffer is not full, add the new data to it, up to a maximum of MAX_PAYLOAD_SIZE bytes
         // note: while user is in setting menu, compute() is not executed, so payload buffer fills up
         if (remaining > 0) {
             payload.addAll(remaining >= data.size() ? data : data.slice(0, remaining));
