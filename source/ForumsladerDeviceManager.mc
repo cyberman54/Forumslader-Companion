@@ -17,6 +17,7 @@ enum {
 class DeviceManager {
 
     private const
+        NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
         // RSSI threshold for pairing, to avoid pairing with devices that are too far away and thus have an unstable connection.
         // This is especially important for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike.
         _RSSI_threshold = -85,
@@ -24,7 +25,10 @@ class DeviceManager {
         FL6_START = [0x01, 0x00]b,
         // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
         FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
-        NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000");
+        // command to reset trip counter: $FLT,7*45<lf>
+        FL_TRIP_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x37, 0x2A, 0x34, 0x35, 0x0A]b,
+        // command to reset tour counter: $FLT,6*44<lf>
+        FL_TOUR_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x36, 0x2A, 0x34, 0x34, 0x0A]b;
 
     private var
         _delegate as ForumsladerDelegate,
@@ -198,6 +202,18 @@ class DeviceManager {
     //! @param uuid Profile UUID that this callback is related to
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     public function procProfileRegister(uuid as Uuid, status as Status) as Void {
+    }
+
+    //! Send trip reset command to the Forumslader device
+    public function resetTrip() as Void {
+        sendCommandFL(FL_TRIP_RESET);
+        debug("Trip reset command sent");
+    }
+
+    //! Send tour reset command to the Forumslader device
+    public function resetTour() as Void {
+        sendCommandFL(FL_TOUR_RESET);
+        debug("Tour reset command sent");
     }
 
     //! Send command to forumslader device

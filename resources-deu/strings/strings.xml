@@ -23,6 +23,10 @@
     <string id="searching">Suche...</string>
     <string id="initializing">Initialisiere...</string>
     <string id="connecting">Verbinde...</string>
+    <string id="MenuTripReset">Zähler nullen</string>
+    <string id="TripResetConfirm">Welcher Zähler?</string>
+    <string id="TripResetYes">Tageszähler</string>
+    <string id="TourResetYes">Tourzähler</string>
     <string id="TripEnergy">Tagesenergie</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperatur</string>

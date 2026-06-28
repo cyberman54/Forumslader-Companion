@@ -430,3 +430,24 @@ class ForumsladerView extends DataField {
     }
 }
 
+//! Bestätigungs-Delegate für den Tageszähler-Reset-Dialog
+class TripResetDelegate extends WatchUi.Menu2InputDelegate {
+
+    private var _device as DeviceManager;
+
+    public function initialize(deviceManager as DeviceManager) {
+        Menu2InputDelegate.initialize();
+        _device = deviceManager;
+    }
+
+    public function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId();
+        if (id == :tripconfirm) {
+            _device.resetTrip();
+        } else if (id == :tourconfirm) {
+            _device.resetTour();
+        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+}
+

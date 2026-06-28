@@ -47,4 +47,8 @@
     <string id="ShortCircuit">Short Circuit</string>
     <string id="SystemInterrupt">System Interrupt</string>
     <string id="BatteryLow">Battery Level Below 20%</string>
+    <string id="MenuTripReset">Reset Odometers</string>
+    <string id="TripResetConfirm">Which Odometer?</string>
+    <string id="TripResetYes">Trip</string>
+    <string id="TourResetYes">Tour</string>
 </strings>

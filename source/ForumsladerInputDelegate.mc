@@ -5,7 +5,6 @@ import Toybox.WatchUi;
 //! Leitet Benutzerinteraktionen (Antippen auf Touch-Geräten, Tastendruck auf Edge-Geräten)
 //! an die Ansicht weiter. Die eigentliche Aktion ist in ForumsladerView.onFieldAction() definiert.
 class ForumsladerInputDelegate extends WatchUi.InputDelegate {
-
     private var _view as Lang.WeakReference;
 
     public function initialize(view as ForumsladerView) {

@@ -2,7 +2,6 @@
 to do:
 [ ] Bluetooth Bonding mit SDK v9.2.x implementieren
 [ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
-[ ] Klären: Welche Forumslader Werte sollen / können in Garmin .FIT Datensatz geloggt werden?
 [ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
  */
 
@@ -137,7 +136,7 @@ class ForumsladerApp extends AppBase {
     //! @return Array Pair [View, Delegate]
     (:SettingsMenu)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
-        return [new $.SettingsMenu(_deviceManager as DeviceManager), new $.SettingsMenuDelegate(_deviceManager as DeviceManager)];
+        return [new $.SettingsMenu(), new $.SettingsMenuDelegate(_deviceManager as DeviceManager)];
     }
 
     // debug functions
