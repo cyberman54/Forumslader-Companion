@@ -94,7 +94,10 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             fitMenu.addItem(new WatchUi.IconMenuItem(fitDrawable4.getString(), null, $.FitField4, fitDrawable4, null));
             WatchUi.pushView(fitMenu, new $.SubMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
         } else if (id == :counterreset) {
-            var menu = new WatchUi.Menu2({:title => WatchUi.loadResource($.Rez.Strings.TripResetConfirm) as String});
+            var title = ($.FLstate == FL_RUNNING)
+                ? WatchUi.loadResource($.Rez.Strings.TripResetConfirm) as String
+                : WatchUi.loadResource($.Rez.Strings.NotConnected) as String;
+            var menu = new WatchUi.Menu2({:title => title});
             menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TripResetYes) as String, null, :tripconfirm, null));
             menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TourResetYes) as String, null, :tourconfirm, null));
             WatchUi.pushView(menu, new $.TripResetDelegate(_deviceManager), WatchUi.SLIDE_IMMEDIATE);

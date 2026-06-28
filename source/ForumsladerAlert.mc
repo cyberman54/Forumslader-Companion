@@ -20,15 +20,14 @@ class ForumsladerAlertView extends WatchUi.DataFieldAlert {
     //! Update the view
     //! @param dc Device context
     public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_RED);
+        dc.clear();
         dc.drawText(
             dc.getWidth() / 2,
-            dc.getHeight() / 2 - 30,
+            dc.getHeight() / 2,
             Graphics.FONT_LARGE,
             WatchUi.loadResource($.Rez.Strings.AppName) + "\n" + _alerttext,
-            Graphics.TEXT_JUSTIFY_CENTER
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
         );
 
         if (Attention has :ToneProfile) {

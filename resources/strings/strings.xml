@@ -51,4 +51,10 @@
     <string id="TripResetConfirm">Which Odometer?</string>
     <string id="TripResetYes">Trip</string>
     <string id="TourResetYes">Tour</string>
+    <string id="NotConnected">Not Connected!</string>
+    <string id="ChargeStandby">Trickle Charge</string>
+    <string id="ChargeFull">Full</string>
+    <string id="ChargeDischarging">Discharge</string>
+    <string id="ChargeCharging">Charging</string>
+    <string id="NoFieldConfigured">Config?</string>
 </strings>

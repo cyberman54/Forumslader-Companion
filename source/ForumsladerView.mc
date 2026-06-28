@@ -33,9 +33,14 @@ class ForumsladerView extends DataField {
         _alertBatteryLowStr as String,      //  String für Batterie-Alarm
         _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
         _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
-        _stateDisplayString as Array<String>,// Array mit Status-Strings für die verschiedenen FL-States (z.B. "Suchen...", "Verbinden...", etc.)
-        _displayString as String,           //  Aktuell angezeigter String (entweder Status oder Datenwert basierend auf FLstate und Datenalter)
-        _labelString as String;             //  Überschrift des Datenfelds (AppName aus Ressourcen)
+        _stateDisplayString as Array<String>,// Array mit Status-Strings für die verschiedenen FL-States
+        _displayString as String,           //  Aktuell angezeigter String
+        _lastValidString as String,         //  Letzter gültiger Datenwert-String (für Anzeige bei kurzer Unterbrechung)
+        _labelString as String,             //  Überschrift (Feldname im Browse-Modus, sonst AppName)
+        _pageIndicator as String,           //  Seitenindikator im Browse-Modus (z.B. "●○○")
+        _fieldLabelStrings as Array<String>,//  Feldnamen-Strings: Index 0 = AppName, 1-11 = Feldnamen
+        _chargeStateStrs as Array<String>,  //  Lesbare Ladezustands-Strings für Browse-Modus
+        _noFieldStr as String;              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -52,7 +57,28 @@ class ForumsladerView extends DataField {
         _alertBatteryLowStr = WatchUi.loadResource($.Rez.Strings.BatteryLow) as String;
         _alertShortCircuitStr = WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String;
         _alertSystemInterruptStr = WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String;
-        _labelString = WatchUi.loadResource($.Rez.Strings.AppName) as String;
+        _fieldLabelStrings = [
+            WatchUi.loadResource($.Rez.Strings.AppName) as String,
+            WatchUi.loadResource($.Rez.Strings.TripEnergy) as String,
+            WatchUi.loadResource($.Rez.Strings.Temperature) as String,
+            WatchUi.loadResource($.Rez.Strings.DynamoPower) as String,
+            WatchUi.loadResource($.Rez.Strings.DynamoGear) as String,
+            WatchUi.loadResource($.Rez.Strings.Distance) as String,
+            WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String,
+            WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String,
+            WatchUi.loadResource($.Rez.Strings.Load) as String,
+            WatchUi.loadResource($.Rez.Strings.Speed) as String,
+            WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String,
+            WatchUi.loadResource($.Rez.Strings.ChargingState) as String
+        ] as Array<String>;
+        _chargeStateStrs = [
+            WatchUi.loadResource($.Rez.Strings.ChargeStandby) as String,
+            WatchUi.loadResource($.Rez.Strings.ChargeFull) as String,
+            WatchUi.loadResource($.Rez.Strings.ChargeDischarging) as String,
+            WatchUi.loadResource($.Rez.Strings.ChargeCharging) as String
+        ] as Array<String>;
+        _noFieldStr = WatchUi.loadResource($.Rez.Strings.NoFieldConfigured) as String;
+        _labelString = _fieldLabelStrings[0];
         _data = dataManager;
         _device = deviceManager;
         _battVoltage = 0.0f;
@@ -66,6 +92,8 @@ class ForumsladerView extends DataField {
         _fitSetting3 = -1;
         _fitSetting4 = -1;
         _displayString = "--";
+        _lastValidString = "--";
+        _pageIndicator = "";
     }
 
     public function onUpdate(dc as Dc) as Void {
@@ -81,19 +109,25 @@ class ForumsladerView extends DataField {
         dc.drawText(dc.getWidth() / 2, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
         var labelHeight = dc.getFontHeight(labelFont);
 
-        // Größte passende Schriftgröße wählen (nur Breite prüfen, Höhe wird vom DC geclippt)
+        // Verfügbare Höhe: Gesamthöhe minus Label oben minus Seitenindikator unten
+        var dotFont = Graphics.FONT_SYSTEM_TINY;
+        var dotHeight = _pageIndicator.equals("") ? 0 : dc.getFontHeight(dotFont);
+        var availHeight = dc.getHeight() - labelHeight - dotHeight;
+
+        // Größte passende Schriftgröße wählen (Breite UND Höhe prüfen)
         var fonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
         var maxWidth = dc.getWidth() - 4;
         var font = fonts[fonts.size() - 1] as Graphics.FontDefinition;
         for (var i = 0; i < fonts.size(); i++) {
-            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth) {
+            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth
+                && dc.getFontHeight(fonts[i]) <= availHeight) {
                 font = fonts[i] as Graphics.FontDefinition;
                 break;
             }
         }
 
-        // Wert vertikal zentriert im verbleibenden Bereich unterhalb der Überschrift
-        var valueY = labelHeight + (dc.getHeight() - labelHeight) / 2;
+        // Wert vertikal zentriert im verbleibenden Bereich (zwischen Label und Indikator)
+        var valueY = labelHeight + availHeight / 2;
         dc.drawText(
             dc.getWidth() / 2,
             valueY,
@@ -101,6 +135,15 @@ class ForumsladerView extends DataField {
             _displayString,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
         );
+        if (!_pageIndicator.equals("")) {
+            dc.drawText(
+                dc.getWidth() / 2,
+                dc.getHeight() - dotHeight,
+                dotFont,
+                _pageIndicator,
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
+        }
     }
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
@@ -276,13 +319,17 @@ class ForumsladerView extends DataField {
             checkAlarms();
         }
 
-        // check if nothing is selected for display, if so return "--"
+        // check if nothing is selected for display, if so return hint
         if (settings[0] == 0 && settings[1] == 0 && settings[2] == 0 && settings[3] == 0) {
-            return "--";
+            _labelString = _fieldLabelStrings[0];
+            _pageIndicator = "";
+            return _noFieldStr;
         }
 
         // Feldrotation aus: alle aktiven Felder zusammengesetzt anzeigen
         if (!rotateFields) {
+            _labelString = _fieldLabelStrings[0];
+            _pageIndicator = "";
             var displayString = "";
             var firstField = true;
             for (var i = 0; i < 4; i++) {
@@ -309,7 +356,22 @@ class ForumsladerView extends DataField {
             }
         }
 
-        return computeFieldValue(settings[_index] as Number);
+        // Feldname als Label und Seitenindikator aktualisieren
+        var currentSetting = settings[_index] as Number;
+        _labelString = (currentSetting < _fieldLabelStrings.size())
+            ? _fieldLabelStrings[currentSetting]
+            : _fieldLabelStrings[0];
+        var indicator = "";
+        var activeCount = 0;
+        for (var i = 0; i < 4; i++) {
+            if ((settings[i] as Number) > 0) {
+                indicator += (i == _index) ? "\u25CF" : "\u25CB";
+                activeCount++;
+            }
+        }
+        _pageIndicator = (activeCount > 1) ? indicator : "";
+
+        return computeFieldValue(currentSetting);
     }
 
     //! generate a single field value
@@ -320,6 +382,11 @@ class ForumsladerView extends DataField {
         switch (fieldvalue) {
             case 11:    // charger state
                 var status = flData[FL_status];
+                if (($.UserSettings[$.BrowseFields] as Boolean) == true) {
+                    if (status & 0x200) { return _chargeStateStrs[0]; }  // standby
+                    if (status & 0x100) { return _chargeStateStrs[1]; }  // full
+                    return (status & 0x8000) ? _chargeStateStrs[2] : _chargeStateStrs[3];
+                }
                 var char = (status & 0x8000) ? "-" : "+";
                 return (status & 0x200) ? "o" : ((status & 0x100) ? "*" : char);
             case 10:    // remaining battery capacity
@@ -420,10 +487,16 @@ class ForumsladerView extends DataField {
 
         // if we have recent data, and are fully initialized, display data, else display device state
         if (_data.age <= _data.MAX_AGE_SEC && $.FLstate > FL_CONFIG3) {
-            _data.age++; // increase data age seconds counter
-            _displayString = computeDisplayString(); // display data
+            _data.age++;
+            _lastValidString = computeDisplayString();
+            _displayString = _lastValidString;
+        } else if ($.FLstate == FL_RUNNING) {
+            // Verbunden aber Datenstrom kurz unterbrochen: letzten Wert mit ? kennzeichnen
+            _displayString = _lastValidString + "?";
         } else {
-            _displayString = _stateDisplayString[deviceState]; // display state
+            _labelString = _fieldLabelStrings[0];
+            _pageIndicator = "";
+            _displayString = _stateDisplayString[deviceState];
         }
 
         WatchUi.requestUpdate();
@@ -441,11 +514,13 @@ class TripResetDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     public function onSelect(item as WatchUi.MenuItem) as Void {
-        var id = item.getId();
-        if (id == :tripconfirm) {
-            _device.resetTrip();
-        } else if (id == :tourconfirm) {
-            _device.resetTour();
+        if ($.FLstate == FL_RUNNING) {
+            var id = item.getId();
+            if (id == :tripconfirm) {
+                _device.resetTrip();
+            } else if (id == :tourconfirm) {
+                _device.resetTour();
+            }
         }
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }

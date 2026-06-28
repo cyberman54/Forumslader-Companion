@@ -51,4 +51,10 @@
     <string id="ShortCircuit">Kurzschluss</string>
     <string id="SystemInterrupt">Systemunterbrechung</string>
     <string id="BatteryLow">Akkufüllstand unter 20 %</string>
+    <string id="NotConnected">Nicht verbunden!</string>
+    <string id="ChargeStandby">Ladeerhaltung</string>
+    <string id="ChargeFull">Voll</string>
+    <string id="ChargeDischarging">Entladen</string>
+    <string id="ChargeCharging">Laden</string>
+    <string id="NoFieldConfigured">Einst.?</string>
 </strings>
