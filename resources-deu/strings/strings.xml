@@ -20,9 +20,9 @@
     <string id="MenuFitDatafields">Aufzeichnungsfelder</string>
     <string id="Off">Aus</string>
     <string id="AppName">Forumslader</string>
-    <string id="searching">Suchen</string>
-    <string id="initializing">Initialisieren</string>
-    <string id="connecting">Verbinden</string>
+    <string id="searching">Suchen...</string>
+    <string id="initializing">Initialisieren...</string>
+    <string id="connecting">Verbinden...</string>
     <string id="MenuTripReset">Zähler nullen</string>
     <string id="TripResetConfirm">Welcher Zähler?</string>
     <string id="TripResetYes">Tageszähler</string>
