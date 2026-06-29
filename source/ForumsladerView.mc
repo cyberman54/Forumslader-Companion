@@ -37,7 +37,6 @@ class ForumsladerView extends DataField {
         _displayString as String,           //  Aktuell angezeigter String
         _lastValidString as String,         //  Letzter gültiger Datenwert-String (für Anzeige bei kurzer Unterbrechung)
         _labelString as String,             //  Überschrift (Feldname im Browse-Modus, sonst AppName)
-        _pageIndicator as String,           //  Seitenindikator im Browse-Modus (z.B. "●○○")
         _fieldLabelStrings as Array<String>,//  Feldnamen-Strings: Index 0 = AppName, 1-11 = Feldnamen
         _chargeStateStrs as Array<String>,  //  Lesbare Ladezustands-Strings für Browse-Modus
         _noFieldStr as String;              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
@@ -93,7 +92,6 @@ class ForumsladerView extends DataField {
         _fitSetting4 = -1;
         _displayString = "--";
         _lastValidString = "--";
-        _pageIndicator = "";
     }
 
     public function onUpdate(dc as Dc) as Void {
@@ -104,15 +102,13 @@ class ForumsladerView extends DataField {
         dc.setColor(fgColor, bgColor);
         dc.clear();
 
-        // Überschrift oben zentriert im kleinsten Systemfont
+        // Überschrift oben zentriert anzeigen (Feldname im Browse-Modus, sonst AppName)
         var labelFont = Graphics.FONT_SYSTEM_SMALL;
         dc.drawText(dc.getWidth() / 2, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
         var labelHeight = dc.getFontHeight(labelFont);
 
-        // Verfügbare Höhe: Gesamthöhe minus Label oben minus Seitenindikator unten
-        var dotFont = Graphics.FONT_SYSTEM_TINY;
-        var dotHeight = _pageIndicator.equals("") ? 0 : dc.getFontHeight(dotFont);
-        var availHeight = dc.getHeight() - labelHeight - dotHeight;
+        // Verfügbare Höhe: Gesamthöhe minus Label oben
+        var availHeight = dc.getHeight() - labelHeight;
 
         // Größte passende Schriftgröße wählen (Breite UND Höhe prüfen)
         var fonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
@@ -135,15 +131,6 @@ class ForumsladerView extends DataField {
             _displayString,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
         );
-        if (!_pageIndicator.equals("")) {
-            dc.drawText(
-                dc.getWidth() / 2,
-                dc.getHeight() - dotHeight,
-                dotFont,
-                _pageIndicator,
-                Graphics.TEXT_JUSTIFY_CENTER
-            );
-        }
     }
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
@@ -322,14 +309,12 @@ class ForumsladerView extends DataField {
         // check if nothing is selected for display, if so return hint
         if (settings[0] == 0 && settings[1] == 0 && settings[2] == 0 && settings[3] == 0) {
             _labelString = _fieldLabelStrings[0];
-            _pageIndicator = "";
             return _noFieldStr;
         }
 
         // Feldrotation aus: alle aktiven Felder zusammengesetzt anzeigen
         if (!rotateFields) {
             _labelString = _fieldLabelStrings[0];
-            _pageIndicator = "";
             var displayString = "";
             var firstField = true;
             for (var i = 0; i < 4; i++) {
@@ -361,15 +346,6 @@ class ForumsladerView extends DataField {
         _labelString = (currentSetting < _fieldLabelStrings.size())
             ? _fieldLabelStrings[currentSetting]
             : _fieldLabelStrings[0];
-        var indicator = "";
-        var activeCount = 0;
-        for (var i = 0; i < 4; i++) {
-            if ((settings[i] as Number) > 0) {
-                indicator += (i == _index) ? "\u25CF" : "\u25CB";
-                activeCount++;
-            }
-        }
-        _pageIndicator = (activeCount > 1) ? indicator : "";
 
         return computeFieldValue(currentSetting);
     }

@@ -24,7 +24,7 @@ class DeviceManager {
         // command to start data stream on FLv6: 0x01,0x00 (notification bit in cccd)
         FL6_START = [0x01, 0x00]b,
         // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
-        FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
+        FL_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
         // command to reset trip counter: $FLT,7*45<lf>
         FL_TRIP_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x37, 0x2A, 0x34, 0x35, 0x0A]b,
         // command to reset tour counter: $FLT,6*44<lf>
@@ -405,7 +405,7 @@ class DeviceManager {
             // Parameter anfordern, sobald der Datenstrom aktiv ist
             case FL_CONFIG1:
                 if (_data.age == 0) {
-                    sendCommandFL(FLP); // Radgröße und Polanzahl anfordern
+                    sendCommandFL(FL_REQ_FLP); // Radgröße und Polanzahl anfordern
                     currentState = FL_CONFIG2;
                 }
                 break;
