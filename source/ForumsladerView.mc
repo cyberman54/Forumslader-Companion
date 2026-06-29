@@ -42,9 +42,6 @@ class ForumsladerView extends DataField {
         _noFieldStr as String,              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
         _numFonts as Array<Graphics.FontDefinition>,  // Zahlen-Fonts für numerische Segmente (größte zuerst)
         _sysFonts as Array<Graphics.FontDefinition>,  // System-Fonts für Text-Segmente (passend zu _numFonts)
-        _segTexts as Array<String>,         // Gecachte Segmente des zuletzt angezeigten Strings
-        _segIsNum as Array<Boolean>,        // Zu _segTexts: true = numerisches Segment
-        _cachedDisplayStr as String,        // Zuletzt gecachter _displayString für Segment-Cache
         _dataStale as Boolean;              // true = Datenstrom unterbrochen, letzter Wert wird grau angezeigt
 
     //! Set the label of the data field here
@@ -102,20 +99,17 @@ class ForumsladerView extends DataField {
         _lastValidString = "--";
         _numFonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
         _sysFonts = [Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
-        _segTexts = [] as Array<String>;
-        _segIsNum = [] as Array<Boolean>;
-        _cachedDisplayStr = "";
         _dataStale = false;
     }
 
     public function onUpdate(dc as Dc) as Void {
-        // Hintergrund- und Vordergrundfarbe einmalig bestimmen (Day/Night-Mode)
+        // Hintergrund- und Vordergrundfarbe bestimmen (Day/Night-Mode)
         var bgColor = getBackgroundColor();
         var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
         dc.setColor(fgColor, bgColor);
         dc.clear();
 
-        // dc-Dimensionen einmalig lesen
+        // dc-Dimensionen lesen
         var dcW = dc.getWidth();
         var dcH = dc.getHeight();
         var centerX = dcW / 2;
@@ -126,70 +120,57 @@ class ForumsladerView extends DataField {
         var labelHeight = dc.getFontHeight(labelFont);
         var availHeight = dcH - labelHeight;
         var centerY = labelHeight + availHeight / 2;
-
-        // Segmente nur neu berechnen wenn sich _displayString geändert hat (Cache)
-        if (!_displayString.equals(_cachedDisplayStr)) {
-            _cachedDisplayStr = _displayString;
-            var segs = [] as Array<String>;
-            var nums = [] as Array<Boolean>;
-            var numericChars = "0123456789.+-:";
-            var sLen = _displayString.length();
-            if (sLen > 0) {
-                var segStart = 0;
-                var prevIsNum = numericChars.find(_displayString.substring(0, 1) as String) != null;
-                for (var ci = 1; ci < sLen; ci++) {
-                    var curIsNum = numericChars.find(_displayString.substring(ci, ci + 1) as String) != null;
-                    if (curIsNum != prevIsNum) {
-                        segs.add(_displayString.substring(segStart, ci) as String);
-                        nums.add(prevIsNum);
-                        segStart = ci;
-                        prevIsNum = curIsNum;
-                    }
-                }
-                segs.add(_displayString.substring(segStart, sLen) as String);
-                nums.add(prevIsNum);
-            }
-            _segTexts = segs;
-            _segIsNum = nums;
-        }
-
-        // Lokale Aliase für gecachte Daten (verkürzt VM-Adressierung im Loop)
-        var segTexts = _segTexts;
-        var segIsNum = _segIsNum;
-        var segCount = segTexts.size();
         var numFonts = _numFonts;
         var sysFonts = _sysFonts;
         var maxWidth = dcW - 4;
 
-        // Passendes Schriftgrößen-Paar suchen (groß → klein)
-        for (var level = 0; level < numFonts.size(); level++) {
-            var nf = numFonts[level] as Graphics.FontDefinition;
-            var sf = sysFonts[level] as Graphics.FontDefinition;
-            var nfH = dc.getFontHeight(nf);
-            var sfH = dc.getFontHeight(sf);
-            if ((nfH > sfH ? nfH : sfH) > availHeight) { continue; }
+        if ($.UserSettings[$.BrowseFields] == true) {
+            // Einzelfeld: Zahlen-Präfix in FONT_NUMBER_*, Einheits-Suffix in FONT_SYSTEM_*
+            var numericChars = "0123456789.+-:";
+            var sLen = _displayString.length();
+            var numEnd = 0;
+            while (numEnd < sLen && numericChars.find(_displayString.substring(numEnd, numEnd + 1) as String) != null) {
+                numEnd++;
+            }
+            var numStr = _displayString.substring(0, numEnd) as String;
+            var unitStr = _displayString.substring(numEnd, sLen) as String;
 
-            // Segmentbreiten einmalig berechnen (kein doppelter getTextWidthInPixels-Aufruf)
-            var segWidths = new [segCount] as Array<Number>;
-            var totalW = 0;
-            for (var si = 0; si < segCount; si++) {
-                var sw = dc.getTextWidthInPixels(segTexts[si] as String, (segIsNum[si] as Boolean) ? nf : sf);
-                segWidths[si] = sw;
-                totalW += sw;
-            }
-            if (totalW > maxWidth) { continue; }
+            for (var level = 0; level < numFonts.size(); level++) {
+                var nf = numFonts[level] as Graphics.FontDefinition;
+                var sf = sysFonts[level] as Graphics.FontDefinition;
+                var nfH = dc.getFontHeight(nf);
+                var sfH = dc.getFontHeight(sf);
+                if ((nfH > sfH ? nfH : sfH) > availHeight) { continue; }
 
-            // Bei veralteten Daten Farbe auf Grau wechseln (Label bleibt in Normalfarbe)
-            if (_dataStale) {
-                dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                var numW = (numEnd > 0) ? dc.getTextWidthInPixels(numStr, nf) : 0;
+                var unitW = (numEnd < sLen) ? dc.getTextWidthInPixels(unitStr, sf) : 0;
+                if (numW + unitW > maxWidth) { continue; }
+
+                if (_dataStale) {
+                    dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                }
+                var x = centerX - (numW + unitW) / 2;
+                if (numEnd > 0) {
+                    dc.drawText(x, centerY, nf, numStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                    x += numW;
+                }
+                if (numEnd < sLen) {
+                    dc.drawText(x, centerY, sf, unitStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                }
+                return;
             }
-            // Segmente als zentrierte Gruppe nebeneinander zeichnen
-            var x = centerX - totalW / 2;
-            for (var si = 0; si < segCount; si++) {
-                dc.drawText(x, centerY, (segIsNum[si] as Boolean) ? nf : sf, segTexts[si] as String, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-                x += segWidths[si] as Number;
+        } else {
+            // Mehrere Felder oder Status: reiner System-Font, zentriert
+            for (var level = 0; level < sysFonts.size(); level++) {
+                var sf = sysFonts[level] as Graphics.FontDefinition;
+                if (dc.getFontHeight(sf) > availHeight) { continue; }
+                if (dc.getTextWidthInPixels(_displayString, sf) > maxWidth) { continue; }
+                if (_dataStale) {
+                    dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                }
+                dc.drawText(centerX, centerY, sf, _displayString, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                return;
             }
-            return;
         }
 
         // Fallback: FONT_SYSTEM_TINY für beliebig langen Text
