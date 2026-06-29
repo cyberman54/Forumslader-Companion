@@ -53,34 +53,19 @@ class ForumsladerView extends DataField {
         var connStr = WatchUi.loadResource($.Rez.Strings.connecting) as String;
 
         _stateDisplayString = [
-            WatchUi.loadResource($.Rez.Strings.searching) as String,
-            connStr, initStr, initStr, initStr, connStr, connStr, connStr
-        ] as Array<String>;
+            WatchUi.loadResource($.Rez.Strings.searching) as String, connStr, initStr, initStr, initStr, connStr, connStr, connStr ] as Array<String>;
+        _fieldLabelStrings = [
+            WatchUi.loadResource($.Rez.Strings.AppName) as String, WatchUi.loadResource($.Rez.Strings.TripEnergy) as String, WatchUi.loadResource($.Rez.Strings.Temperature) as String,
+            WatchUi.loadResource($.Rez.Strings.DynamoPower) as String, WatchUi.loadResource($.Rez.Strings.DynamoGear) as String, WatchUi.loadResource($.Rez.Strings.Distance) as String,
+            WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String, WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String, WatchUi.loadResource($.Rez.Strings.Load) as String,
+            WatchUi.loadResource($.Rez.Strings.Speed) as String, WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String, WatchUi.loadResource($.Rez.Strings.ChargingState) as String,
+            WatchUi.loadResource($.Rez.Strings.DayDistance) as String, WatchUi.loadResource($.Rez.Strings.TourDistance) as String ] as Array<String>;
+        _chargeStateStrs = [
+            WatchUi.loadResource($.Rez.Strings.ChargeStandby) as String, WatchUi.loadResource($.Rez.Strings.ChargeFull) as String,
+            WatchUi.loadResource($.Rez.Strings.ChargeDischarging) as String, WatchUi.loadResource($.Rez.Strings.ChargeCharging) as String ] as Array<String>;
         _alertBatteryLowStr = WatchUi.loadResource($.Rez.Strings.BatteryLow) as String;
         _alertShortCircuitStr = WatchUi.loadResource($.Rez.Strings.ShortCircuit) as String;
         _alertSystemInterruptStr = WatchUi.loadResource($.Rez.Strings.SystemInterrupt) as String;
-        _fieldLabelStrings = [
-            WatchUi.loadResource($.Rez.Strings.AppName) as String,
-            WatchUi.loadResource($.Rez.Strings.TripEnergy) as String,
-            WatchUi.loadResource($.Rez.Strings.Temperature) as String,
-            WatchUi.loadResource($.Rez.Strings.DynamoPower) as String,
-            WatchUi.loadResource($.Rez.Strings.DynamoGear) as String,
-            WatchUi.loadResource($.Rez.Strings.Distance) as String,
-            WatchUi.loadResource($.Rez.Strings.BatteryVoltage) as String,
-            WatchUi.loadResource($.Rez.Strings.BatteryCurrent) as String,
-            WatchUi.loadResource($.Rez.Strings.Load) as String,
-            WatchUi.loadResource($.Rez.Strings.Speed) as String,
-            WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String,
-            WatchUi.loadResource($.Rez.Strings.ChargingState) as String,
-            WatchUi.loadResource($.Rez.Strings.DayDistance) as String,
-            WatchUi.loadResource($.Rez.Strings.TourDistance) as String
-        ] as Array<String>;
-        _chargeStateStrs = [
-            WatchUi.loadResource($.Rez.Strings.ChargeStandby) as String,
-            WatchUi.loadResource($.Rez.Strings.ChargeFull) as String,
-            WatchUi.loadResource($.Rez.Strings.ChargeDischarging) as String,
-            WatchUi.loadResource($.Rez.Strings.ChargeCharging) as String
-        ] as Array<String>;
         _noFieldStr = WatchUi.loadResource($.Rez.Strings.NoFieldConfigured) as String;
         _labelString = _fieldLabelStrings[0];
         _data = dataManager;
@@ -124,14 +109,16 @@ class ForumsladerView extends DataField {
         var sysFonts = _sysFonts;
         var maxWidth = dcW - 4;
 
-        if ($.UserSettings[$.BrowseFields] == true) {
-            // Einzelfeld: Zahlen-Präfix in FONT_NUMBER_*, Einheits-Suffix in FONT_SYSTEM_*
-            var numericChars = "0123456789.+-:";
-            var sLen = _displayString.length();
-            var numEnd = 0;
-            while (numEnd < sLen && numericChars.find(_displayString.substring(numEnd, numEnd + 1) as String) != null) {
-                numEnd++;
-            }
+        // Numerischen Präfix vorab bestimmen: numEnd > 0 → Datenwert; numEnd == 0 → Text/Status
+        var numericChars = "0123456789.+-:";
+        var sLen = _displayString.length();
+        var numEnd = 0;
+        while (numEnd < sLen && numericChars.find(_displayString.substring(numEnd, numEnd + 1) as String) != null) {
+            numEnd++;
+        }
+
+        // Gemischter Font nur bei BrowseFields (Einzelfeld) UND numerischem Inhalt; sonst immer System-Font
+        if ($.UserSettings[$.BrowseFields] == true && numEnd > 0) {
             var numStr = _displayString.substring(0, numEnd) as String;
             var unitStr = _displayString.substring(numEnd, sLen) as String;
 
@@ -142,7 +129,7 @@ class ForumsladerView extends DataField {
                 var sfH = dc.getFontHeight(sf);
                 if ((nfH > sfH ? nfH : sfH) > availHeight) { continue; }
 
-                var numW = (numEnd > 0) ? dc.getTextWidthInPixels(numStr, nf) : 0;
+                var numW = dc.getTextWidthInPixels(numStr, nf);
                 var unitW = (numEnd < sLen) ? dc.getTextWidthInPixels(unitStr, sf) : 0;
                 if (numW + unitW > maxWidth) { continue; }
 
@@ -150,17 +137,14 @@ class ForumsladerView extends DataField {
                     dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
                 }
                 var x = centerX - (numW + unitW) / 2;
-                if (numEnd > 0) {
-                    dc.drawText(x, centerY, nf, numStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-                    x += numW;
-                }
+                dc.drawText(x, centerY, nf, numStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
                 if (numEnd < sLen) {
-                    dc.drawText(x, centerY, sf, unitStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                    dc.drawText(x + numW, centerY, sf, unitStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
                 }
                 return;
             }
         } else {
-            // Mehrere Felder oder Status: reiner System-Font, zentriert
+            // Mehrere Felder, Status oder rein-textueller String: System-Font, zentriert
             for (var level = 0; level < sysFonts.size(); level++) {
                 var sf = sysFonts[level] as Graphics.FontDefinition;
                 if (dc.getFontHeight(sf) > availHeight) { continue; }
@@ -179,30 +163,20 @@ class ForumsladerView extends DataField {
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
     private function initFitRecordingFields() as Void {
+        // Read current FIT settings from user settings
         _fitSetting1 = $.UserSettings[$.FitField1] as Number;
         _fitSetting2 = $.UserSettings[$.FitField2] as Number;
         _fitSetting3 = $.UserSettings[$.FitField3] as Number;
         _fitSetting4 = $.UserSettings[$.FitField4] as Number;
-
         // Reset all field references first. Then create only fields explicitly enabled in settings.
         _fitRecording1 = null;
         _fitRecording2 = null;
         _fitRecording3 = null;
         _fitRecording4 = null;
-
-        if (_fitSetting1 > 0) {
-            _fitRecording1 = _createFitRecordingField(1, _fitSetting1);
-        }
-        if (_fitSetting2 > 0) {
-            _fitRecording2 = _createFitRecordingField(2, _fitSetting2);
-        }
-        if (_fitSetting3 > 0) {
-            _fitRecording3 = _createFitRecordingField(3, _fitSetting3);
-        }
-        if (_fitSetting4 > 0) {
-            _fitRecording4 = _createFitRecordingField(4, _fitSetting4);
-        }
-
+        if (_fitSetting1 > 0) { _fitRecording1 = _createFitRecordingField(1, _fitSetting1); }
+        if (_fitSetting2 > 0) { _fitRecording2 = _createFitRecordingField(2, _fitSetting2); }
+        if (_fitSetting3 > 0) { _fitRecording3 = _createFitRecordingField(3, _fitSetting3); }
+        if (_fitSetting4 > 0) { _fitRecording4 = _createFitRecordingField(4, _fitSetting4); }
         _fitFieldsInitialized = true;
     }
 
@@ -271,7 +245,7 @@ class ForumsladerView extends DataField {
             case 2: // temperature
                 return ((flData[FL_temperature] / 10.0 * 10).toNumber() / 10.0) as Float;
             case 3: // dynamo power
-                return ((_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000 * 10).toNumber() / 10.0) as Float;
+                return (((_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]).abs()) / 1000 * 10).toNumber() / 10.0) as Float;
             case 4: // generator gear
                 return flData[FL_gear];
             case 5: // odometer
@@ -431,10 +405,10 @@ class ForumsladerView extends DataField {
                 return (flData[FL_impulseCounter] * _data.imp2odo).format("%.1f") + $.distanceunit;
             case 4:     // generator gear
                 return flData[FL_gear].toString();
-            case 3:     // dynamo power
-                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]) / 1000).format("%.0f") + "W";
+            case 3:     // dynamo power, always positive
+                return (_battVoltage * (flData[FL_loadCurrent] + flData[FL_battCurrent]).abs() / 1000).format("%.0f") + "W";
             case 2:     // temperature
-                return (flData[FL_temperature] / 10.0).format("%.1f") + "°";
+                return (flData[FL_temperature] / 10.0).format("%.1f") + "°C";
             case 1:     // trip energy
                 return (flData[FL_tripEnergy] / 10.0).format("%.1f") + "Wh";
             default:
