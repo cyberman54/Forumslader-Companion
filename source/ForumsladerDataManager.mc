@@ -147,9 +147,12 @@ class DataManager {
 
     //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
     private function parseChecksumTerm(term as String) as Void {
+        if (_currSentenceType == SENTENCE_OTHER) {
+            return; // Unbekannter/fremder Satztyp (z.B. NMEA), still verwerfen
+        }
         var checksum = term.toNumberWithBase(16);
-        if (checksum == null || checksum != _parity || _currSentenceType == SENTENCE_OTHER) {
-            // Ungültige Prüfsumme oder unbekannter Satztyp, Daten verwerfen und Alter nicht zurücksetzen
+        if (checksum == null || checksum != _parity) {
+            // Prüfsummenfehler bei einem bekannten $FL-Satz
             debug("\nChecksum error");
             return;
         }
