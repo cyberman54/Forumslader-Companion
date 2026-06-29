@@ -148,7 +148,7 @@ class DataManager {
     //! Validiert die Prüfsumme und aktualisiert die Datenfelder nur bei korrekten Werten, um Datenintegrität zu gewährleisten
     private function parseChecksumTerm(term as String) as Void {
         if (_currSentenceType == SENTENCE_OTHER) {
-            return; // Unbekannter/fremder Satztyp (z.B. NMEA), still verwerfen
+            return; // Unbekannter/fremder Satztyp, still verwerfen
         }
         var checksum = term.toNumberWithBase(16);
         if (checksum == null || checksum != _parity) {

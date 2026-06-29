@@ -39,7 +39,13 @@ class ForumsladerView extends DataField {
         _labelString as String,             //  Überschrift (Feldname im Browse-Modus, sonst AppName)
         _fieldLabelStrings as Array<String>,//  Feldnamen-Strings: Index 0 = AppName, 1-11 = Feldnamen
         _chargeStateStrs as Array<String>,  //  Lesbare Ladezustands-Strings für Browse-Modus
-        _noFieldStr as String;              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
+        _noFieldStr as String,              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
+        _numFonts as Array<Graphics.FontDefinition>,  // Zahlen-Fonts für numerische Segmente (größte zuerst)
+        _sysFonts as Array<Graphics.FontDefinition>,  // System-Fonts für Text-Segmente (passend zu _numFonts)
+        _segTexts as Array<String>,         // Gecachte Segmente des zuletzt angezeigten Strings
+        _segIsNum as Array<Boolean>,        // Zu _segTexts: true = numerisches Segment
+        _cachedDisplayStr as String,        // Zuletzt gecachter _displayString für Segment-Cache
+        _dataStale as Boolean;              // true = Datenstrom unterbrochen, letzter Wert wird grau angezeigt
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -92,80 +98,99 @@ class ForumsladerView extends DataField {
         _fitSetting4 = -1;
         _displayString = "--";
         _lastValidString = "--";
+        _numFonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
+        _sysFonts = [Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
+        _segTexts = [] as Array<String>;
+        _segIsNum = [] as Array<Boolean>;
+        _cachedDisplayStr = "";
+        _dataStale = false;
     }
 
     public function onUpdate(dc as Dc) as Void {
-        // System-Farben für Day/Night-Mode: getBackgroundColor() liefert die vom System
-        // vorgegebene Hintergrundfarbe (COLOR_WHITE im Tag-, COLOR_BLACK im Nachtmodus).
+        // Hintergrund- und Vordergrundfarbe einmalig bestimmen (Day/Night-Mode)
         var bgColor = getBackgroundColor();
         var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
         dc.setColor(fgColor, bgColor);
         dc.clear();
 
-        // Überschrift oben zentriert anzeigen (Feldname im Browse-Modus, sonst AppName)
+        // dc-Dimensionen einmalig lesen
+        var dcW = dc.getWidth();
+        var dcH = dc.getHeight();
+        var centerX = dcW / 2;
+
+        // Label oben zentriert zeichnen
         var labelFont = Graphics.FONT_SYSTEM_SMALL;
-        dc.drawText(dc.getWidth() / 2, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
         var labelHeight = dc.getFontHeight(labelFont);
+        var availHeight = dcH - labelHeight;
+        var centerY = labelHeight + availHeight / 2;
 
-        // Verfügbare Höhe: Gesamthöhe minus Label oben
-        var availHeight = dc.getHeight() - labelHeight;
-
-        // String in numerische (Ziffern, +/-/./: ) und nicht-numerische Segmente aufteilen
-        var numericChars = "0123456789.+-:";
-        var segTexts = [] as Array<String>;
-        var segIsNum = [] as Array<Boolean>;
-        var n = _displayString.length();
-        if (n > 0) {
-            var segStart = 0;
-            var prevIsNum = numericChars.find(_displayString.substring(0, 1) as String) != null;
-            for (var ci = 1; ci < n; ci++) {
-                var curIsNum = numericChars.find(_displayString.substring(ci, ci + 1) as String) != null;
-                if (curIsNum != prevIsNum) {
-                    segTexts.add(_displayString.substring(segStart, ci) as String);
-                    segIsNum.add(prevIsNum);
-                    segStart = ci;
-                    prevIsNum = curIsNum;
+        // Segmente nur neu berechnen wenn sich _displayString geändert hat (Cache)
+        if (!_displayString.equals(_cachedDisplayStr)) {
+            _cachedDisplayStr = _displayString;
+            var segs = [] as Array<String>;
+            var nums = [] as Array<Boolean>;
+            var numericChars = "0123456789.+-:";
+            var sLen = _displayString.length();
+            if (sLen > 0) {
+                var segStart = 0;
+                var prevIsNum = numericChars.find(_displayString.substring(0, 1) as String) != null;
+                for (var ci = 1; ci < sLen; ci++) {
+                    var curIsNum = numericChars.find(_displayString.substring(ci, ci + 1) as String) != null;
+                    if (curIsNum != prevIsNum) {
+                        segs.add(_displayString.substring(segStart, ci) as String);
+                        nums.add(prevIsNum);
+                        segStart = ci;
+                        prevIsNum = curIsNum;
+                    }
                 }
+                segs.add(_displayString.substring(segStart, sLen) as String);
+                nums.add(prevIsNum);
             }
-            segTexts.add(_displayString.substring(segStart, n) as String);
-            segIsNum.add(prevIsNum);
+            _segTexts = segs;
+            _segIsNum = nums;
         }
 
-        // Schriftgrößen-Paare (numFont, sysFont): von groß nach klein
-        // numFont für numerische Segmente, sysFont für Text-Segmente
-        var maxWidth = dc.getWidth() - 4;
-        var centerX = dc.getWidth() / 2;
-        var centerY = labelHeight + availHeight / 2;
-        var numFonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
-        var sysFonts = [Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
+        // Lokale Aliase für gecachte Daten (verkürzt VM-Adressierung im Loop)
+        var segTexts = _segTexts;
+        var segIsNum = _segIsNum;
+        var segCount = segTexts.size();
+        var numFonts = _numFonts;
+        var sysFonts = _sysFonts;
+        var maxWidth = dcW - 4;
 
+        // Passendes Schriftgrößen-Paar suchen (groß → klein)
         for (var level = 0; level < numFonts.size(); level++) {
             var nf = numFonts[level] as Graphics.FontDefinition;
             var sf = sysFonts[level] as Graphics.FontDefinition;
             var nfH = dc.getFontHeight(nf);
             var sfH = dc.getFontHeight(sf);
-            var maxH = (nfH > sfH) ? nfH : sfH;
-            if (maxH > availHeight) { continue; }
+            if ((nfH > sfH ? nfH : sfH) > availHeight) { continue; }
 
+            // Segmentbreiten einmalig berechnen (kein doppelter getTextWidthInPixels-Aufruf)
+            var segWidths = new [segCount] as Array<Number>;
             var totalW = 0;
-            for (var si = 0; si < segTexts.size(); si++) {
-                var f = (segIsNum[si] as Boolean) ? nf : sf;
-                totalW += dc.getTextWidthInPixels(segTexts[si] as String, f);
+            for (var si = 0; si < segCount; si++) {
+                var sw = dc.getTextWidthInPixels(segTexts[si] as String, (segIsNum[si] as Boolean) ? nf : sf);
+                segWidths[si] = sw;
+                totalW += sw;
             }
             if (totalW > maxWidth) { continue; }
 
-            // Segmente nebeneinander zeichnen, als Gruppe horizontal zentriert
+            // Bei veralteten Daten Farbe auf Grau wechseln (Label bleibt in Normalfarbe)
+            if (_dataStale) {
+                dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            }
+            // Segmente als zentrierte Gruppe nebeneinander zeichnen
             var x = centerX - totalW / 2;
-            for (var si = 0; si < segTexts.size(); si++) {
-                var segFont = (segIsNum[si] as Boolean) ? nf : sf;
-                var segText = segTexts[si] as String;
-                dc.drawText(x, centerY, segFont, segText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-                x += dc.getTextWidthInPixels(segText, segFont);
+            for (var si = 0; si < segCount; si++) {
+                dc.drawText(x, centerY, (segIsNum[si] as Boolean) ? nf : sf, segTexts[si] as String, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                x += segWidths[si] as Number;
             }
             return;
         }
 
-        // Fallback
+        // Fallback: FONT_SYSTEM_TINY für beliebig langen Text
         dc.drawText(centerX, centerY, Graphics.FONT_SYSTEM_TINY, _displayString, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -502,12 +527,15 @@ class ForumsladerView extends DataField {
             _data.age++;
             _lastValidString = computeDisplayString();
             _displayString = _lastValidString;
+            _dataStale = false;
         } else if ($.FLstate == FL_RUNNING) {
-            // Verbunden aber Datenstrom kurz unterbrochen: letzten Wert mit ? kennzeichnen
-            _displayString = _lastValidString + "?";
+            // Verbunden aber Datenstrom kurz unterbrochen: letzten Wert grau anzeigen
+            _displayString = _lastValidString;
+            _dataStale = true;
         } else {
             _labelString = _fieldLabelStrings[0];
             _displayString = _stateDisplayString[deviceState];
+            _dataStale = false;
         }
 
         WatchUi.requestUpdate();
