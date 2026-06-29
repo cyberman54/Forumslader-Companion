@@ -38,6 +38,8 @@
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
+            <listEntry value="12">@Strings.DayDistance</listEntry>
+            <listEntry value="13">@Strings.TourDistance</listEntry>
         </settingConfig>
     </setting>
 
@@ -55,6 +57,8 @@
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
+            <listEntry value="12">@Strings.DayDistance</listEntry>
+            <listEntry value="13">@Strings.TourDistance</listEntry>
             </settingConfig>
         </setting>
 
@@ -72,6 +76,8 @@
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
+            <listEntry value="12">@Strings.DayDistance</listEntry>
+            <listEntry value="13">@Strings.TourDistance</listEntry>
         </settingConfig>
     </setting>
 
@@ -89,6 +95,8 @@
             <listEntry value="9">@Strings.Speed</listEntry>
             <listEntry value="10">@Strings.BatteryCapacity</listEntry>
             <listEntry value="11">@Strings.ChargingState</listEntry>
+            <listEntry value="12">@Strings.DayDistance</listEntry>
+            <listEntry value="13">@Strings.TourDistance</listEntry>
         </settingConfig>
     </setting>
 

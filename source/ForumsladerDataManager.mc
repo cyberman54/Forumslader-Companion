@@ -9,7 +9,7 @@ enum {
     // FLB sentence
         FL_temperature,
     // FLP sentence
-        FL_wheelsize, FL_poles, FL_acc2mah,
+        FL_wheelsize, FL_poles, FL_acc2mah, FL_dayPulseOffset, FL_tourPulseOffset,
     // FLC sentence
         FL_Energy, FL_tourEnergy, FL_tripEnergy, FL_BTsaveCount, FL_empty1,                 // set 3
         FL_startCount, FL_socState, FL_fullChargeCapacity, FL_cycleCount, FL_ccadcValue,    // set 5
@@ -207,8 +207,10 @@ class DataManager {
             }
 
             case SENTENCE_FLP: {
-                fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500);
-                fl[FL_poles]            = commitValue(t[2], 10, 20);
+                fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500); // Radumfang in mm
+                fl[FL_poles]            = commitValue(t[2], 10, 20); // Anzahl der Magnete im Dynamo
+                fl[FL_dayPulseOffset]   = parseValue(t[4]);   // Impulszähler-Startwert Tages-km
+                fl[FL_tourPulseOffset]  = parseValue(t[6]);   // Impulszähler-Startwert Tour-km
                 fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
 
                 var wSize = fl[FL_wheelsize];

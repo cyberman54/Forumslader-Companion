@@ -48,6 +48,10 @@
     <string id="BatteryCapacity">Akkufüllstand</string>
     <string id="BatteryCapacityLabel">%</string>
     <string id="ChargingState">Ladezustand</string>
+    <string id="DayDistance">Tageskm</string>
+    <string id="DayDistanceLabel">km</string>
+    <string id="TourDistance">Tourkm</string>
+    <string id="TourDistanceLabel">km</string>
     <string id="ShortCircuit">Kurzschluss</string>
     <string id="SystemInterrupt">Systemunterbrechung</string>
     <string id="BatteryLow">Akkufüllstand unter 20 %</string>
@@ -56,5 +60,5 @@
     <string id="ChargeFull">Voll</string>
     <string id="ChargeDischarging">Entladen</string>
     <string id="ChargeCharging">Laden</string>
-    <string id="NoFieldConfigured">Einst.?</string>
+    <string id="NoFieldConfigured">Einstellungen?</string>
 </strings>

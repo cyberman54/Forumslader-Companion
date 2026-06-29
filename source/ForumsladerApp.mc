@@ -1,10 +1,3 @@
-/*
-to do:
-[ ] Bluetooth Bonding mit SDK v9.2.x implementieren
-[ ] Klären: Speed Wert vom Forumslader als Garmin-Input Speed Sensor nutzbar?
-[ ] Widget oder App mit Tasten für Tour- und Trip Reset sowie Verbraucher Ein/Aus
- */
-
 import Toybox.Application;
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;

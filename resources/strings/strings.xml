@@ -44,6 +44,10 @@
     <string id="BatteryCapacity">Battery Level</string>
     <string id="BatteryCapacityLabel">%</string>
     <string id="ChargingState">Charge State</string>
+    <string id="DayDistance">Day Distance</string>
+    <string id="DayDistanceLabel">km</string>
+    <string id="TourDistance">Tour Distance</string>
+    <string id="TourDistanceLabel">km</string>
     <string id="ShortCircuit">Short Circuit</string>
     <string id="SystemInterrupt">System Interrupt</string>
     <string id="BatteryLow">Battery Level Below 20%</string>

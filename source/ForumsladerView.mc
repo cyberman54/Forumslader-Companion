@@ -74,7 +74,9 @@ class ForumsladerView extends DataField {
             WatchUi.loadResource($.Rez.Strings.Load) as String,
             WatchUi.loadResource($.Rez.Strings.Speed) as String,
             WatchUi.loadResource($.Rez.Strings.BatteryCapacity) as String,
-            WatchUi.loadResource($.Rez.Strings.ChargingState) as String
+            WatchUi.loadResource($.Rez.Strings.ChargingState) as String,
+            WatchUi.loadResource($.Rez.Strings.DayDistance) as String,
+            WatchUi.loadResource($.Rez.Strings.TourDistance) as String
         ] as Array<String>;
         _chargeStateStrs = [
             WatchUi.loadResource($.Rez.Strings.ChargeStandby) as String,
@@ -417,6 +419,14 @@ class ForumsladerView extends DataField {
     private function computeFieldValue(fieldvalue as Number) as String {
         var flData = _data.FLdata;
         switch (fieldvalue) {
+            case 13: {  // tour distance
+                var d13 = flData[FL_impulseCounter] - flData[FL_tourPulseOffset];
+                return ((d13 > 0 ? d13 : 0).toDouble() * _data.imp2odo).format("%.1f") + $.distanceunit;
+            }
+            case 12: {  // day distance
+                var d12 = flData[FL_impulseCounter] - flData[FL_dayPulseOffset];
+                return ((d12 > 0 ? d12 : 0).toDouble() * _data.imp2odo).format("%.1f") + $.distanceunit;
+            }
             case 11:    // charger state
                 var status = flData[FL_status];
                 if (($.UserSettings[$.BrowseFields] as Boolean) == true) {
