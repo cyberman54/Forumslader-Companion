@@ -471,7 +471,6 @@ class ForumsladerView extends DataField {
             _displayString = _lastValidString + "?";
         } else {
             _labelString = _fieldLabelStrings[0];
-            _pageIndicator = "";
             _displayString = _stateDisplayString[deviceState];
         }
 
