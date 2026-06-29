@@ -20,9 +20,9 @@
     <string id="MenuFitDatafields">Recording Fields</string>
     <string id="Off">Off</string>
     <string id="AppName">Forumslader</string>
-    <string id="initializing">Initializing...</string>
-    <string id="searching">Searching...</string>
-    <string id="connecting">Connecting...</string>
+    <string id="initializing">Initializing</string>
+    <string id="searching">Searching</string>
+    <string id="connecting">Connecting</string>
     <string id="TripEnergy">Trip Energy</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperature</string>

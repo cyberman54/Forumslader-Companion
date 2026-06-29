@@ -110,27 +110,63 @@ class ForumsladerView extends DataField {
         // Verfügbare Höhe: Gesamthöhe minus Label oben
         var availHeight = dc.getHeight() - labelHeight;
 
-        // Größte passende Schriftgröße wählen (Breite UND Höhe prüfen)
-        var fonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
-        var maxWidth = dc.getWidth() - 4;
-        var font = fonts[fonts.size() - 1] as Graphics.FontDefinition;
-        for (var i = 0; i < fonts.size(); i++) {
-            if (dc.getTextWidthInPixels(_displayString, fonts[i]) <= maxWidth
-                && dc.getFontHeight(fonts[i]) <= availHeight) {
-                font = fonts[i] as Graphics.FontDefinition;
-                break;
+        // String in numerische (Ziffern, +/-/./: ) und nicht-numerische Segmente aufteilen
+        var numericChars = "0123456789.+-:";
+        var segTexts = [] as Array<String>;
+        var segIsNum = [] as Array<Boolean>;
+        var n = _displayString.length();
+        if (n > 0) {
+            var segStart = 0;
+            var prevIsNum = numericChars.find(_displayString.substring(0, 1) as String) != null;
+            for (var ci = 1; ci < n; ci++) {
+                var curIsNum = numericChars.find(_displayString.substring(ci, ci + 1) as String) != null;
+                if (curIsNum != prevIsNum) {
+                    segTexts.add(_displayString.substring(segStart, ci) as String);
+                    segIsNum.add(prevIsNum);
+                    segStart = ci;
+                    prevIsNum = curIsNum;
+                }
             }
+            segTexts.add(_displayString.substring(segStart, n) as String);
+            segIsNum.add(prevIsNum);
         }
 
-        // Wert vertikal zentriert im verbleibenden Bereich (zwischen Label und Indikator)
-        var valueY = labelHeight + availHeight / 2;
-        dc.drawText(
-            dc.getWidth() / 2,
-            valueY,
-            font,
-            _displayString,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
-        );
+        // Schriftgrößen-Paare (numFont, sysFont): von groß nach klein
+        // numFont für numerische Segmente, sysFont für Text-Segmente
+        var maxWidth = dc.getWidth() - 4;
+        var centerX = dc.getWidth() / 2;
+        var centerY = labelHeight + availHeight / 2;
+        var numFonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
+        var sysFonts = [Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
+
+        for (var level = 0; level < numFonts.size(); level++) {
+            var nf = numFonts[level] as Graphics.FontDefinition;
+            var sf = sysFonts[level] as Graphics.FontDefinition;
+            var nfH = dc.getFontHeight(nf);
+            var sfH = dc.getFontHeight(sf);
+            var maxH = (nfH > sfH) ? nfH : sfH;
+            if (maxH > availHeight) { continue; }
+
+            var totalW = 0;
+            for (var si = 0; si < segTexts.size(); si++) {
+                var f = (segIsNum[si] as Boolean) ? nf : sf;
+                totalW += dc.getTextWidthInPixels(segTexts[si] as String, f);
+            }
+            if (totalW > maxWidth) { continue; }
+
+            // Segmente nebeneinander zeichnen, als Gruppe horizontal zentriert
+            var x = centerX - totalW / 2;
+            for (var si = 0; si < segTexts.size(); si++) {
+                var segFont = (segIsNum[si] as Boolean) ? nf : sf;
+                var segText = segTexts[si] as String;
+                dc.drawText(x, centerY, segFont, segText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                x += dc.getTextWidthInPixels(segText, segFont);
+            }
+            return;
+        }
+
+        // Fallback
+        dc.drawText(centerX, centerY, Graphics.FONT_SYSTEM_TINY, _displayString, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
