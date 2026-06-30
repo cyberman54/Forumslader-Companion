@@ -42,7 +42,13 @@ class ForumsladerView extends DataField {
         _noFieldStr as String,              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
         _numFonts as Array<Graphics.FontDefinition>,  // Zahlen-Fonts für numerische Segmente (größte zuerst)
         _sysFonts as Array<Graphics.FontDefinition>,  // System-Fonts für Text-Segmente (passend zu _numFonts)
-        _dataStale as Boolean;              // true = Datenstrom unterbrochen, letzter Wert wird grau angezeigt
+        _dataStale as Boolean,              // true = Datenstrom unterbrochen, letzter Wert wird grau angezeigt
+        _numFontHeights as Array<Number>,    // gecachte Höhen der Zahlen-Fonts (befüllt in onLayout)
+        _sysFontHeights as Array<Number>,    // gecachte Höhen der System-Fonts (befüllt in onLayout)
+        _centerX as Number,                  // horizontale Mitte (aus onLayout)
+        _centerY as Number,                  // vertikale Mitte des Wert-Bereichs (aus onLayout)
+        _availHeight as Number,              // verfügbare Höhe für Wert (aus onLayout)
+        _maxWidth as Number;                 // maximale Textbreite (aus onLayout)
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -85,6 +91,24 @@ class ForumsladerView extends DataField {
         _numFonts = [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
         _sysFonts = [Graphics.FONT_SYSTEM_LARGE, Graphics.FONT_SYSTEM_MEDIUM, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_SMALL, Graphics.FONT_SYSTEM_TINY] as Array<Graphics.FontDefinition>;
         _dataStale = false;
+        _numFontHeights = [0, 0, 0, 0, 0] as Array<Number>;
+        _sysFontHeights = [0, 0, 0, 0, 0] as Array<Number>;
+        _centerX = 0; _centerY = 0; _availHeight = 0; _maxWidth = 0;
+    }
+
+    public function onLayout(dc as Dc) as Void {
+        var dcW = dc.getWidth();
+        var dcH = dc.getHeight();
+        _centerX = dcW / 2;
+        _maxWidth = dcW - 4;
+        var labelHeight = dc.getFontHeight(Graphics.FONT_SYSTEM_SMALL);
+        _availHeight = dcH - labelHeight;
+        _centerY = labelHeight + _availHeight / 2;
+        var n = _numFonts.size();
+        for (var i = 0; i < n; i++) {
+            _numFontHeights[i] = dc.getFontHeight(_numFonts[i] as Graphics.FontDefinition);
+            _sysFontHeights[i] = dc.getFontHeight(_sysFonts[i] as Graphics.FontDefinition);
+        }
     }
 
     public function onUpdate(dc as Dc) as Void {
@@ -94,26 +118,25 @@ class ForumsladerView extends DataField {
         dc.setColor(fgColor, bgColor);
         dc.clear();
 
-        // dc-Dimensionen lesen
-        var dcW = dc.getWidth();
-        var dcH = dc.getHeight();
-        var centerX = dcW / 2;
-
-        // Label oben zentriert zeichnen
-        var labelFont = Graphics.FONT_SYSTEM_SMALL;
-        dc.drawText(centerX, 0, labelFont, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
-        var labelHeight = dc.getFontHeight(labelFont);
-        var availHeight = dcH - labelHeight;
-        var centerY = labelHeight + availHeight / 2;
+        var centerX = _centerX;
+        var centerY = _centerY;
+        var availHeight = _availHeight;
+        var maxWidth = _maxWidth;
         var numFonts = _numFonts;
         var sysFonts = _sysFonts;
-        var maxWidth = dcW - 4;
+        var numFontHeights = _numFontHeights;
+        var sysFontHeights = _sysFontHeights;
+
+        // Label oben zentriert zeichnen
+        dc.drawText(centerX, 0, Graphics.FONT_SYSTEM_SMALL, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
 
         // Numerischen Präfix vorab bestimmen: numEnd > 0 → Datenwert; numEnd == 0 → Text/Status
-        var numericChars = "0123456789.+-:";
         var sLen = _displayString.length();
         var numEnd = 0;
-        while (numEnd < sLen && numericChars.find(_displayString.substring(numEnd, numEnd + 1) as String) != null) {
+        var chars = _displayString.toCharArray();
+        while (numEnd < sLen) {
+            var c = (chars[numEnd] as Char).toNumber();
+            if (!((c >= 48 && c <= 57) || c == 43 || c == 45 || c == 46 || c == 58)) { break; }
             numEnd++;
         }
 
@@ -125,8 +148,8 @@ class ForumsladerView extends DataField {
             for (var level = 0; level < numFonts.size(); level++) {
                 var nf = numFonts[level] as Graphics.FontDefinition;
                 var sf = sysFonts[level] as Graphics.FontDefinition;
-                var nfH = dc.getFontHeight(nf);
-                var sfH = dc.getFontHeight(sf);
+                var nfH = numFontHeights[level];
+                var sfH = sysFontHeights[level];
                 if ((nfH > sfH ? nfH : sfH) > availHeight) { continue; }
 
                 var numW = dc.getTextWidthInPixels(numStr, nf);
@@ -147,7 +170,7 @@ class ForumsladerView extends DataField {
             // Mehrere Felder, Status oder rein-textueller String: System-Font, zentriert
             for (var level = 0; level < sysFonts.size(); level++) {
                 var sf = sysFonts[level] as Graphics.FontDefinition;
-                if (dc.getFontHeight(sf) > availHeight) { continue; }
+                if (sysFontHeights[level] > availHeight) { continue; }
                 if (dc.getTextWidthInPixels(_displayString, sf) > maxWidth) { continue; }
                 if (_dataStale) {
                     dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -341,7 +364,7 @@ class ForumsladerView extends DataField {
                     if (!firstField) {
                         displayString += " ";
                     }
-                    displayString += computeFieldValue(setting as Number);
+                    displayString += computeFieldValue(setting as Number, flData);
                     firstField = false;
                 }
             }
@@ -365,14 +388,13 @@ class ForumsladerView extends DataField {
             ? _fieldLabelStrings[currentSetting]
             : _fieldLabelStrings[0];
 
-        return computeFieldValue(currentSetting);
+        return computeFieldValue(currentSetting, flData);
     }
 
     //! generate a single field value
     //! @param Number of selected field value
     //! @return String value for the selected field
-    private function computeFieldValue(fieldvalue as Number) as String {
-        var flData = _data.FLdata;
+    private function computeFieldValue(fieldvalue as Number, flData as Array<Number>) as String {
         switch (fieldvalue) {
             case 13: {  // tour distance
                 var d13 = flData[FL_impulseCounter] - flData[FL_tourPulseOffset];
