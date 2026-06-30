@@ -131,7 +131,7 @@ class ForumsladerApp extends AppBase {
     //! @return Array Pair [View, Delegate]
     (:SettingsMenu)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
-        return [new $.SettingsMenu(), new $.SettingsMenuDelegate(_deviceManager as DeviceManager)];
+        return [new $.SettingsMenu(), new $.SettingsMenuDelegate(_deviceManager as DeviceManager, _dataManager as DataManager)];
     }
 
     // debug functions

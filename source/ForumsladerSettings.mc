@@ -37,6 +37,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     private var
         _deviceManager as DeviceManager,
+        _dataManager as DataManager,
         _sOptionsTitle as String,
         _sCapacity as String,
         _sFitLog as String,
@@ -45,8 +46,9 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         _sDeviceLock as String;
 
     //! Constructor
-    public function initialize(deviceManager as DeviceManager) {
+    public function initialize(deviceManager as DeviceManager, dataManager as DataManager) {
         _deviceManager = deviceManager;
+        _dataManager = dataManager;
         Menu2InputDelegate.initialize();
         _sOptionsTitle  = WatchUi.loadResource($.Rez.Strings.MenuSettings) as String;
         _sCapacity      = WatchUi.loadResource($.Rez.Strings.SelectCapacityMethod) as String;
@@ -100,7 +102,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             var menu = new WatchUi.Menu2({:title => title});
             menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TripResetYes) as String, null, :tripconfirm, null));
             menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TourResetYes) as String, null, :tourconfirm, null));
-            WatchUi.pushView(menu, new $.TripResetDelegate(_deviceManager), WatchUi.SLIDE_IMMEDIATE);
+            WatchUi.pushView(menu, new $.TripResetDelegate(_deviceManager, _dataManager), WatchUi.SLIDE_IMMEDIATE);
         } else {
             WatchUi.requestUpdate();
         }

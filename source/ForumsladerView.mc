@@ -511,19 +511,24 @@ class ForumsladerView extends DataField {
 class TripResetDelegate extends WatchUi.Menu2InputDelegate {
 
     private var _device as DeviceManager;
+    private var _data as DataManager;
 
-    public function initialize(deviceManager as DeviceManager) {
+    public function initialize(deviceManager as DeviceManager, dataManager as DataManager) {
         Menu2InputDelegate.initialize();
         _device = deviceManager;
+        _data = dataManager;
     }
 
     public function onSelect(item as WatchUi.MenuItem) as Void {
         if ($.FLstate == FL_RUNNING) {
             var id = item.getId();
+            var currentPulse = _data.FLdata[FL_impulseCounter];
             if (id == :tripconfirm) {
                 _device.resetTrip();
+                _data.FLdata[FL_dayPulseOffset] = currentPulse;
             } else if (id == :tourconfirm) {
                 _device.resetTour();
+                _data.FLdata[FL_tourPulseOffset] = currentPulse;
             }
         }
         WatchUi.popView(WatchUi.SLIDE_DOWN);
