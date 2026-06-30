@@ -9,9 +9,9 @@ import Toybox.FitContributor;
 class ForumsladerView extends DataField {
 
     private const
-        _alertLockTime as Number = 100,     // Sperrzeit in Sekunden nach Alarm-Auslösung
-        _capacityAlarmMin as Number = 20,   // Warnung unter 20% Kapazität
-        _capacityAlarmMax as Number = 28;   // Entwarnung/Reset erst ab 28% (Hystereseschutz)
+        _alertLockTime as Number = 100,     // Lock duration in seconds after alarm is triggered
+        _capacityAlarmMin as Number = 20,   // Warning threshold below 20% capacity
+        _capacityAlarmMax as Number = 28;   // Alert reset threshold at 28% (hysteresis protection)
 
     private var
         _data as DataManager,               // Reference to the DataManager for accessing Forumslader data
@@ -30,25 +30,25 @@ class ForumsladerView extends DataField {
         _fitSetting2 as Number,             
         _fitSetting3 as Number,             
         _fitSetting4 as Number,             
-        _alertBatteryLowStr as String,      //  String für Batterie-Alarm
-        _alertShortCircuitStr as String,    //  String für Kurzschluss-Alarm
-        _alertSystemInterruptStr as String, //  String für Systemunterbrechungs-Alarm
-        _stateDisplayString as Array<String>,// Array mit Status-Strings für die verschiedenen FL-States
-        _displayString as String,           //  Aktuell angezeigter String
-        _lastValidString as String,         //  Letzter gültiger Datenwert-String (für Anzeige bei kurzer Unterbrechung)
-        _labelString as String,             //  Überschrift (Feldname im Browse-Modus, sonst AppName)
-        _fieldLabelStrings as Array<String>,//  Feldnamen-Strings: Index 0 = AppName, 1-11 = Feldnamen
-        _chargeStateStrs as Array<String>,  //  Lesbare Ladezustands-Strings für Browse-Modus
-        _noFieldStr as String,              //  Hinweis-String wenn kein Anzeigefeld konfiguriert ist
-        _numFonts as Array<Graphics.FontDefinition>,  // Zahlen-Fonts für numerische Segmente (größte zuerst)
-        _sysFonts as Array<Graphics.FontDefinition>,  // System-Fonts für Text-Segmente (passend zu _numFonts)
-        _dataStale as Boolean,              // true = Datenstrom unterbrochen, letzter Wert wird grau angezeigt
-        _numFontHeights as Array<Number>,    // gecachte Höhen der Zahlen-Fonts (befüllt in onLayout)
-        _sysFontHeights as Array<Number>,    // gecachte Höhen der System-Fonts (befüllt in onLayout)
-        _centerX as Number,                  // horizontale Mitte (aus onLayout)
-        _centerY as Number,                  // vertikale Mitte des Wert-Bereichs (aus onLayout)
-        _availHeight as Number,              // verfügbare Höhe für Wert (aus onLayout)
-        _maxWidth as Number;                 // maximale Textbreite (aus onLayout)
+        _alertBatteryLowStr as String,      //  String for battery low alarm
+        _alertShortCircuitStr as String,    //  String for short circuit alarm
+        _alertSystemInterruptStr as String, //  String for system interrupt alarm
+        _stateDisplayString as Array<String>,// Array of status strings for the various FL states
+        _displayString as String,           //  Currently displayed string
+        _lastValidString as String,         //  Last valid data value string (for display during brief interruption)
+        _labelString as String,             //  Label (field name in browse mode, otherwise AppName)
+        _fieldLabelStrings as Array<String>,//  Field name strings: index 0 = AppName, 1-11 = field names
+        _chargeStateStrs as Array<String>,  //  Human-readable charge state strings for browse mode
+        _noFieldStr as String,              //  Hint string when no display field is configured
+        _numFonts as Array<Graphics.FontDefinition>,  // Number fonts for numeric segments (largest first)
+        _sysFonts as Array<Graphics.FontDefinition>,  // System fonts for text segments (matching _numFonts)
+        _dataStale as Boolean,              // true = data stream interrupted, last value is displayed in gray
+        _numFontHeights as Array<Number>,    // cached heights of number fonts (populated in onLayout)
+        _sysFontHeights as Array<Number>,    // cached heights of system fonts (populated in onLayout)
+        _centerX as Number,                  // horizontal center (from onLayout)
+        _centerY as Number,                  // vertical center of the value area (from onLayout)
+        _availHeight as Number,              // available height for value (from onLayout)
+        _maxWidth as Number;                 // maximum text width (from onLayout)
 
     //! Set the label of the data field here
     //! @param dataManager The DataManager
@@ -124,27 +124,27 @@ class ForumsladerView extends DataField {
         var numFontHeights = _numFontHeights;
         var sysFontHeights = _sysFontHeights;
 
-        // Hintergrund- und Vordergrundfarbe bestimmen (Day/Night-Mode), setzen und Bildschirm löschen
+        // Determine background and foreground color (day/night mode), set them and clear screen
         var bgColor = getBackgroundColor();
         var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
         dc.setColor(fgColor, bgColor);
         dc.clear();
         
-        // Label oben zentriert zeichnen
+        // Draw label centered at top
         dc.drawText(centerX, 0, Graphics.FONT_SYSTEM_SMALL, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
 
-        // Numerischen Präfix vorab bestimmen: numEnd > 0 → Datenwert; numEnd == 0 → Text/Status
+        // Pre-determine numeric prefix: numEnd > 0 → data value; numEnd == 0 → text/status
         var sLen = _displayString.length();
         var numEnd = 0;
         var chars = _displayString.toCharArray();
         while (numEnd < sLen) {
             var c = (chars[numEnd] as Char).toNumber();
-            // Prüfen, ob das Zeichen eine Ziffer (0-9) oder (+), (-), (.), (:) ist
+            // Check if the character is a digit (0-9) or (+), (-), (.), (:)
             if (!((c >= 48 && c <= 57) || c == 43 || c == 45 || c == 46 || c == 58)) { break; }
             numEnd++;
         }
 
-        // Gemischter Font nur bei BrowseFields (Einzelfeld) UND numerischem Inhalt; sonst immer System-Font
+        // Mixed font only with BrowseFields (single field) AND numeric content; otherwise always system font
         if ($.UserSettings[$.BrowseFields] == true && numEnd > 0) {
             var numStr = _displayString.substring(0, numEnd) as String;
             var unitStr = _displayString.substring(numEnd, sLen) as String;
@@ -161,7 +161,7 @@ class ForumsladerView extends DataField {
                 var unitW = (numEnd < sLen) ? dc.getTextWidthInPixels(unitStr, sf) : 0;
                 if (numW + unitW > maxWidth) { continue; }
 
-                // veraltete Datenwerte grau darstellen, aktuelle Werte in normaler Farbe
+                // Display stale data values in gray, current values in normal color
                 if (_dataStale) {
                     dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
                 }
@@ -173,7 +173,7 @@ class ForumsladerView extends DataField {
                 return;
             }
         } else {
-            // Mehrere Felder, Status oder rein-textueller String: System-Font, zentriert
+            // Multiple fields, status, or purely textual string: system font, centered
             for (var level = 0; level < sysFonts.size(); level++) {
                 var sf = sysFonts[level] as Graphics.FontDefinition;
                 if (sysFontHeights[level] > availHeight) { continue; }
@@ -186,11 +186,11 @@ class ForumsladerView extends DataField {
             }
         }
 
-        // Fallback: FONT_SYSTEM_TINY für beliebig langen Text
+        // Fallback: FONT_SYSTEM_TINY for arbitrarily long text
         dc.drawText(centerX, centerY, Graphics.FONT_SYSTEM_TINY, _displayString, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Wird in der compute-Methode aufgerufen, um die FIT-Aufzeichnungsfelder erst zu erstellen, wenn sie tatsächlich benötigt werden (z.B. wenn der Benutzer FitLogging aktiviert)
+    // Called in the compute method to create the FIT recording fields only when they are actually needed (e.g., when the user enables FitLogging)
     private function initFitRecordingFields() as Void {
         // Read current FIT settings from user settings
         _fitSetting1 = $.UserSettings[$.FitField1] as Number;
@@ -363,7 +363,7 @@ class ForumsladerView extends DataField {
             return _noFieldStr;
         }
 
-        // Feldrotation aus: alle aktiven Felder zusammengesetzt anzeigen
+        // Field rotation off: show all active fields combined
         if (!rotateFields) {
             _labelString = _fieldLabelStrings[0];
             var displayString = "";
@@ -381,8 +381,8 @@ class ForumsladerView extends DataField {
             return displayString;
         }
 
-        // Feldrotation ein: nur das Feld an _index anzeigen, Weiterschaltung per Antippen
-        // Sicherstellen, dass _index auf ein aktives Feld zeigt (z. B. nach Einstellungsänderung)
+        // Field rotation on: show only the field at _index, advance by tapping
+        // Ensure _index points to an active field (e.g. after a settings change)
         if ((settings[_index] as Number) == 0) {
             for (var i = 0; i < 4; i++) {
                 if ((settings[i] as Number) > 0) {
@@ -392,7 +392,7 @@ class ForumsladerView extends DataField {
             }
         }
 
-        // Feldname als Label und Seitenindikator aktualisieren
+        // Update field name as label and page indicator
         var currentSetting = settings[_index] as Number;
         _labelString = (currentSetting < _fieldLabelStrings.size())
             ? _fieldLabelStrings[currentSetting]
@@ -462,13 +462,13 @@ class ForumsladerView extends DataField {
     //! Checks background alarm states for battery capacity and forumslader status and shows alert if necessary
     //! Optimized for 1Hz execution loop
     private function checkAlarms() as Void {
-        // 1. Early Exit: Wenn der Alarm stummgeschaltet ist, zähle nur den Timer runter
+        // 1. Early exit: if the alarm is muted, only count down the timer
         if (_alertMute > 0) {
             _alertMute--;
             return;
         }
 
-        // 2. Alarm auslösen (State-Trigger statt dauerhaftem Abfragen)
+        // 2. Trigger alarm (state trigger instead of continuous polling)
         if (!_capacityAlertLock) {
             if (_capacity > 0 && _capacity < _capacityAlarmMin) {
                 _capacityAlertLock = true;
@@ -476,13 +476,13 @@ class ForumsladerView extends DataField {
                 showAlert(new $.ForumsladerAlertView(_alertBatteryLowStr));
             }
         } else {
-        // 3. Alarm zurücksetzen, wenn die Kapazität sich erholt hat (z. B. durch Ladung)
+        // 3. Reset alarm when capacity has recovered (e.g. due to charging)
             if (_capacity > _capacityAlarmMax) {
                 _capacityAlertLock = false;
             }
         }
 
-        // 4. Weitere Alarme prüfen (z. B. Kurzschluss, Systemunterbrechung) - ebenfalls mit State-Triggern
+        // 4. Check further alarms (e.g. short circuit, system interrupt) - also with state triggers
         var flStatus = _data.FLdata[FL_status];
         if (flStatus & 0x8) { // short circuit
             _alertMute = _alertLockTime;
@@ -496,8 +496,8 @@ class ForumsladerView extends DataField {
         }
     }
 
-    //! Wird vom InputDelegate aufgerufen, wenn der Benutzer das Datenfeld antippt oder eine Taste drückt.
-    //! Springt zum nächsten aktivierten Anzeigefeld und aktualisiert die Ansicht sofort.
+    //! Called by the InputDelegate when the user taps the data field or presses a key.
+    //! Advances to the next enabled display field and immediately updates the view.
     public function onFieldAction() as Void {
         for (var count = 0; count < 4; count++) {
             _index = (_index + 1) % 4;
@@ -535,7 +535,7 @@ class ForumsladerView extends DataField {
             _displayString = _lastValidString;
             _dataStale = false;
         } else if ($.FLstate == FL_RUNNING) {
-            // Verbunden aber Datenstrom kurz unterbrochen: letzten Wert grau anzeigen
+            // Connected but data stream briefly interrupted: show last value in gray
             _displayString = _lastValidString;
             _dataStale = true;
         } else {
@@ -548,7 +548,7 @@ class ForumsladerView extends DataField {
     }
 }
 
-//! Bestätigungs-Delegate für den Tageszähler-Reset-Dialog
+//! Confirmation delegate for the trip counter reset dialog
 class TripResetDelegate extends WatchUi.Menu2InputDelegate {
 
     private var _device as DeviceManager;
@@ -560,7 +560,7 @@ class TripResetDelegate extends WatchUi.Menu2InputDelegate {
         _data = dataManager;
     }
 
-    // Wird aufgerufen, wenn der Benutzer eine Auswahl im Dialog trifft
+    // Called when the user makes a selection in the dialog
     public function onSelect(item as WatchUi.MenuItem) as Void {
         if ($.FLstate == FL_RUNNING) {
             var id = item.getId();

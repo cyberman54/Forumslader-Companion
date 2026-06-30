@@ -5,7 +5,7 @@ import Toybox.WatchUi;
 import Toybox.Application.Storage;
 import Toybox.System;
 
-// Globale Variablen
+// Global variables
 const MAX_PAYLOAD_SIZE as Number = 300; // Maximum BLE payload buffer size in bytes
 
 var

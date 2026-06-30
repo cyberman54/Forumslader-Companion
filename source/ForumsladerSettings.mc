@@ -63,7 +63,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
     public function onSelect(item as MenuItem) as Void {
         var id = item.getId() as Symbol;
         if (id == :options) {
-            // When the options menu item is selected, push a new menu with toggle switches (gecachte Strings)
+            // When the options menu item is selected, push a new menu with toggle switches (cached strings)
             var menu = new WatchUi.Menu2({:title => _sOptionsTitle});
             menu.addItem(new WatchUi.ToggleMenuItem(_sCapacity, null, :battCalc, $.UserSettings[$.BattCalcMethod] as Boolean, null));
             menu.addItem(new WatchUi.ToggleMenuItem(_sFitLog, null, :fitLog, $.UserSettings[$.FitLogging] as Boolean, null));
@@ -177,7 +177,7 @@ class SubMenuDelegate extends WatchUi.Menu2InputDelegate {
 //! triggered, which is done when the item is selected in this application.
 class PickList extends WatchUi.Drawable {
 
-    // Resource-IDs für Feldwert-Strings; es werden nur Einträge bis _maxSetting in initialize() geladen
+    // Resource IDs for field value strings; only entries up to _maxSetting are loaded in initialize()
     private const _stringIds = [
         $.Rez.Strings.Off,            $.Rez.Strings.TripEnergy,     $.Rez.Strings.Temperature,
         $.Rez.Strings.DynamoPower,    $.Rez.Strings.DynamoGear,     $.Rez.Strings.Distance,
