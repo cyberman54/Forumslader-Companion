@@ -96,6 +96,7 @@ class ForumsladerView extends DataField {
         _centerX = 0; _centerY = 0; _availHeight = 0; _maxWidth = 0;
     }
 
+    //! This function is called by the DataField framework when the layout of the data field changes (e.g., due to screen rotation or resizing).
     public function onLayout(dc as Dc) as Void {
         var dcW = dc.getWidth();
         var dcH = dc.getHeight();
@@ -111,12 +112,8 @@ class ForumsladerView extends DataField {
         }
     }
 
+    //! This function is called by the DataField framework every second to update the display based on the current Forumslader data and user settings.
     public function onUpdate(dc as Dc) as Void {
-        // Hintergrund- und Vordergrundfarbe bestimmen (Day/Night-Mode)
-        var bgColor = getBackgroundColor();
-        var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
-        dc.setColor(fgColor, bgColor);
-        dc.clear();
 
         var centerX = _centerX;
         var centerY = _centerY;
@@ -127,6 +124,12 @@ class ForumsladerView extends DataField {
         var numFontHeights = _numFontHeights;
         var sysFontHeights = _sysFontHeights;
 
+        // Hintergrund- und Vordergrundfarbe bestimmen (Day/Night-Mode), setzen und Bildschirm löschen
+        var bgColor = getBackgroundColor();
+        var fgColor = (bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
+        dc.setColor(fgColor, bgColor);
+        dc.clear();
+        
         // Label oben zentriert zeichnen
         dc.drawText(centerX, 0, Graphics.FONT_SYSTEM_SMALL, _labelString, Graphics.TEXT_JUSTIFY_CENTER);
 
@@ -136,6 +139,7 @@ class ForumsladerView extends DataField {
         var chars = _displayString.toCharArray();
         while (numEnd < sLen) {
             var c = (chars[numEnd] as Char).toNumber();
+            // Prüfen, ob das Zeichen eine Ziffer (0-9) oder (+), (-), (.), (:) ist
             if (!((c >= 48 && c <= 57) || c == 43 || c == 45 || c == 46 || c == 58)) { break; }
             numEnd++;
         }
@@ -145,6 +149,7 @@ class ForumsladerView extends DataField {
             var numStr = _displayString.substring(0, numEnd) as String;
             var unitStr = _displayString.substring(numEnd, sLen) as String;
 
+            // Try to find the largest font that fits the available height and width
             for (var level = 0; level < numFonts.size(); level++) {
                 var nf = numFonts[level] as Graphics.FontDefinition;
                 var sf = sysFonts[level] as Graphics.FontDefinition;
@@ -156,6 +161,7 @@ class ForumsladerView extends DataField {
                 var unitW = (numEnd < sLen) ? dc.getTextWidthInPixels(unitStr, sf) : 0;
                 if (numW + unitW > maxWidth) { continue; }
 
+                // veraltete Datenwerte grau darstellen, aktuelle Werte in normaler Farbe
                 if (_dataStale) {
                     dc.setColor((bgColor == Graphics.COLOR_BLACK) ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
                 }
@@ -288,6 +294,9 @@ class ForumsladerView extends DataField {
         }
     }
 
+    //! Write the current values of the selected FIT fields to the FIT recording fields
+    //! @param flData The current Forumslader data array
+    // This function is called from computeDisplayString() when FitLogging is enabled and the FIT fields have been initialized
     private function _writeFitRecordingValues(flData as Array<Number>) as Void {
         if (_fitRecording1 != null && _fitSetting1 > 0) {
             (_fitRecording1 as Field).setData(_fitValueForSetting(_fitSetting1, flData));
@@ -305,6 +314,7 @@ class ForumsladerView extends DataField {
 
     //! generate, display and log forumslader values
     //! @return String value to display in the simpledatafield
+    //! This function is called every second by the DataField framework to update the display and log values to FIT if enabled
     private function computeDisplayString() as String {
         var settings = $.UserSettings;
         // Race protection FLdata Parallel-Access
@@ -393,7 +403,9 @@ class ForumsladerView extends DataField {
 
     //! generate a single field value
     //! @param Number of selected field value
+    //! @param Array<Number> of current Forumslader data
     //! @return String value for the selected field
+    //! This function is called by computeDisplayString() to generate the string representation of a single field value based on the current Forumslader data
     private function computeFieldValue(fieldvalue as Number, flData as Array<Number>) as String {
         switch (fieldvalue) {
             case 13: {  // tour distance
@@ -438,6 +450,8 @@ class ForumsladerView extends DataField {
         }
     }
 
+    //! Checks if the FIT settings have changed since the last initialization of the FIT recording fields
+    //! @return true if any of the FIT settings have changed, false otherwise
     private function _fitSettingsChanged() as Boolean {
         return _fitSetting1 != ($.UserSettings[$.FitField1] as Number)
             || _fitSetting2 != ($.UserSettings[$.FitField2] as Number)
@@ -496,6 +510,11 @@ class ForumsladerView extends DataField {
 
     //! switch device state, process the $FLx data, calculate and show values every one second
     //! @param info The updated Activity.Info object
+    
+    
+    //! This function is called by the DataField framework every second to process incoming data, update the device state, and refresh the display.
+    //! It takes a snapshot of the current payload buffer to prevent race conditions with the onCharacteristicChanged() callback.
+    //! @param info The updated Activity.Info object (unused in this implementation but API requires it)
     public function compute(info as Info) as Void {
         var payloadRef = $.FLpayload;   // take reference to current buffer to prevent race with onCharacteristicChanged()
         $.FLpayload = []b;              // publish empty buffer for new incoming data
@@ -541,6 +560,7 @@ class TripResetDelegate extends WatchUi.Menu2InputDelegate {
         _data = dataManager;
     }
 
+    // Wird aufgerufen, wenn der Benutzer eine Auswahl im Dialog trifft
     public function onSelect(item as WatchUi.MenuItem) as Void {
         if ($.FLstate == FL_RUNNING) {
             var id = item.getId();
