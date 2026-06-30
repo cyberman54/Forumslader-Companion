@@ -1,7 +1,6 @@
 import Toybox.Lang;
 import Toybox.Activity;
 
-// Used Forumslader data records
 enum {
     // FL5/FL6 sentences
         FL_status, FL_gear, FL_frequency, FL_battVoltage1, FL_battVoltage2, FL_battVoltage3,
@@ -19,7 +18,6 @@ enum {
 
 class DataManager {
 
-    // Used data record types of the Forumslader
     enum {
         SENTENCE_OTHER = -1,
         SENTENCE_FL5,
@@ -30,12 +28,12 @@ class DataManager {
     }
 
     public const
-        MAX_AGE_SEC = 10; // Maximum age of data in seconds before it is considered stale
+        MAX_AGE_SEC = 10; // seconds before data is considered stale
 
     private const
-        _MAX_TERM_SIZE = 20, // Maximum length of a term in the $FLx data stream to avoid buffer overflows
+        _MAX_TERM_SIZE = 20, // max term length in $FLx stream
         _MAX_TERM_LAST = _MAX_TERM_SIZE - 1,
-        _MAX_TERM_COUNT = 16; // Maximum number of terms in a $FLx sentence to detect invalid data
+        _MAX_TERM_COUNT = 16; // max terms per sentence
 
     public var
         age as Number = MAX_AGE_SEC,
@@ -52,7 +50,7 @@ class DataManager {
         _charBuffer as Array<Char> = new [_MAX_TERM_SIZE] as Array<Char>,
         _FLterm as Array<String> = new [_MAX_TERM_COUNT] as Array<String>;
 
-    //! Constructor initializes the data array completely zeroed
+    //! Zeroes FLdata.
     public function initialize() {
         var size = FLdata.size();
         for (var i = 0; i < size; i++) {
@@ -60,19 +58,17 @@ class DataManager {
         }
     }
 
-    //! Interprets the $FLx data stream of the Forumslader byte by byte
-    // Parses the terms, validates the checksum and updates the data fields only for correct values to ensure data integrity
-    // Code is performance-optimized with minimal string operations and defensive checks to ensure stability with invalid data
+    //! Parses one byte of the $FLx stream; updates FLdata on valid checksum.
     public function encode(b as Number) as Void {
         var c = b.toChar();
         //debug(c);
 
         switch(c) {
-            case ',': // Term separator, update parity with separator byte
+            case ',': // term separator
                 _parity ^= b;
                 // Intentional fallthrough to term processing
             case '\r':
-            case '*': // End of a term, update term number and offset for next term
+            case '*': // end of term
                 var termNumber = _currTermNumber;
                 var isChecksum = _isChecksumTerm;
                 var termOffset = _currTermOffset;
@@ -96,7 +92,7 @@ class DataManager {
                 _isChecksumTerm = (c == '*');
                 break;
 
-            case '$': // Start of a new sentence, reset all states
+            case '$': // new sentence
                 _currSentenceType = SENTENCE_OTHER;
                 _parity = 0;
                 _currTermNumber = 0;
@@ -104,7 +100,7 @@ class DataManager {
                 _isChecksumTerm = false;
                 break;
 
-            default: // Payload, write to current term buffer, update parity
+            default: // accumulate byte
                 if (_currTermOffset < _MAX_TERM_LAST) {
                     _charBuffer[_currTermOffset] = c;
                     _currTermOffset++;
@@ -116,7 +112,7 @@ class DataManager {
         }
     }
 
-    //! The first term identifies the telegram type ($FL5, $FLP etc.)
+    //! Sets _currSentenceType from the sentence identifier ($FL5/$FL6/$FLB/$FLC/$FLP).
     private function parseSentenceType() as Void {
         if (_currTermOffset != 3 || _charBuffer[0] != 'F' || _charBuffer[1] != 'L') {
             _currSentenceType = SENTENCE_OTHER;
@@ -145,10 +141,10 @@ class DataManager {
         }
     }
 
-    //! Validates the checksum and updates the data fields only for correct values to ensure data integrity
+    //! Validates XOR checksum and dispatches values to FLdata.
     private function parseChecksumTerm(term as String) as Void {
         if (_currSentenceType == SENTENCE_OTHER) {
-            return; // Unknown/foreign sentence type, silently discard
+            return;
         }
         var checksum = term.toNumberWithBase(16);
         if (checksum == null || checksum != _parity) {
@@ -159,8 +155,8 @@ class DataManager {
 
         age = 0; // Data is fresh, reset age
 
-        var fl = FLdata; // Lokaler Cache-Zeiger für Daten verkürzt die VM-Adressierung
-        var t = _FLterm; // Lokaler Cache-Zeiger für Terms verkürzt die VM-Adressierung
+        var fl = FLdata; // Local cache pointer for data shortens VM addressing
+        var t = _FLterm; // Local cache pointer for terms shortens VM addressing
         var isV6 = $.isV6;  // Different data interpretation and scaling between FL5 and FL6, depending on the firmware version of the Forumslader
         var speedDivisor = isV6 ? 10.0f : 1.0f;
         var impulseScale = isV6 ? 1.0d : 4096.0d;
@@ -207,10 +203,10 @@ class DataManager {
             }
 
             case SENTENCE_FLP: {
-                fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500); // Wheel circumference in mm
-                fl[FL_poles]            = commitValue(t[2], 10, 20); // Number of magnets in the dynamo
-                fl[FL_dayPulseOffset]   = parseValue(t[4]);   // Pulse counter start value for daily km
-                fl[FL_tourPulseOffset]  = parseValue(t[6]);   // Pulse counter start value for tour km
+                fl[FL_wheelsize]        = commitValue(t[1], 1000, 2500); // mm
+                fl[FL_poles]            = commitValue(t[2], 10, 20); // dynamo poles
+                fl[FL_dayPulseOffset]   = parseValue(t[4]);   // day-distance base
+                fl[FL_tourPulseOffset]  = parseValue(t[6]);   // tour-distance base
                 fl[FL_acc2mah]          = commitValue(t[8], 1, 10000);
 
                 var wSize = fl[FL_wheelsize];
@@ -233,7 +229,7 @@ class DataManager {
         }
     }
 
-    //! Fast parse path without range checks (for fields without min/max limit)
+    //! Parses term to Number; no range check.
     private function parseValue(term as String) as Number {
         if (term == null || term.length() == 0) {
             return 0;
@@ -245,7 +241,7 @@ class DataManager {
         return val;
     }
 
-    //! Defensively parses, validates and limits raw numeric values
+    //! Parses term to Number; returns 0 if null or outside [min, max].
     private function commitValue(term as String, min as Number, max as Number) as Number {
         if (term == null || term.length() == 0) {
             return 0;

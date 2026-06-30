@@ -5,8 +5,7 @@ import Toybox.WatchUi;
 import Toybox.Application.Storage;
 import Toybox.System;
 
-// Global variables
-const MAX_PAYLOAD_SIZE as Number = 300; // Maximum BLE payload buffer size in bytes
+const MAX_PAYLOAD_SIZE as Number = 300; // max BLE payload buffer size
 
 var
     FLstate as Number = FL_SCANNING,
@@ -17,9 +16,7 @@ var
     FLpayload as ByteArray = []b,
     UserSettings as Array = [0, 0, 0, 0, false, false, false, false, false, 0, 0, 0, 0];
 
-//! This data field app uses the BLE data interface of a forumslader.
-//! The field will pair with the first Forumslader it encounters and will
-//! show up to 4 user selectable values every 1 second in a simpledatafield.
+//! Forumslader BLE data field: pairs with first device, shows up to 4 user-selectable values.
 class ForumsladerApp extends AppBase {
 
     private var
@@ -27,13 +24,11 @@ class ForumsladerApp extends AppBase {
         _deviceManager as DeviceManager?,
         _dataManager as DataManager?;
 
-    //! Constructor
     public function initialize() {
         AppBase.initialize();
     }
 
-    //! Handle app startup
-    //! @param state Startup arguments
+    //! @param state startup args
     public function onStart(state as Dictionary?) as Void {
         debug("-- start --");
         getUserSettings();
@@ -47,8 +42,7 @@ class ForumsladerApp extends AppBase {
         (_deviceManager as DeviceManager).startScan();
     }
 
-    //! Handle app shutdown
-    //! @param state Shutdown arguments
+    //! @param state shutdown args
     public function onStop(state as Dictionary?) as Void {
         debug("-- stop --");
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
@@ -58,8 +52,6 @@ class ForumsladerApp extends AppBase {
         _dataManager = null;
     }
 
-    //! Return the initial view for the app
-    //! @return Array [View, InputDelegate]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         if (_dataManager != null && _deviceManager != null) {
             var view = new $.ForumsladerView(_dataManager, _deviceManager);
@@ -68,16 +60,15 @@ class ForumsladerApp extends AppBase {
         System.error("View initialization failure");
     }
 
-    //! Handle change of settings by user in GCM while App is running
+    //! Called by GCM when settings change at runtime.
     public function onSettingsChanged() {
         getUserSettings();
         (_deviceManager as DeviceManager).saveDevice();
         WatchUi.requestUpdate();
     }
 
-    //! Get user settings and store them in UserSettings array
+    //! Loads all user settings into UserSettings[].
     private function getUserSettings() as Void {
-        // get user settings from application properties
         $.UserSettings[$.DisplayField1] = readKey("UserSetting1", 0);
         $.UserSettings[$.DisplayField2] = readKey("UserSetting2", 0);
         $.UserSettings[$.DisplayField3] = readKey("UserSetting3", 0);
@@ -92,7 +83,7 @@ class ForumsladerApp extends AppBase {
         $.UserSettings[$.Alerts] = readKey("Alerts", false);
         $.UserSettings[$.DeviceLock] = readKey("DeviceLock", false);
 
-        // get speed unit from Garmin device settings
+        // metric vs imperial
         if (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) {
             speedunitFactor = 1.0;
             speedunit = "kmh";
@@ -106,9 +97,8 @@ class ForumsladerApp extends AppBase {
         debug("Read user settings: " + $.UserSettings.toString() + " unit: " + speedunit);
     }
 
-    //! Helper to safely convert a property's value with maybe unexpected type to a Number or a Boolean
-    //! @param property key, default value
-    //! @return value as Number or Boolean
+    //! Safely reads a property; returns thisDefault if null or wrong type.
+    //! @return value or thisDefault
     private function readKey(key as PropertyKeyType, thisDefault as Number or Boolean) as Number or Boolean {
         var value = Properties.getValue(key as String) as PropertyValueType;
 
@@ -127,14 +117,11 @@ class ForumsladerApp extends AppBase {
         return value;
     }
 
-    //! Return the settings view and delegate for the app
-    //! @return Array Pair [View, Delegate]
     (:SettingsMenu)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
         return [new $.SettingsMenu(), new $.SettingsMenuDelegate(_deviceManager as DeviceManager, _dataManager as DataManager)];
     }
 
-    // debug functions
     (:debug)
     public function onActive(state as Dictionary?) as Void {
         debug("App is active");

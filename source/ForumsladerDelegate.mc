@@ -49,7 +49,7 @@ class ForumsladerDelegate extends BleDelegate {
     //! @param scanRecord scan result object
     //! @return true if forumslader was found with scan record, false otherwise
     public function ProcessScanRecord(result as ScanResult) as Boolean {
-        // identify a V6 forumslader device by its advertised local name
+        // identify FLv6 by advertised name
         var _deviceName = result.getDeviceName() as String;
         if (_deviceName != null) {
             if (_deviceName.equals("FLV6") || _deviceName.equals("flv6") || _deviceName.equals("FL_BLE") || _deviceName.equals("fl_ble")) {
@@ -57,7 +57,7 @@ class ForumsladerDelegate extends BleDelegate {
                 return true;
             }
         }
-        // identify a V5 forumslader device by its manufacturer ID in advertisement data
+        // identify FLv5 by manufacturer ID
         var iter = result.getManufacturerSpecificDataIterator();
         for (var dict = iter.next() as Dictionary; dict != null; dict = iter.next()) {
             if (dict.get(:companyId) == 0x4d48) {
@@ -65,12 +65,10 @@ class ForumsladerDelegate extends BleDelegate {
                 return true;
             }
         }
-        return false; // not a forumslader device
+        return false;
     }
 
-    //! Handle pairing and connecting to a device
-    //! @param device The device state that was changed
-    //! @param state The state of the connection
+    //! @param device, state connection state change
     public function onConnectedStateChanged(device as Device, state as ConnectionState) as Void {
         var onConnection = _onConnection;
         if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
@@ -79,7 +77,7 @@ class ForumsladerDelegate extends BleDelegate {
                 (onConnection.get() as DeviceManager).procConnection(device);
             }
         } else {
-            // Call procDisconnect (which clears flags) before set global state to disconnected
+            // clear flags before setting global state
             if (null != onConnection && onConnection.stillAlive()) {
                 var manager = (onConnection.get() as DeviceManager);
                 manager.procDisconnect();
@@ -89,14 +87,11 @@ class ForumsladerDelegate extends BleDelegate {
         }
     }
 
-    //! Handle the completion of notification on a characteristic change, store $FLx payload in buffer
-    //! @param characteristic The characteristic that notified
-    //! @param data The data which is delivered by the characteristic
+    //! Appends $FLx BLE payload to buffer; capped at MAX_PAYLOAD_SIZE.
     public function onCharacteristicChanged(characteristic as Characteristic, data as ByteArray) as Void {
         var payload = $.FLpayload;
         var remaining = $.MAX_PAYLOAD_SIZE - payload.size();
-        // If the payload buffer is not full, add the new data to it, up to a maximum of MAX_PAYLOAD_SIZE bytes
-        // note: while user is in setting menu, compute() is not executed, so payload buffer fills up
+        // note: while user is in settings menu, compute() is not called, so buffer may fill up
         if (remaining > 0) {
             payload.addAll(remaining >= data.size() ? data : data.slice(0, remaining));
         }

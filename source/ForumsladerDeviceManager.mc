@@ -4,30 +4,29 @@ import Toybox.Application.Storage;
 
 // app states
 enum {
-    FL_SCANNING = 0, // 0 = scanning for forumslader devices
-    FL_COLDSTART,    // 1 = cold start after pairing (full setup process)
-    FL_CONFIG1,      // 2 = configuration step 1 (request parameters, wait for data stream to be active)
-    FL_CONFIG2,      // 3 = configuration step 2 (wait for valid parameters in data stream)
-    FL_CONFIG3,      // 4 = configuration step 3 (fallback, if parameters were not valid in CONFIG2, request parameters again)
-    FL_DISCONNECT,   // 5 = device disconnected, waiting for reconnect (can be triggered by disconnect event or by failed setup)
-    FL_WARMSTART,    // 6 = warm start after disconnect (skip setup process, just restart data stream)
-    FL_RUNNING       // 7 = device is connected and configured, data stream is active
+    FL_SCANNING = 0, // scanning for Forumslader
+    FL_COLDSTART,    // cold start after pairing
+    FL_CONFIG1,      // config step 1: await data stream
+    FL_CONFIG2,      // config step 2: await valid params
+    FL_CONFIG3,      // config step 3: retry param request
+    FL_DISCONNECT,   // disconnected; waiting to reconnect
+    FL_WARMSTART,    // warm start: skip setup, restart stream
+    FL_RUNNING       // connected and running
 }
 
 class DeviceManager {
 
     private const
         NULL_UUID = BluetoothLowEnergy.stringToUuid("00000000-0000-0000-0000-000000000000"),
-        // RSSI threshold for pairing, to avoid pairing with devices that are too far away and thus have an unstable connection.
-        // This is especially important for the auto-locking feature, as a stable connection is required to reliably detect when the user leaves the bike.
+        // min RSSI for pairing; prevents unstable connections, important for DeviceLock
         _RSSI_threshold = -85,
-        // command to start data stream on FLv6: 0x01,0x00 (notification bit in cccd)
+        // CCCD notification enable: start FLv6 data stream
         FL6_START = [0x01, 0x00]b,
-        // command to request wheel size and pole count from the forumslader device: $FLT,5*46<lf>
+        // $FLT,5: request FLP params (wheel size, pole count)
         FL_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
-        // command to reset trip counter: $FLT,7*45<lf>
+        // $FLT,7: reset trip counter
         FL_TRIP_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x37, 0x2A, 0x34, 0x35, 0x0A]b,
-        // command to reset tour counter: $FLT,6*44<lf>
+        // $FLT,6: reset tour counter
         FL_TOUR_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x36, 0x2A, 0x34, 0x34, 0x0A]b;
 
     private var
@@ -45,9 +44,8 @@ class DeviceManager {
         _FL_CONFIG as Uuid = NULL_UUID,
         _FL_COMMAND as Uuid = NULL_UUID;
 
-    //! Constructor
-    //! @param bleDelegate The BLE delegate which provides the functions for asynchronous BLE callbacks
-    //! @param dataManager The DataManager class which processes the received data stream of the BLE device
+    //! @param bleDelegate BLE event callbacks
+    //! @param dataManager incoming data processor
     public function initialize(bleDelegate as ForumsladerDelegate, dataManager as DataManager) {
         _delegate = bleDelegate;
         _data = dataManager;
@@ -72,21 +70,19 @@ class DeviceManager {
         self._setState(FL_DISCONNECT);
     }
 
-    //! Start BLE scanning
+    //! Starts BLE scanning, or directly pairs the locked device if DeviceLock is set.
     public function startScan() as Void {
-        // Ensure _writeInProgress is reset for clean state
-        _writeInProgress = false;
+        _writeInProgress = false; // reset write flag
 
-        // Try direct pairing with stored device if DeviceLock enabled
+        // DeviceLock: try direct pair
         if ($.UserSettings[$.DeviceLock] == true) {
             if (_lockTarget != null) {
                 try {
-                    // Only attempt pairing if not already in a state transition
                     if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
-                        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF); // Ensure scanning is off before pairing
+                        BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF); // stop scan before pairing
                         var targetDevice = _lockTarget as ScanResult;
-                        _pairTarget = targetDevice; // Set the stored device as the current target for pairing
-                        _delegate.ProcessScanRecord(targetDevice); // Process the stored device as if it was just scanned to trigger connection flow
+                        _pairTarget = targetDevice;
+                        _delegate.ProcessScanRecord(targetDevice);
                         BluetoothLowEnergy.pairDevice(targetDevice);
                         debug("DeviceLock: stored device paired");
                         return;
@@ -94,12 +90,11 @@ class DeviceManager {
                 }
                 catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
                     debug("DeviceLock: stored device pairing failed: " + ex.getErrorMessage());
-                    return; // Don't start scanning if pairing fails, to avoid conflicts and allow user to troubleshoot (e.g. by moving closer to the device).
+                    return;
                 }
             }
         }
 
-        // Start normal scanning
         debug("scanning");
         if (_connectedDevice != null) {
             BluetoothLowEnergy.unpairDevice(_connectedDevice);
@@ -107,25 +102,22 @@ class DeviceManager {
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
         self._setState(FL_SCANNING);
         _configDone = false;
-        _pairTarget = null;  // Clear old reference
+        _pairTarget = null;
     }
 
-    //! Process scan result of incoming BLE advertises
-    //! @param scanResult The scan result
+    //! Filters scan results and pairs the first suitable Forumslader.
     public function procScanResult(scanResult as ScanResult) as Void {
-        // Race Condition State Guard: Only process scan results when actively searching
+        // only while scanning
         if ($.FLstate != FL_SCANNING) {
             return;
         }
 
-        // Runtime safety for DeviceLock: if a lock target exists, only that device is allowed for pairing.
-        var lockedDevice = _lockTarget; // Local copy to avoid multiple storage reads and potential race conditions
+        var lockedDevice = _lockTarget; // local copy, avoids race
         if ($.UserSettings[$.DeviceLock] == true && lockedDevice != null && !lockedDevice.equals(scanResult)) {
             return;
         }
 
-        // For DeviceLock: skip RSSI check, user knows their device location
-        // For normal scanning: only pair with good RSSI to ensure stable connection
+        // DeviceLock bypasses RSSI check
         var isDeviceLocked = $.UserSettings[$.DeviceLock] == true && lockedDevice != null && lockedDevice.equals(scanResult);
         var rssiThresholdPassed = scanResult.getRssi() > _RSSI_threshold;
         
@@ -134,21 +126,19 @@ class DeviceManager {
             return;
         }
 
-        // Stop scanning to save resources, as we found a device with good signal or locked device found. If it's not the right device or pairing fails, we'll restart scanning in the catch block.    
+        // stop scan; restart in catch if pairing fails    
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
 
-        // if the device is already paired, we can skip the pairing process to save time
+        // already targeting this device
         if (_pairTarget != null && _pairTarget.equals(scanResult)) {
             return;
         }
-        // Pairing can sometimes fail due to interference or other issues, so we wrap it in a try-catch block
         try {
             BluetoothLowEnergy.pairDevice(scanResult);
             debug("paired");
             _pairTarget = scanResult;
-            saveDevice(); // Save the newly paired device if device lock is enabled
+            saveDevice();
         }
-        // if the pairing process is disrupted, restart scanning, but only if we're still in the scanning state, to avoid interfering with other states
         catch(ex instanceof BluetoothLowEnergy.DevicePairException) {
             debug("cannot pair device " + scanResult.getDeviceName());
             debug("error: " + ex.getErrorMessage());
@@ -159,14 +149,12 @@ class DeviceManager {
         }
     }
 
-    //! Process a new device connection
-    //! @param device The device that was connected
+    //! Handles new connection; transitions to cold or warm start.
     public function procConnection(device as Device) as Void {
         if (device != null && device.isConnected()) {
             _connectedDevice = device;
-            _writeInProgress = false;  // Reset write flag on successful connection
-            // Set state ONLY if we're actually starting fresh
-            // Don't override if already in a valid state (e.g. CONFIG1-3) to avoid disrupting the setup process
+            _writeInProgress = false; // reset write flag
+            // only transition from SCANNING/DISCONNECT
             if ($.FLstate == FL_SCANNING || $.FLstate == FL_DISCONNECT) {
                 self._setState(_configDone ? FL_WARMSTART : FL_COLDSTART);
             }
@@ -178,10 +166,10 @@ class DeviceManager {
         }
     }
 
-    //! Handle device disconnect and restart scanning immediately
+    //! Clears connection state on disconnect.
     public function procDisconnect() as Void {
         _writeInProgress = false;
-        _connectedDevice = null;  // Clear device reference immediately
+        _connectedDevice = null;
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -216,8 +204,7 @@ class DeviceManager {
         debug("Tour reset command sent");
     }
 
-    //! Send command to forumslader device
-    //! @param cmd as command ByteArray
+    //! @param cmd raw command bytes
     private function sendCommandFL(cmd as ByteArray) as Void {
         if ((null == _connectedDevice) || _writeInProgress || null == _command) {
             return;
@@ -231,14 +218,13 @@ class DeviceManager {
         }
     }
 
-    //! identify forumslader and get characteristic of it's GATT service
-    //! @return Boolean to indicate if the setup was successful (i.e. a forumslader was identified and the characteristics were found)
+    //! Gets the Forumslader GATT service and caches its characteristics.
+    //! @return true on success
     private function setupProfile() as Boolean {
         if (_connectedDevice == null || !_connectedDevice.isConnected()) {
             return false;
         }
 
-        // Wrap iterator in try-catch for disconnect during iteration
         try {
             if (!isForumslader(_connectedDevice)) {
                 debug("error: connected device is not a forumslader V5/V6");
@@ -252,7 +238,7 @@ class DeviceManager {
             return false;
         }
 
-        // Race protection: Check device still connected before getService
+        // recheck connection before getService
         if (_connectedDevice == null || !_connectedDevice.isConnected()) {
             return false;
         }
@@ -269,9 +255,7 @@ class DeviceManager {
         return true;
     }
 
-    //! This function is called from the settings menu when the user changes the DeviceLock setting, to either save the currently paired device or to clear the stored device, depending on the new value of the DeviceLock setting.
-    //! It is also called from the onSettingsChanged callback of the app, to persist the device immediately when the user changes the setting in the GCM while the app is running.
-    /// The function checks the current value of the DeviceLock setting and either saves the currently paired device to storage (if DeviceLock is enabled) or clears the stored device from storage (if DeviceLock is disabled).
+    //! Persists or clears the locked device in storage based on DeviceLock setting.
     public function saveDevice () as Void {
         var storedDevice = _lockTarget;
         if ($.UserSettings[$.DeviceLock] == false && storedDevice != null) {
@@ -293,26 +277,23 @@ class DeviceManager {
         debug("DeviceLock: no device to save or clear, no action taken");
     }
 
-    //! Identify the forumslader type and setup its UUIDs
-    //! @param Device to be validated as forumslader
-    //! @return Boolean to indicate if the device was identified as a forumslader
+    //! Identifies the Forumslader version and sets service/characteristic UUIDs.
+    //! @return true if a v5 or v6 service was found
     private function isForumslader(device as Device or Null) as Boolean {
         _FL_SERVICE = NULL_UUID;
         _FL_CONFIG = NULL_UUID;
         _FL_COMMAND = NULL_UUID;
 
-        // Race protection: Service Iterator Disconnect Check
         if (device == null || !device.isConnected()) {
             debug("Device is null or disconnected in isForumslader");
             return false;
         }
 
-        // Race protection: Iterator might fail if device disconnects - wrap in try-catch
+        // guard against disconnect during iteration
         try {
-            
             var iter = device.getServices();
             for (var service = iter.next(); service != null; service = iter.next()) {
-                // Check device still connected during iteration
+                // recheck during iteration
                 if (!device.isConnected()) {
                     debug("Device disconnected during service iteration");
                     return false;
@@ -348,13 +329,11 @@ class DeviceManager {
         return false;
     }
 
-    //! Write notification to descriptor to start data stream on forumslader device
-    //! For FLv5 this is not needed, as it starts the data stream immediately after connection, but for FLv6 this is required to activate the data stream.
+    //! Enables BLE notifications on FLv6 RX characteristic to start the data stream.
     private function startDatastreamFL() as Void {
         if (!$.isV6) {
             return;
         }
-        // Validate device and config are still valid before accessing
         if (_connectedDevice == null || !_connectedDevice.isConnected() || _config == null) {
             return;
         }
@@ -362,7 +341,7 @@ class DeviceManager {
         try {
             var cccd = _config.getDescriptor(BluetoothLowEnergy.cccdUuid());
             if (null != cccd) {
-                // Race protection: Check device still connected before write
+                // recheck connection
                 if (_connectedDevice.isConnected()) {
                     _writeInProgress = true;
                     cccd.requestWrite(FL6_START); // set notification bit
@@ -374,19 +353,18 @@ class DeviceManager {
         }
     }
 
-    //! Finite state machine
-    //! This function is called after every relevant event (e.g. connection, data received, etc.) to update the state of the app and trigger the next steps in the setup process.
+    //! Advances the setup FSM; call after every BLE event.
     public function updateState() as Number {
         var currentState = $.FLstate;
 
         switch(currentState) {
-            // Idle-Zustände: Sofortiger Abbruch spart CPU-Zyklen
+            // idle: no action
             case FL_RUNNING:
             case FL_SCANNING:
             case FL_DISCONNECT:
                 break;
 
-            // Kaltstart nach dem Pairing
+            // Cold start after pairing
             case FL_COLDSTART:
                 if (setupProfile()) {
                     currentState = FL_CONFIG1;
@@ -396,21 +374,21 @@ class DeviceManager {
                 }
                 break;
 
-            // Warmstart nach einem Verbindungsabbruch
+            // Warm start after a connection drop
             case FL_WARMSTART:
                 currentState = FL_RUNNING;
                 startDatastreamFL();
                 break;
 
-            // Parameter anfordern, sobald der Datenstrom aktiv ist
+            // Request parameters as soon as the data stream is active
             case FL_CONFIG1:
                 if (_data.age == 0) {
-                    sendCommandFL(FL_REQ_FLP); // Radgröße und Polanzahl anfordern
+                    sendCommandFL(FL_REQ_FLP); // Request wheel size and pole count
                     currentState = FL_CONFIG2;
                 }
                 break;
 
-            // Wenn die Polanzahl > 0 ist, sind die Parameter gültig und die App kann in den READY-Zustand wechseln
+            // If pole count > 0, parameters are valid and the app can transition to READY state
             case FL_CONFIG2:
             case FL_CONFIG3:
                 var fl = _data.FLdata;
@@ -418,7 +396,7 @@ class DeviceManager {
                     _configDone = true;
                     currentState = FL_RUNNING;
                 } else {
-                    // Wenn beim ersten Mal (CONFIG2) fehlgeschlagen, gehe zu CONFIG3, sonst zurück zu CONFIG1
+                    // If failed on the first attempt (CONFIG2), go to CONFIG3, otherwise back to CONFIG1
                     currentState = (currentState == FL_CONFIG2) ? FL_CONFIG3 : FL_CONFIG1;
                 }
                 break;
@@ -430,7 +408,7 @@ class DeviceManager {
                 break;
         }
 
-        // Den berechneten Zustand wieder zurückschreiben und zurückgeben
+        // Write the calculated state back and return it
         self._setState(currentState);
         return currentState;
     }
