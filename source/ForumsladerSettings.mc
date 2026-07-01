@@ -256,7 +256,8 @@ class ForumsladerMenuDelegate extends WatchUi.Menu2InputDelegate {
         _wheelIdx      as Number,
         _polesVal      as Number,
         _poweroffIdx   as Number,
-        _changed       as Boolean;
+        _wheelPolesChanged as Boolean,
+        _poweroffChanged   as Boolean;
 
     //! @param deviceManager  used to send commands to the Forumslader
     //! @param dataManager    used to update pulse offsets after an odometer reset
@@ -270,7 +271,8 @@ class ForumsladerMenuDelegate extends WatchUi.Menu2InputDelegate {
         _deviceManager = deviceManager;
         _dataManager   = dataManager;
         _menu          = menu;
-        _changed       = false;
+        _wheelPolesChanged = false;
+        _poweroffChanged   = false;
 
         // Priority: Storage (user's last saved values) > FLP live data > built-in defaults
         var storedWs  = Storage.getValue("KonfigWS")  as Number?;
@@ -310,15 +312,15 @@ class ForumsladerMenuDelegate extends WatchUi.Menu2InputDelegate {
         if (id == :wheelsize) {
             _wheelIdx = (_wheelIdx + 1) % WHEEL_SIZES.size();
             item.setSubLabel(WHEEL_SIZES[_wheelIdx].toString() + " mm");
-            _changed = true;
+            _wheelPolesChanged = true;
         } else if (id == :poles) {
             _polesVal = (_polesVal % 32) + 1;
             item.setSubLabel(_polesVal.toString());
-            _changed = true;
+            _wheelPolesChanged = true;
         } else if (id == :poweroff) {
             _poweroffIdx = (_poweroffIdx + 1) % POWEROFF_STEPS.size();
             item.setSubLabel(POWEROFF_STEPS[_poweroffIdx].toString() + " s");
-            _changed = true;
+            _poweroffChanged = true;
         } else if (id == :tripreset || id == :tourreset) {
             // Push a single-item confirmation sub-menu; TripResetDelegate handles the action.
             var confirmId = (id == :tripreset) ? :tripconfirm : :tourconfirm;
@@ -334,13 +336,15 @@ class ForumsladerMenuDelegate extends WatchUi.Menu2InputDelegate {
         WatchUi.requestUpdate();
     }
 
-    //! Sends changed config values to the Forumslader and persists them before closing the menu.
+    //! Sends only changed config values to the Forumslader and persists them before closing the menu.
     public function onBack() as Void {
-        if (_changed) {
-            Storage.setValue("KonfigWS",  WHEEL_SIZES[_wheelIdx]);
-            Storage.setValue("KonfigPO",  _polesVal);
-            Storage.setValue("KonfigOFF", POWEROFF_STEPS[_poweroffIdx]);
+        if (_wheelPolesChanged) {
+            Storage.setValue("KonfigWS", WHEEL_SIZES[_wheelIdx]);
+            Storage.setValue("KonfigPO", _polesVal);
             _deviceManager.sendWheelConfig(WHEEL_SIZES[_wheelIdx], _polesVal);
+        }
+        if (_poweroffChanged) {
+            Storage.setValue("KonfigOFF", POWEROFF_STEPS[_poweroffIdx]);
             _deviceManager.sendPoweroff(POWEROFF_STEPS[_poweroffIdx]);
         }
         Menu2InputDelegate.onBack();
