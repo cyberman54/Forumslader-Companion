@@ -21,13 +21,7 @@ class DeviceManager {
         // min RSSI for pairing; prevents unstable connections, important for DeviceLock
         _RSSI_threshold = -85,
         // CCCD notification enable: start FLv6 data stream
-        FL6_START = [0x01, 0x00]b,
-        // $FLT,5: request FLP params (wheel size, pole count)
-        FL_REQ_FLP = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x35, 0x2A, 0x34, 0x37, 0x0a]b,
-        // $FLT,7: reset trip counter
-        FL_TRIP_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x37, 0x2A, 0x34, 0x35, 0x0A]b,
-        // $FLT,6: reset tour counter
-        FL_TOUR_RESET = [0x24, 0x46, 0x4C, 0x54, 0x2C, 0x36, 0x2A, 0x34, 0x34, 0x0A]b;
+        FL6_START = [0x01, 0x00]b;
 
     private var
         _delegate as ForumsladerDelegate,
@@ -194,14 +188,43 @@ class DeviceManager {
 
     //! Send trip reset command to the Forumslader device
     public function resetTrip() as Void {
-        sendCommandFL(FL_TRIP_RESET);
+        sendCommandFL(buildNMEACmd("FLT,7"));
         debug("Trip reset command sent");
     }
 
     //! Send tour reset command to the Forumslader device
     public function resetTour() as Void {
-        sendCommandFL(FL_TOUR_RESET);
+        sendCommandFL(buildNMEACmd("FLT,6"));
         debug("Tour reset command sent");
+    }
+
+    //! Send wheel size and pole count to the Forumslader ($FLT,9,wheelsize,poles)
+    public function sendWheelConfig(wheelsize as Number, poles as Number) as Void {
+        sendCommandFL(buildNMEACmd("FLT,9," + wheelsize.toString() + "," + poles.toString()));
+        debug("Wheel config sent: " + wheelsize.toString() + "/" + poles.toString());
+    }
+
+    //! Send poweroff time to the Forumslader ($FLT,12,seconds)
+    public function sendPoweroff(seconds as Number) as Void {
+        sendCommandFL(buildNMEACmd("FLT,12," + seconds.toString()));
+        debug("Poweroff sent: " + seconds.toString() + "s");
+    }
+
+    //! Builds a NMEA-style command ByteArray: $<body>*<XOR checksum>\n
+    private function buildNMEACmd(body as String) as ByteArray {
+        var parity = 0;
+        var bodyChars = body.toCharArray();
+        var i;
+        for (i = 0; i < bodyChars.size(); i++) {
+            parity ^= (bodyChars[i] as Char).toNumber();
+        }
+        var cmd = "$" + body + "*" + parity.format("%02X") + "\n";
+        var cmdChars = cmd.toCharArray();
+        var bytes = new [0]b;
+        for (i = 0; i < cmdChars.size(); i++) {
+            bytes.add((cmdChars[i] as Char).toNumber());
+        }
+        return bytes;
     }
 
     //! @param cmd raw command bytes
@@ -383,7 +406,7 @@ class DeviceManager {
             // Request parameters as soon as the data stream is active
             case FL_CONFIG1:
                 if (_data.age == 0) {
-                    sendCommandFL(FL_REQ_FLP); // Request wheel size and pole count
+                    sendCommandFL(buildNMEACmd("FLT,5")); // Request wheel size and pole count
                     currentState = FL_CONFIG2;
                 }
                 break;

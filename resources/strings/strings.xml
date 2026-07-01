@@ -51,14 +51,18 @@
     <string id="ShortCircuit">Short Circuit</string>
     <string id="SystemInterrupt">System Interrupt</string>
     <string id="BatteryLow">Battery Level Below 20%</string>
-    <string id="MenuTripReset">Reset Odometers</string>
-    <string id="TripResetConfirm">Which Odometer?</string>
-    <string id="TripResetYes">Trip</string>
-    <string id="TourResetYes">Tour</string>
+    <string id="TripResetConfirm">Confirm Reset?</string>
+    <string id="TripResetYes">Confirm</string>
+    <string id="ResetTripAction">Trip reset</string>
+    <string id="ResetTourAction">Tour reset</string>
     <string id="NotConnected">Not Connected!</string>
     <string id="ChargeStandby">Trickle Charge</string>
     <string id="ChargeFull">Full</string>
     <string id="ChargeDischarging">Discharge</string>
     <string id="ChargeCharging">Charging</string>
     <string id="NoFieldConfigured">Config?</string>
+    <string id="MenuKonfig">Device</string>
+    <string id="KonfigWheelsize">Tire Size</string>
+    <string id="KonfigPoles">Pole Count</string>
+    <string id="KonfigPoweroff">Poweroff Time</string>
 </strings>

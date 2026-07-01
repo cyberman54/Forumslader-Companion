@@ -23,10 +23,10 @@
     <string id="searching">Suchen...</string>
     <string id="initializing">Initialisieren...</string>
     <string id="connecting">Verbinden...</string>
-    <string id="MenuTripReset">Zähler nullen</string>
-    <string id="TripResetConfirm">Welcher Zähler?</string>
-    <string id="TripResetYes">Tageszähler</string>
-    <string id="TourResetYes">Tourzähler</string>
+    <string id="TripResetConfirm">Wirklich nullen?</string>
+    <string id="TripResetYes">Bestätigen</string>
+    <string id="ResetTripAction">Trip reset</string>
+    <string id="ResetTourAction">Tour reset</string>
     <string id="TripEnergy">Tagesenergie</string>
     <string id="TripEnergyLabel">Wh</string>
     <string id="Temperature">Temperatur</string>
@@ -48,6 +48,10 @@
     <string id="BatteryCapacity">Akkufüllstand</string>
     <string id="BatteryCapacityLabel">%</string>
     <string id="ChargingState">Ladezustand</string>
+    <string id="MenuKonfig">Gerät</string>
+    <string id="KonfigWheelsize">Reifengröße</string>
+    <string id="KonfigPoles">Polanzahl</string>
+    <string id="KonfigPoweroff">Poweroff Zeit</string>
     <string id="DayDistance">Tageskm</string>
     <string id="DayDistanceLabel">km</string>
     <string id="TourDistance">Tourkm</string>

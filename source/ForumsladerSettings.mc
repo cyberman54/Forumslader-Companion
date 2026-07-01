@@ -23,7 +23,7 @@ class SettingsMenu extends WatchUi.Menu2 {
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuSettings) as String, null, :options, null));
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuDatafields) as String, null, :fields, null));
         Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuFitDatafields) as String, null, :fitfields, null));
-        Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuTripReset) as String, null, :counterreset, null));
+        Menu2.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.MenuKonfig) as String, null, :forumslader, null));
     }
 }
 
@@ -39,7 +39,8 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         _sFitLog as String,
         _sBrowse as String,
         _sAlerts as String,
-        _sDeviceLock as String;
+        _sDeviceLock as String,
+        _sKonfigTitle as String;
 
     //! Constructor
     public function initialize(deviceManager as DeviceManager, dataManager as DataManager) {
@@ -52,6 +53,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         _sBrowse        = WatchUi.loadResource($.Rez.Strings.SelectBrowseFields) as String;
         _sAlerts        = WatchUi.loadResource($.Rez.Strings.SelectAlerts) as String;
         _sDeviceLock    = WatchUi.loadResource($.Rez.Strings.SelectDeviceLock) as String;
+        _sKonfigTitle   = WatchUi.loadResource($.Rez.Strings.MenuKonfig) as String;
     }
 
     //! @param item selected item
@@ -90,15 +92,21 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             fitMenu.addItem(new WatchUi.IconMenuItem(fitDrawable3.getString(), null, $.FitField3, fitDrawable3, null));
             fitMenu.addItem(new WatchUi.IconMenuItem(fitDrawable4.getString(), null, $.FitField4, fitDrawable4, null));
             WatchUi.pushView(fitMenu, new $.SubMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
-        } else if (id == :counterreset) {
-            // Push a menu to confirm trip reset or tour reset
-            var title = ($.FLstate == FL_RUNNING)
-                ? WatchUi.loadResource($.Rez.Strings.TripResetConfirm) as String
-                : WatchUi.loadResource($.Rez.Strings.NotConnected) as String;
-            var menu = new WatchUi.Menu2({:title => title});
-            menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TripResetYes) as String, null, :tripconfirm, null));
-            menu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.TourResetYes) as String, null, :tourconfirm, null));
-            WatchUi.pushView(menu, new $.TripResetDelegate(_deviceManager, _dataManager), WatchUi.SLIDE_IMMEDIATE);
+        } else if (id == :forumslader) {
+            // Push a combined menu for FL hardware config and odometer resets.
+            // Config values are sent automatically when the user navigates back.
+            var flMenu = new WatchUi.Menu2({:title => _sKonfigTitle});
+            var flWs = _dataManager.FLdata[$.FL_wheelsize];
+            var flPo = _dataManager.FLdata[$.FL_poles];
+            // Rows 0-1: odometer resets (most frequently used, at top)
+            flMenu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.ResetTripAction) as String, null, :tripreset, null));
+            flMenu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.ResetTourAction) as String, null, :tourreset, null));
+            // Rows 2-4: hardware config
+            flMenu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.KonfigWheelsize) as String, null, :wheelsize, null));
+            flMenu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.KonfigPoles) as String, null, :poles, null));
+            flMenu.addItem(new WatchUi.MenuItem(WatchUi.loadResource($.Rez.Strings.KonfigPoweroff) as String, null, :poweroff, null));
+
+            WatchUi.pushView(flMenu, new $.ForumsladerMenuDelegate(_deviceManager, _dataManager, flMenu, flWs, flPo), WatchUi.SLIDE_IMMEDIATE);
         } else {
             WatchUi.requestUpdate();
         }
@@ -222,6 +230,120 @@ class PickList extends WatchUi.Drawable {
     //! @return settings key for this picklist
     public function getField() as Number {
         return _field;
+    }
+}
+
+(:SettingsMenu)
+//! Delegate for the combined Forumslader menu (hardware config + odometer resets).
+//! Config values (tire size, pole count, poweroff time) are sent to the device automatically
+//! when the user navigates back. Odometer resets require a confirmation sub-menu.
+class ForumsladerMenuDelegate extends WatchUi.Menu2InputDelegate {
+
+    // Common ISO tire circumferences (mm) ordered by size
+    private const WHEEL_SIZES = [
+        1578, 1686, 1796, 1952, 2026, 2051, 2068, 2086,
+        2105, 2130, 2146, 2168, 2180, 2199, 2224, 2247,
+        2268, 2288, 2326
+    ] as Array<Number>;
+
+    // Predefined poweroff steps in seconds (0 = never)
+    private const POWEROFF_STEPS = [0, 30, 60, 90, 120, 150, 180, 210, 240, 255] as Array<Number>;
+
+    private var
+        _deviceManager as DeviceManager,
+        _dataManager   as DataManager,
+        _menu          as WatchUi.Menu2,
+        _wheelIdx      as Number,
+        _polesVal      as Number,
+        _poweroffIdx   as Number,
+        _changed       as Boolean;
+
+    //! @param deviceManager  used to send commands to the Forumslader
+    //! @param dataManager    used to update pulse offsets after an odometer reset
+    //! @param menu           the Menu2 view whose item sub-labels will be updated
+    //! @param flWheelsize    wheel circumference from live FLP data (0 if not yet received)
+    //! @param flPoles        pole count from live FLP data (0 if not yet received)
+    public function initialize(deviceManager as DeviceManager, dataManager as DataManager,
+                               menu as WatchUi.Menu2,
+                               flWheelsize as Number, flPoles as Number) {
+        Menu2InputDelegate.initialize();
+        _deviceManager = deviceManager;
+        _dataManager   = dataManager;
+        _menu          = menu;
+        _changed       = false;
+
+        // Priority: Storage (user's last saved values) > FLP live data > built-in defaults
+        var storedWs  = Storage.getValue("KonfigWS")  as Number?;
+        var storedPo  = Storage.getValue("KonfigPO")  as Number?;
+        var storedOff = Storage.getValue("KonfigOFF") as Number?;
+
+        var ws = (storedWs != null)  ? storedWs  : ((flWheelsize > 0) ? flWheelsize : 2199);
+        var po = (storedPo != null)  ? storedPo  : ((flPoles >= 1 && flPoles <= 32) ? flPoles : 14);
+        var off = (storedOff != null) ? storedOff : 120;
+
+        _wheelIdx    = _findNearest(ws, WHEEL_SIZES);
+        _polesVal    = (po >= 1 && po <= 32) ? po : 14;
+        _poweroffIdx = _findNearest(off, POWEROFF_STEPS);
+
+        // Set all three sub-labels to the resolved values (indices 2-4, rows 0-1 are resets)
+        (_menu.getItem(2) as WatchUi.MenuItem).setSubLabel(WHEEL_SIZES[_wheelIdx].toString() + " mm");
+        (_menu.getItem(3) as WatchUi.MenuItem).setSubLabel(_polesVal.toString());
+        (_menu.getItem(4) as WatchUi.MenuItem).setSubLabel(POWEROFF_STEPS[_poweroffIdx].toString() + " s");
+    }
+
+    //! Returns the index of the element in arr closest to target.
+    private function _findNearest(target as Number, arr as Array<Number>) as Number {
+        var best = 0;
+        var bestDiff = arr[0] - target;
+        if (bestDiff < 0) { bestDiff = -bestDiff; }
+        for (var i = 1; i < arr.size(); i++) {
+            var diff = arr[i] - target;
+            if (diff < 0) { diff = -diff; }
+            if (diff < bestDiff) { bestDiff = diff; best = i; }
+        }
+        return best;
+    }
+
+    //! Handles item selection: cycles through config values or opens a reset confirmation.
+    public function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId() as Symbol;
+        if (id == :wheelsize) {
+            _wheelIdx = (_wheelIdx + 1) % WHEEL_SIZES.size();
+            item.setSubLabel(WHEEL_SIZES[_wheelIdx].toString() + " mm");
+            _changed = true;
+        } else if (id == :poles) {
+            _polesVal = (_polesVal % 32) + 1;
+            item.setSubLabel(_polesVal.toString());
+            _changed = true;
+        } else if (id == :poweroff) {
+            _poweroffIdx = (_poweroffIdx + 1) % POWEROFF_STEPS.size();
+            item.setSubLabel(POWEROFF_STEPS[_poweroffIdx].toString() + " s");
+            _changed = true;
+        } else if (id == :tripreset || id == :tourreset) {
+            // Push a single-item confirmation sub-menu; TripResetDelegate handles the action.
+            var confirmId = (id == :tripreset) ? :tripconfirm : :tourconfirm;
+            var title = ($.FLstate == FL_RUNNING)
+                ? WatchUi.loadResource($.Rez.Strings.TripResetConfirm) as String
+                : WatchUi.loadResource($.Rez.Strings.NotConnected) as String;
+            var confirmMenu = new WatchUi.Menu2({:title => title});
+            confirmMenu.addItem(new WatchUi.MenuItem(
+                WatchUi.loadResource($.Rez.Strings.TripResetYes) as String, null, confirmId, null));
+            WatchUi.pushView(confirmMenu, new $.TripResetDelegate(_deviceManager, _dataManager), WatchUi.SLIDE_IMMEDIATE);
+            return;
+        }
+        WatchUi.requestUpdate();
+    }
+
+    //! Sends changed config values to the Forumslader and persists them before closing the menu.
+    public function onBack() as Void {
+        if (_changed) {
+            Storage.setValue("KonfigWS",  WHEEL_SIZES[_wheelIdx]);
+            Storage.setValue("KonfigPO",  _polesVal);
+            Storage.setValue("KonfigOFF", POWEROFF_STEPS[_poweroffIdx]);
+            _deviceManager.sendWheelConfig(WHEEL_SIZES[_wheelIdx], _polesVal);
+            _deviceManager.sendPoweroff(POWEROFF_STEPS[_poweroffIdx]);
+        }
+        Menu2InputDelegate.onBack();
     }
 }
 
